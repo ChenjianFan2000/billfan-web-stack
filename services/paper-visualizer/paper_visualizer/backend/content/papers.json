@@ -1,0 +1,324 @@
+{
+  "generated_at": "2026-04-16T02:05:48.374901+00:00",
+  "papers": [
+    {
+      "slug": "cross_impact",
+      "short_title": {
+        "zh": "异质幂律交叉冲击无操纵条件",
+        "en": "No-Manipulation for Heterogeneous Power-Law Cross-Impact"
+      },
+      "status": "draft",
+      "domain": [
+        "market_microstructure",
+        "derivatives"
+      ],
+      "math_tools": [
+        "fourier_analysis",
+        "large_deviations",
+        "perturbation_expansion",
+        "linear_spectral_statistics"
+      ],
+      "one_liner": {
+        "en": "We derive necessary and sufficient conditions for absence of price manipulation in a multi-asset market with transient cross-impact governed by a power-law propagator with heteroge",
+        "zh": "本文研究多资产市场中由幂律传播算子驱动的瞬态交叉冲击下价格操纵缺失的充要条件。对奇异核$H_{ij}(t)=c_{ij}t^{-\\beta_{ij}}$，证明无价格操纵当且仅当均值指数条件成立且Gamma加权矩阵半正定。对正则化核，发现不对称的必要性结构，并通过不完全Gamma函数的谱渐近分析加以证明。"
+      },
+      "repo": "realresearch",
+      "quality": {
+        "tier": "B",
+        "significance_score": 11,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "discrete_vs_rough",
+      "short_title": {
+        "zh": "粗糙波动率方差互换离散修正",
+        "en": "Anomalous Scaling of Discrete Monitoring for Variance Swaps"
+      },
+      "status": "draft",
+      "domain": [
+        "rough_volatility",
+        "variance_options",
+        "derivatives"
+      ],
+      "math_tools": [
+        "malliavin_calculus",
+        "perturbation_expansion",
+        "monte_carlo",
+        "fourier_analysis",
+        "large_deviations"
+      ],
+      "one_liner": {
+        "en": "This paper derives the asymptotic behavior of the discrete monitoring correction for variance swaps under Volterra stochastic volatility with fractional kernel H∈(0,1/2). Unlike th",
+        "zh": "本文研究Volterra随机波动率模型（分数核H∈(0,1/2)）下方差互换离散监测修正的渐近行为。与经典模型O(n^{-1})的收敛速率不同，当现货-波动率相关性ρ非零时，收敛速率退化为O(n^{-(H+1/2)})。该异常标度率是分数核奇异性的普适性质，前导系数仅通过平均量φ̄依赖于模型。文章还纠正了早期分析中H=1/6处的虚假相变，并通过数值实验验证了"
+      },
+      "repo": "realresearch",
+      "quality": {
+        "tier": "B",
+        "significance_score": 13,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "mv_games",
+      "short_title": {
+        "zh": "均值方差博弈首达时",
+        "en": "First Passage Times in Mean-Variance Games"
+      },
+      "status": "draft",
+      "domain": [
+        "portfolio_games",
+        "systemic_risk"
+      ],
+      "math_tools": [
+        "dubins_schwarz",
+        "monte_carlo",
+        "perturbation_expansion",
+        "fixed_point_theory",
+        "large_deviations"
+      ],
+      "one_liner": {
+        "en": "This paper studies first passage times in symmetric mean-variance portfolio games under full and partial information, revealing a risk reversal: under the good state, partial infor",
+        "zh": "本文研究完全信息与部分信息下对称均值方差投资组合博弈中的首达时间，发现了\"风险反转\"现象：好状态下部分信息投资者的破产概率显著低于完全信息投资者，坏状态下则反转并被放大数百倍。通过指数上鞅界、Dubins-Schwarz二次变差比较等四个定理建立了严格的理论界，并辅以蒙特卡洛数值分析。"
+      },
+      "repo": "realresearch",
+      "quality": {
+        "tier": "B",
+        "significance_score": 11,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "project7",
+      "short_title": {
+        "zh": "稳定币脱锚大偏差",
+        "en": "Large Deviations for Stablecoin Peg-Break"
+      },
+      "status": "draft",
+      "domain": [
+        "stablecoins",
+        "credit_risk"
+      ],
+      "math_tools": [
+        "large_deviations",
+        "freidlin_wentzell",
+        "perturbation_expansion",
+        "monte_carlo",
+        "fourier_analysis"
+      ],
+      "one_liner": {
+        "en": "This paper derives a Freidlin-Wentzell large deviation principle for the peg-break time of reserve-backed stablecoins, obtaining explicit rate functions and Eyring-Kramers prefacto",
+        "zh": "本文利用Freidlin-Wentzell大偏差原理分析储备支撑稳定币脱锚时间，推导了线性耗散类和鞍节点分叉类两种模型的显式速率函数与Eyring-Kramers预因子。对鞍节点类证明了普适3/2临界指数，并将Hathcock-Sethna Airy标度函数严格推广至稳定币场景，给出跨亚稳、临界、超临界区域的一致渐近公式。文章还对2023年3月USDC脱锚事"
+      },
+      "repo": "realresearch",
+      "quality": {
+        "tier": "B",
+        "significance_score": 14,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "project8",
+      "short_title": {
+        "zh": "EN清算向量相变",
+        "en": "Random-Matrix Phase Transition for EN Clearing"
+      },
+      "status": "draft",
+      "domain": [
+        "systemic_risk",
+        "random_matrix_theory",
+        "credit_risk"
+      ],
+      "math_tools": [
+        "random_matrix_theory",
+        "linear_spectral_statistics",
+        "tracy_widom",
+        "bai_silverstein",
+        "chebyshev_expansion",
+        "fixed_point_theory"
+      ],
+      "one_liner": {
+        "en": "This paper introduces a random matrix framework for the Eisenberg-Noe interbank clearing model in the dense-exposure regime, establishing four main results: an N-rate CLT for aggre",
+        "zh": "本文将随机矩阵理论引入Eisenberg-Noe银行间清算模型，在稠密风险敞口机制下建立四个主要结果：异质外部负债网络合计缺口的N速率中心极限定理、相变点处的临界窗口精化、最大奇异值的Tracy-Widom GOE边缘普适性，以及异质临界冲击处的结构二分性。"
+      },
+      "repo": "realresearch",
+      "quality": {
+        "tier": "B",
+        "significance_score": 14,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "sr_p001",
+      "short_title": {
+        "zh": "高斯SBB显式解",
+        "en": "Gaussian Schrödinger-Bass Bridge Optimizers"
+      },
+      "status": "draft",
+      "domain": [
+        "derivatives",
+        "portfolio_games"
+      ],
+      "math_tools": [
+        "bsde",
+        "fixed_point_theory",
+        "perturbation_expansion",
+        "monte_carlo"
+      ],
+      "one_liner": {
+        "en": "This paper derives, via Pontryagin's maximum principle, the explicit Gaussian solution of the Schrödinger-Bass Bridge problem, which interpolates between the classical Schrödinger ",
+        "zh": "本文通过庞特里亚金最大值原理，推导了薛定谔-巴斯桥（SBB）问题的显式高斯解，并识别了可解性边界——目标方差的临界值。低于该临界值时，有限代价解不存在。进一步证明该临界值对任意中心化边际分布均构成二阶矩下界，并分析了退化边界情形。"
+      },
+      "repo": "structural",
+      "quality": {
+        "tier": "B",
+        "significance_score": 9,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "sr_p005",
+      "short_title": {
+        "zh": "方差期权短期渐近",
+        "en": "Short-Maturity Variance Options in LSV Models"
+      },
+      "status": "draft",
+      "domain": [
+        "variance_options",
+        "derivatives",
+        "rough_volatility"
+      ],
+      "math_tools": [
+        "large_deviations",
+        "perturbation_expansion",
+        "euler_maclaurin",
+        "monte_carlo",
+        "fixed_point_theory"
+      ],
+      "one_liner": {
+        "en": "This paper studies short-maturity asymptotics for options on realized variance in local-stochastic volatility (LSV) models with non-zero correlation ρ between asset and volatility ",
+        "zh": "本文研究局部随机波动率（LSV）模型中已实现方差期权的短到期渐近行为，重点处理资产与波动率噪声之间非零相关系数ρ的情形。通过哈密顿守恒律、α参数化上界族以及关于ρ的摄动展开三种互补方法，系统解决了Pirjol等人（2025）遗留的二维变分问题。数值实验在Tanh局部波动率模型中验证了方法的精度，结果可用于CBOE标普500方差期货的定价近似。"
+      },
+      "repo": "structural",
+      "quality": {
+        "tier": "B",
+        "significance_score": 9,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "sr_p006",
+      "short_title": {
+        "zh": "Langevin收缩率",
+        "en": "Wasserstein Contraction for Langevin Dynamics"
+      },
+      "status": "draft",
+      "domain": [
+        "portfolio_games"
+      ],
+      "math_tools": [
+        "fixed_point_theory",
+        "monte_carlo",
+        "perturbation_expansion",
+        "large_deviations"
+      ],
+      "one_liner": {
+        "en": "This paper proves an explicit, dimension-free Wasserstein-1 contraction rate for overdamped Langevin dynamics where the potential decomposes into a strongly convex part and a bound",
+        "zh": "本文对超阻尼Langevin动力学证明了显式的Wasserstein-1收缩率，势函数分解为强凸部分与有界Lipschitz扰动之和。在亚临界条件下，通过Eberle反射耦合构造显式凹距离函数，得到维度无关的收缩率c*=m-K√m。该结果可直接应用于无调整Langevin算法的离散化误差分析和均场系统的混沌传播估计。"
+      },
+      "repo": "structural",
+      "quality": {
+        "tier": "A",
+        "significance_score": 7,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "uniswap_tick_correction",
+      "short_title": {
+        "zh": "有限刻度LP修正",
+        "en": "Finite-Tick Corrections for Uniswap v3 LP Fees"
+      },
+      "status": "draft",
+      "domain": [
+        "defi",
+        "market_microstructure"
+      ],
+      "math_tools": [
+        "euler_maclaurin",
+        "perturbation_expansion",
+        "large_deviations",
+        "monte_carlo",
+        "fourier_analysis"
+      ],
+      "one_liner": {
+        "en": "This paper studies finite-tick corrections to LP fee revenue in Uniswap v3 concentrated liquidity. Under a general constant-drift diffusion, the first-order correction coefficient ",
+        "zh": "本文研究Uniswap v3集中流动性中有限刻度间距对LP费收入的修正。在一般常漂移扩散下，一阶修正系数κ₁取决于漂移与波动率之比，仅在风险中性GBM下退化为通用值1/4。此外，本文推导了LP区间边界与刻度网格错位时的空间修正公式，并给出了考虑有限刻度后的最优区间宽度。"
+      },
+      "repo": "realresearch",
+      "quality": {
+        "tier": "A",
+        "significance_score": 9,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "var_ratio",
+      "short_title": {
+        "zh": "VaR聚合相变分析",
+        "en": "Sharp VaR Aggregation Under Dependence Uncertainty"
+      },
+      "status": "draft",
+      "domain": [
+        "credit_risk",
+        "systemic_risk"
+      ],
+      "math_tools": [
+        "berry_esseen",
+        "fixed_point_theory",
+        "perturbation_expansion",
+        "monte_carlo"
+      ],
+      "one_liner": {
+        "en": "This paper studies worst-case VaR aggregation under dependence uncertainty, proving sharp limiting ratios for identical and heterogeneous Bernoulli marginals and extending results ",
+        "zh": "本文研究依赖不确定性下组合VaR的最坏情形聚合问题，证明了最坏情形比率的精确极限，并将其推广至异质信用组合和连续损失分布。通过de Finetti定理与矩问题的结合，证明上协单调耦合在可交换Bernoulli耦合类中渐近最大化组合VaR。此外，文章刻画了均匀与异质组合间的相变现象，并与巴塞尔IRB监管资本进行了比较，发现低估因子可达3至29倍。"
+      },
+      "repo": "realresearch",
+      "quality": {
+        "tier": "B",
+        "significance_score": 12,
+        "significance_max": 16
+      }
+    },
+    {
+      "slug": "variance_options",
+      "short_title": {
+        "zh": "短期方差期权展开",
+        "en": "Rate Function Expansion for Short-Maturity Variance Options"
+      },
+      "status": "draft",
+      "domain": [
+        "variance_options",
+        "derivatives",
+        "rough_volatility"
+      ],
+      "math_tools": [
+        "perturbation_expansion",
+        "ermakov_pinney",
+        "large_deviations",
+        "monte_carlo",
+        "fixed_point_theory"
+      ],
+      "one_liner": {
+        "en": "This paper establishes analyticity and derives an explicit perturbation expansion of the rate function governing short-maturity asymptotics of variance options in local-stochastic ",
+        "zh": "本文研究局部随机波动率模型中已实现方差期权短到期渐近的速率函数解析性及微扰展开。通过Banach空间中的隐函数定理，证明速率函数关于资产-波动率相关系数ρ是实解析的，并给出带误差界的显式展开式。对Heston模型，ρ=0时的变分问题化为Ermakov-Pinney方程，得到最优方差路径的解析表达式。进一步揭示微扰展开与Aloş分解之间的结构联系，两者均由相同"
+      },
+      "repo": "realresearch",
+      "quality": {
+        "tier": "B",
+        "significance_score": 13,
+        "significance_max": 16
+      }
+    }
+  ]
+}

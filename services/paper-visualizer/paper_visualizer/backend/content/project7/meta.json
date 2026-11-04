@@ -1,0 +1,498 @@
+{
+  "slug": "project7",
+  "source": {
+    "tex_path": "output/project7/main.tex",
+    "pdf_path": "output/project7/main.pdf",
+    "source_hash": "sha256:80d111e78817a5071797258c2c49995306f0762d1cc49bc4d1d801c227fa9fee",
+    "ingested_at": "2026-04-16T01:25:38.341988+00:00"
+  },
+  "title": {
+    "en": "Large Deviations and Universal Critical Crossover for Reserve-Backed Stablecoin Peg-Break",
+    "zh": "储备支撑稳定币脱锚的大偏差与普适临界交叉"
+  },
+  "short_title": {
+    "zh": "稳定币脱锚大偏差",
+    "en": "Large Deviations for Stablecoin Peg-Break"
+  },
+  "author": "(Author placeholder)",
+  "date": "\\today",
+  "status": "draft",
+  "abstract": {
+    "tex": "We derive a Freidlin-Wentzell large deviation principle for the peg-break time of a reserve-backed stablecoin under small-noise scaling and obtain explicit rate functions and Eyring-Kramers prefactors for two tractable model classes.\nFor the \\emph{linear-drain class} (constant drain $\\lambda$, constant volatility $\\sigma_0$) we derive the closed-form rate function $I(T,\\lambda) = T(\\lambda_c - \\lambda)^2/(2\\sigma_0^2)$ and sharp first-passage prefactors in all three regimes (subcritical, critical, supercritical).\nFor the \\emph{saddle-node class} --- models whose deterministic limit has a saddle-node bifurcation at a critical redemption pressure $\\lambda_c$ --- we prove the universal $3/2$ critical exponent $I \\sim (8A^{3/2}/(3\\sqrt B\\sigma^2))(\\lambda_c-\\lambda)^{3/2}$ and the Eyring-Kramers prefactor $\\pi/\\sqrt{AB(\\lambda_c-\\lambda)}$.\nOur main result rigorously extends the 2021 Hathcock-Sethna Airy scaling function $\\mathcal T_{HS}(\\eta) = 2^{1/3}\\pi^2[\\Ai^2(2^{2/3}\\eta) + \\Bi^2(2^{2/3}\\eta)]$ to the stablecoin setting, giving a uniform asymptotic formula for the mean peg-break time across the metastable, critical, and supercritical regimes with error rate $O(\\eps^{2/3}\\log(1/\\eps))$.\nAlong the way, we derive an exact one-dimensional integral representation of the finite-boundary Hathcock-Sethna function $\\mathcal T_+(\\eta,\\chi_+)$ and a new Airy-squared integral identity $\\int_0^\\infty t^{-1/2} e^{2\\eta t - t^3/6}\\,dt = 2^{-1/6}\\pi^{3/2}[\\Ai^2(2^{2/3}\\eta) + \\Bi^2(2^{2/3}\\eta)]$ that does not appear in standard references.\nWe extend the results to multi-asset reserves via center manifold reduction (showing the $3/2$ exponent persists), execute a quantitative calibration to the USDC March 2023 depeg, and propose a bifurcation-type classification of stablecoin design classes.\nThe work bridges three previously disjoint communities: statistical-mechanics renormalization group (Hathcock-Sethna), applied probability slow-fast SDEs (Berglund-Gentz, Dembo-Zeitouni), and mathematical finance (stablecoin literature).",
+    "en": "This paper derives a Freidlin-Wentzell large deviation principle for the peg-break time of reserve-backed stablecoins, obtaining explicit rate functions and Eyring-Kramers prefactors for linear-drain and saddle-node model classes. The universal 3/2 critical exponent is proved for the saddle-node class, and the Hathcock-Sethna Airy scaling function is rigorously extended to the stablecoin setting with uniform asymptotics across all regimes. Results are calibrated to the USDC March 2023 depeg and a bifurcation-based classification of stablecoin designs is proposed.",
+    "zh": "本文利用Freidlin-Wentzell大偏差原理分析储备支撑稳定币脱锚时间，推导了线性耗散类和鞍节点分叉类两种模型的显式速率函数与Eyring-Kramers预因子。对鞍节点类证明了普适3/2临界指数，并将Hathcock-Sethna Airy标度函数严格推广至稳定币场景，给出跨亚稳、临界、超临界区域的一致渐近公式。文章还对2023年3月USDC脱锚事件进行了定量标定，并提出稳定币设计类的分叉分类。"
+  },
+  "domain": [
+    "stablecoins",
+    "credit_risk"
+  ],
+  "math_tools": [
+    "large_deviations",
+    "freidlin_wentzell",
+    "perturbation_expansion",
+    "monte_carlo",
+    "fourier_analysis"
+  ],
+  "prerequisites": [
+    {
+      "topic_id": "stochastic_differential_equations",
+      "level": "advanced",
+      "why": "The reserve dynamics are modeled as SDEs under small-noise scaling."
+    },
+    {
+      "topic_id": "large_deviation_theory",
+      "level": "advanced",
+      "why": "The main results rely on Freidlin-Wentzell large deviation principles."
+    },
+    {
+      "topic_id": "airy_functions_special_functions",
+      "level": "intermediate",
+      "why": "The universal crossover formula involves Airy functions and the Hathcock-Sethna scaling function."
+    },
+    {
+      "topic_id": "bifurcation_theory",
+      "level": "intermediate",
+      "why": "Saddle-node bifurcation structure underlies the critical exponent analysis."
+    }
+  ],
+  "main_theorems": [
+    {
+      "id": "thm:LDP",
+      "env": "theorem",
+      "statement_tex": "Under \\Cref{assump:H1H4}, the peg-break time $\\tau_\\eps = \\inf\\{t \\geq 0 : V_t^\\eps \\leq p^*L\\}$ satisfies\n\\begin{equation}\n\\lim_{\\eps \\to 0^+}-\\eps^2\\,\\log\\P(\\tau_\\eps \\leq T) = I(T,\\lambda) := \\inf_{\\phi \\in \\mathcal A_T} S_T(\\phi;\\lambda),\n\\end{equation}\nwhere the FW action functional with explicit $\\lambda$-dependence is\n\\begin{equation}\nS_T(\\phi;\\lambda) = \\frac{1}{2}\\int_0^T \\frac{(\\dot\\phi(t) - b(\\phi(t);\\lambda))^2}{\\sigma(\\phi(t))^2}\\,\\d t,\n\\end{equation}\nand $\\mathcal A_T = \\{\\phi \\in C([0,T], \\R) : \\phi(0) = V_0,\\ \\exists\\,t \\in [0,T]\\text{ with }\\phi(t) \\leq p^*L\\}$.",
+      "section_number": "3",
+      "label": {
+        "zh": "脱锚时间大偏差原理",
+        "en": "LDP for Peg-Break Time"
+      },
+      "key_ideas": {
+        "zh": [
+          "Freidlin-Wentzell",
+          "速率函数"
+        ],
+        "en": [
+          "Freidlin-Wentzell action",
+          "rate function"
+        ]
+      }
+    },
+    {
+      "id": "thm:linear",
+      "env": "theorem",
+      "statement_tex": "For the SDE $\\d V_t^\\eps = -\\lambda\\,\\d t + \\eps\\sigma_0\\,\\d W_t$:\n\\begin{enumerate}\n\\item For $\\lambda \\in [0, \\lambda_c)$,\n\\begin{equation}\n\\lim_{\\eps \\to 0^+}-\\eps^2\\log\\P(\\tau_\\eps \\leq T) = \\frac{T(\\lambda_c - \\lambda)^2}{2\\sigma_0^2}.\n\\label{eq:linear-rate}\n\\end{equation}\n\\item Sharp Eyring-Kramers prefactor:\n\\begin{equation}\n\\P(\\tau_\\eps \\leq T) = \\frac{2\\lambda_c\\,\\eps\\sigma_0}{\\sqrt{2\\pi T}\\,(\\lambda_c^2 - \\lambda^2)}\\,\\exp\\!\\Big(-\\frac{T(\\lambda_c-\\lambda)^2}{2\\eps^2\\sigma_0^2}\\Big)\\,(1 + O(\\eps^2)).\n\\end{equation}\n\\item At $\\lambda = \\lambda_c$: $\\lim_{\\eps \\to 0^+}\\P(\\tau_\\eps \\leq T) = 1/2$.\n\\item For $\\lambda > \\lambda_c$: $\\lim_{\\eps \\to 0^+}\\P(\\tau_\\eps \\leq T) = 1$ exponentially.\n\\end{enumerate}",
+      "section_number": "4",
+      "label": {
+        "zh": "线性耗散模型定理",
+        "en": "Linear-Drain Model Theorem"
+      },
+      "key_ideas": {
+        "zh": [
+          "显式速率函数",
+          "Eyring-Kramers预因子"
+        ],
+        "en": [
+          "closed-form rate function",
+          "Eyring-Kramers prefactor"
+        ]
+      }
+    },
+    {
+      "id": "thm:saddle",
+      "env": "theorem",
+      "statement_tex": "Suppose \\Cref{assump:H1H4} and \\Cref{assump:saddle} hold.\n\n\\textit{(i) Critical asymptotic.} As $\\lambda \\to \\lambda_c^-$,\n\\begin{equation}\nI(T,\\lambda) = \\frac{8\\,A^{3/2}}{3\\sqrt{B}\\,\\sigma(v_*)^2}\\,(\\lambda_c - \\lambda)^{3/2}\\,(1 + o(1)),\n\\label{eq:saddle-rate}\n\\end{equation}\nprovided $T > T_{\\min}(\\lambda) = O((\\lambda_c-\\lambda)^{-1/2}\\log(1/(\\lambda_c-\\lambda)))$.\n\n\\textit{(ii) Eyring-Kramers prefactor (away from criticality).} For $\\lambda$ bounded away from $\\lambda_c$ on the subcritical side ($\\lambda_c - \\lambda \\geq c_0 > 0$ for some constant $c_0$),\n\\begin{equation}\n\\E[\\tau_\\eps] = \\frac{\\pi}{\\sqrt{AB(\\lambda_c - \\lambda)}}\\,\\exp\\!\\Big(\\frac{8\\,A^{3/2}(\\lambda_c-\\lambda)^{3/2}}{3\\sqrt B\\,\\sigma(v_*)^2\\,\\eps^2}\\Big)\\,(1 + O(\\eps)).\n\\label{eq:saddle-EK}\n\\end{equation}",
+      "section_number": "5",
+      "label": {
+        "zh": "鞍节点临界指数定理",
+        "en": "Saddle-Node Critical Exponent"
+      },
+      "key_ideas": {
+        "zh": [
+          "3/2指数",
+          "鞍节点分叉"
+        ],
+        "en": [
+          "3/2 exponent",
+          "saddle-node bifurcation"
+        ]
+      }
+    },
+    {
+      "id": "thm:airy",
+      "env": "theorem",
+      "statement_tex": "Under \\Cref{assump:H1H4} and \\Cref{assump:saddle}, assume additionally that the diffusion $\\sigma$ is $C^2$ on a neighborhood of $v_*$ and define the rescaling constants\n\\begin{equation}\n\\alpha = (\\eps\\sigma(v_*))^{2/3}\\,B^{-1/3},\\quad \\beta = (\\eps\\sigma(v_*))^{-2/3}\\,B^{-2/3},\\quad \\eta = A\\,B^{-1/3}\\,(\\lambda_c - \\lambda)\\,(\\eps\\sigma(v_*))^{-4/3}.\n\\label{eq:airy-rescaling}\n\\end{equation}\nFix a bounded set $K \\subset \\R$ (e.g., $K = [-\\eta_0, \\eta_0]$ for any fixed $\\eta_0 > 0$). Then, as $\\eps \\to 0^+$ along sequences $(\\eps_n, \\nu_n)$ with $\\eta_n \\in K$, the mean peg-break time satisfies\n\\begin{equation}\n\\E[\\tau_{\\eps_n}] = \\beta_n\\,\\mathcal T_{HS}(\\eta_n)\\,\\big(1 + O(\\eps_n^{2/3}\\log(1/\\eps_n))\\big),\n\\label{eq:airy-joint}\n\\end{equation}\nuniformly in $\\eta \\in K$, where $\\mathcal T_{HS}$ is the Hathcock-Sethna 2021 \\cite[Eq.~15]{HathcockSethna2021} Airy scaling function:\n\\begin{equation}\n\\boxed{\\mathcal T_{HS}(\\eta) = 2^{1/3}\\pi^2\\Big[\\Ai^2(2^{2/3}\\eta) + \\Bi^2(2^{2/3}\\eta)\\Big].}\n\\end{equation}",
+      "section_number": "6",
+      "label": {
+        "zh": "普适Airy交叉定理",
+        "en": "Universal Airy Crossover"
+      },
+      "key_ideas": {
+        "zh": [
+          "Airy标度函数",
+          "均匀渐近"
+        ],
+        "en": [
+          "Airy scaling function",
+          "uniform asymptotics"
+        ]
+      }
+    },
+    {
+      "id": "thm:airy-finite",
+      "env": "theorem",
+      "statement_tex": "For $\\eta \\in \\R$ and $\\chi_+ \\in \\R$, define\n\\begin{equation}\n\\mathcal T_+(\\eta,\\chi_+) := 2\\int_{\\chi_+}^\\infty \\d y\\,\\int_{-\\infty}^y \\d z\\,\\exp\\!\\big(2\\eta(y-z) - (2/3)(y^3 - z^3)\\big).\n\\label{eq:HS-finite}\n\\end{equation}\nThis quantity is approximately equal (up to an exponentially-small-in-$|\\chi_+|$ correction arising from the difference between the inner range $(-\\infty, y]$ and the Pontryagin range $[\\chi_+, y]$) to the mean first-passage time of the canonical SDE $\\d y = (\\eta - y^2)\\,\\d\\tau + \\d W_\\tau$ from $y_0 = +\\infty$ with absorbing barrier at $\\chi_+$; it agrees exactly in the limit $\\chi_+ \\to -\\infty$, in which case $\\mathcal T_{HS}(\\eta) := \\lim_{\\chi_+ \\to -\\infty}\\mathcal T_+(\\eta,\\chi_+)$ is the unconstrained Hathcock-Sethna function. Then\n\\begin{equation}\n\\boxed{\\mathcal T_+(\\eta, \\chi_+) = \\sqrt\\pi\\,\\int_0^\\infty \\frac{e^{2\\eta t - t^3/6}}{\\sqrt{2t}}\\,\\operatorname{erfc}\\!\\big(\\sqrt{2t}\\,(\\chi_+ - t/2)\\big)\\,\\d t,}\n\\label{eq:T-plus-1D}\n\\end{equation}\na one-dimensional integral amenable to direct numerical evaluation.\n\nMoreover, at criticality $\\eta = 0$,\n\\begin{equation}\n\\mathcal T_{HS}(0) = \\lim_{\\chi_+\\to-\\infty}\\mathcal T_+(0,\\chi_+) = \\sqrt{2\\pi}\\,\\frac{6^{1/6}}{3}\\,\\Gamma(1/6),\n\\label{eq:T-crit-gamma}\n\\end{equation}\nproviding a gamma-function closed form for $\\mathcal T_{HS}(0) = 2^{1/3}\\pi^2[\\Ai^2(0) + \\Bi^2(0)]$.",
+      "section_number": "6.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:airy-integral",
+      "env": "theorem",
+      "statement_tex": "The Hathcock-Sethna scaling function admits the one-dimensional integral representation\n\\begin{equation}\n\\boxed{\\mathcal T_{HS}(\\eta) \\;=\\; \\sqrt{2\\pi}\\int_0^\\infty t^{-1/2}\\,e^{2\\eta t - t^3/6}\\,\\d t \\;=\\; 2^{1/3}\\pi^2\\Big[\\Ai^2(2^{2/3}\\eta) + \\Bi^2(2^{2/3}\\eta)\\Big],}\n\\label{eq:T-HS-1D}\n\\end{equation}\nvalid for all $\\eta \\in \\R$. Equating the two closed forms yields the Airy-squared integral identity\n\\begin{equation}\n\\int_0^\\infty t^{-1/2}\\,e^{2\\eta t - t^3/6}\\,\\d t \\;=\\; 2^{-1/6}\\,\\pi^{3/2}\\,\\Big[\\Ai^2(2^{2/3}\\eta) + \\Bi^2(2^{2/3}\\eta)\\Big],\\quad \\eta \\in \\R.\n\\label{eq:airy-squared-identity}\n\\end{equation}",
+      "section_number": "6.2",
+      "label": {
+        "zh": "Airy平方积分恒等式",
+        "en": "Airy-Squared Integral Identity"
+      },
+      "key_ideas": {
+        "zh": [
+          "一维积分表示",
+          "Airy函数恒等式"
+        ],
+        "en": [
+          "1D integral representation",
+          "Airy-squared identity"
+        ]
+      }
+    },
+    {
+      "id": "thm:scorer-derivative",
+      "env": "theorem",
+      "statement_tex": "For all $\\eta \\in \\R$ and $\\chi_+ \\in \\R$,\n\\begin{equation}\n\\frac{\\partial\\mathcal T_+(\\eta,\\chi_+)}{\\partial\\chi_+} = -2\\,e^{2\\eta\\chi_+ - (2/3)\\chi_+^3}\\int_{-\\chi_+}^{+\\infty}e^{-(2/3)u^3 + 2\\eta u}\\,\\d u.\n\\label{eq:scorer-derivative}\n\\end{equation}\nEquivalently, substituting $u = 2^{-1/3}v$ and introducing the \\emph{incomplete Scorer function}\n$$\\mathrm{Hi}_{\\mathrm{inc}}(x;\\xi) := \\frac{1}{\\pi}\\int_0^{\\xi}e^{-v^3/3 + xv}\\,\\d v,$$\nwe have\n\\begin{equation}\n\\frac{\\partial\\mathcal T_+(\\eta,\\chi_+)}{\\partial\\chi_+} = -2^{2/3}\\pi\\,e^{2\\eta\\chi_+ - (2/3)\\chi_+^3}\\big[\\mathrm{Hi}(2^{2/3}\\eta) - \\mathrm{Hi}_{\\mathrm{inc}}(2^{2/3}\\eta; -2^{1/3}\\chi_+)\\big],\n\\label{eq:scorer-derivative-Hi}\n\\end{equation}\nwhere $\\mathrm{Hi}$ is the modified Scorer function $\\mathrm{Hi}(x) := (1/\\pi)\\int_0^\\infty e^{-t^3/3 + xt}\\,\\d t$ \\cite[\\S 9.12(ii)]{DLMF}.",
+      "section_number": "6.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:multid-linear",
+      "env": "theorem",
+      "statement_tex": "Suppose the drift is constant, $b(V;\\lambda) \\equiv -\\Lambda \\in \\R^n$ (a constant drain vector), and the diffusion is constant, $\\sigma(V) \\equiv \\sigma_0 \\in \\R^{n\\times m}$. Then the projected reserve value $W_t = w^T V_t$ satisfies the 1D SDE\n\\begin{equation}\n    \\d W_t = -(w^T\\Lambda)\\,\\d t + \\eps\\,\\sigma_{\\text{eff}}\\,\\d B_t, \\qquad \\sigma_{\\text{eff}}^2 := w^T\\sigma_0\\sigma_0^T w,\n    \\label{eq:multid-linear-projected}\n\\end{equation}\nwhere $B_t$ is a one-dimensional standard Brownian motion. Consequently the peg-break rate function is\n\\begin{equation}\n    I(T,\\Lambda) = \\frac{T(\\lambda_{c,\\text{eff}} - w^T\\Lambda)^2}{2\\sigma_{\\text{eff}}^2},\\quad \\lambda_{c,\\text{eff}} := \\frac{W_0 - p^*L}{T},\n    \\label{eq:multid-linear-rate}\n\\end{equation}\nand all four regime statements of \\Cref{thm:linear} (parts 1--4: subcritical, critical, supercritical, sharp prefactor) hold verbatim with the effective parameters $\\lambda_{\\text{eff}} := w^T\\Lambda$, $\\sigma_{\\text{eff}} := \\|\\sigma_0^T w\\|$, and $\\lambda_{c,\\text{eff}} := (W_0 - p^*L)/T$.",
+      "section_number": "7.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:multid-saddle",
+      "env": "theorem",
+      "statement_tex": "Suppose \\Cref{assump:multid-saddle} holds, and that the diffusion $\\sigma$ at $v_*$ is non-degenerate in the sense that $\\sigma_\\|^2 := \\ell^T\\sigma(v_*)\\sigma(v_*)^T\\ell > 0$ (equivalently, the noise is felt in the slow direction). Then, as $\\eps \\to 0^+$ and $\\nu := \\lambda_c - \\lambda \\to 0^+$ with $\\nu \\gg \\eps^{4/3}$,\n\\begin{equation}\n    I(T,\\lambda) = \\frac{8\\,A^{3/2}}{3\\sqrt B\\,\\sigma_\\|^2}\\,\\nu^{3/2}\\,(1+o(1)),\n    \\label{eq:multid-rate}\n\\end{equation}\nand the Eyring-Kramers prefactor is $\\pi/\\sqrt{AB\\nu}$ for $\\lambda$ bounded away from $\\lambda_c$. The universal $3/2$ critical exponent of \\Cref{thm:saddle} thus persists in the multi-dimensional case.",
+      "section_number": "7.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:saddle-equilibrium",
+      "env": "proposition",
+      "statement_tex": "Consider a stablecoin model with drift\n\\begin{equation}\nb(v;\\lambda) = -\\lambda + f(v),\n\\label{eq:drift-class}\n\\end{equation}\nwhere $\\lambda > 0$ is the redemption pressure (a constant drain rate) and $f:(0,\\infty)\\to\\R$ is a $C^3$ function representing the net of stabilizing arbitrage feedback (encouraging reserves to return toward a target level when reserves are low) minus any destabilizing panic responses. Suppose there exists $v_* > p^*L$ with $f'(v_*) = 0$ and $f''(v_*) < 0$ (i.e., $v_*$ is a strict interior local maximum of $f$). Set\n$$\\lambda_c := f(v_*),\\quad A := 1,\\quad B := -\\tfrac{1}{2}f''(v_*) > 0.$$\nThen $b$ satisfies \\Cref{assump:saddle}(H5) at $(v_*,\\lambda_c)$ with these constants $A$ and $B$.",
+      "section_number": "9.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    }
+  ],
+  "sections": [
+    {
+      "number": "1",
+      "title_tex": "Introduction"
+    },
+    {
+      "number": "1.1",
+      "title_tex": "Background: stablecoins, depegs, and mathematical questions"
+    },
+    {
+      "number": "1.2",
+      "title_tex": "Why the Airy crossover is the mathematically interesting content"
+    },
+    {
+      "number": "1.3",
+      "title_tex": "Main contributions"
+    },
+    {
+      "number": "1.4",
+      "title_tex": "Related work"
+    },
+    {
+      "number": "1.5",
+      "title_tex": "Paper organization and notation"
+    },
+    {
+      "number": "2",
+      "title_tex": "Setup and main results"
+    },
+    {
+      "number": "2.1",
+      "title_tex": "The reserve dynamics"
+    },
+    {
+      "number": "2.2",
+      "title_tex": "Main results"
+    },
+    {
+      "number": "3",
+      "title_tex": "FW LDP for the peg-break time"
+    },
+    {
+      "number": "4",
+      "title_tex": "Linear-drain model"
+    },
+    {
+      "number": "5",
+      "title_tex": "Saddle-node case"
+    },
+    {
+      "number": "6",
+      "title_tex": "Universal Airy crossover (Hathcock-Sethna application)"
+    },
+    {
+      "number": "6.1",
+      "title_tex": "Finite-boundary refinement"
+    },
+    {
+      "number": "6.2",
+      "title_tex": "A one-dimensional integral representation of $\\mathcal T_{HS}$ and a new Airy-squared identity"
+    },
+    {
+      "number": "6.3",
+      "title_tex": "A Scorer-function derivative formula for $\\mathcal T_+$"
+    },
+    {
+      "number": "7",
+      "title_tex": "Multi-dimensional reserve extension"
+    },
+    {
+      "number": "7.1",
+      "title_tex": "Multi-asset reserve SDE"
+    },
+    {
+      "number": "7.2",
+      "title_tex": "Multi-D saddle-node reduction via center manifold"
+    },
+    {
+      "number": "8",
+      "title_tex": "Empirical calibration to the USDC March 2023 depeg"
+    },
+    {
+      "number": "8.1",
+      "title_tex": "Event timeline and observables"
+    },
+    {
+      "number": "8.2",
+      "title_tex": "Linear-drain calibration"
+    },
+    {
+      "number": "8.3",
+      "title_tex": "Multi-D calibration via Theorem~\\ref{thm:multid-linear}"
+    },
+    {
+      "number": "8.4",
+      "title_tex": "Mean first-passage time via Theorem~\\ref{thm:airy}"
+    },
+    {
+      "number": "8.5",
+      "title_tex": "Robustness of the calibration"
+    },
+    {
+      "number": "9",
+      "title_tex": "Bifurcation classification of stablecoin model classes"
+    },
+    {
+      "number": "9.1",
+      "title_tex": "Saddle-node from competing stabilization mechanisms"
+    },
+    {
+      "number": "9.2",
+      "title_tex": "Conjectures for specific model classes"
+    },
+    {
+      "number": "10",
+      "title_tex": "Discussion"
+    },
+    {
+      "number": "10.1",
+      "title_tex": "Limitations of the framework"
+    },
+    {
+      "number": "10.2",
+      "title_tex": "Open problems"
+    },
+    {
+      "number": "10.3",
+      "title_tex": "Connections to other literatures"
+    },
+    {
+      "number": "11",
+      "title_tex": "*"
+    },
+    {
+      "number": "12",
+      "title_tex": "SymPy and numerical verifications"
+    },
+    {
+      "number": "12.1",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.2",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.3",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.4",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.5",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.6",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.7",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.8",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.9",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.10",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.11",
+      "title_tex": "*"
+    },
+    {
+      "number": "12.12",
+      "title_tex": "*"
+    },
+    {
+      "number": "13",
+      "title_tex": "Detailed proofs"
+    },
+    {
+      "number": "13.1",
+      "title_tex": "*"
+    },
+    {
+      "number": "13.2",
+      "title_tex": "*"
+    },
+    {
+      "number": "13.3",
+      "title_tex": "*"
+    },
+    {
+      "number": "13.4",
+      "title_tex": "*"
+    },
+    {
+      "number": "13.5",
+      "title_tex": "*"
+    },
+    {
+      "number": "13.6",
+      "title_tex": "*"
+    },
+    {
+      "number": "13.7",
+      "title_tex": "*"
+    },
+    {
+      "number": "14",
+      "title_tex": "Monte Carlo validation tables"
+    },
+    {
+      "number": "14.1",
+      "title_tex": "*"
+    },
+    {
+      "number": "14.2",
+      "title_tex": "*"
+    },
+    {
+      "number": "14.3",
+      "title_tex": "*"
+    }
+  ],
+  "related_papers": [
+    {
+      "slug": "sr_p001",
+      "relation": "shared_domain",
+      "note": "Both study stablecoin stability using mathematical finance tools."
+    }
+  ],
+  "figures": [],
+  "generation": {
+    "model": "claude-sonnet-4-6",
+    "generated_at": "2026-04-16T01:29:59.443261+00:00",
+    "prompt_version": "v1",
+    "langs": []
+  },
+  "repo": "realresearch",
+  "repo_root": "E:/Anaconda/Realresearch",
+  "project_id": null,
+  "quality": {
+    "tier": "B",
+    "target_venues": [
+      "venues"
+    ],
+    "significance_score": 14,
+    "significance_max": 16,
+    "critic_verdict": "PASS_WITH_MAJOR",
+    "dimensions": {
+      "correctness": "acceptable",
+      "rigor": "acceptable",
+      "novelty": "acceptable",
+      "framing": "strong",
+      "coherence": "acceptable"
+    },
+    "assessed_by": "unified_critic"
+  }
+}

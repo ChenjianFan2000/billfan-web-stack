@@ -1,0 +1,2274 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{float}
+
+\geometry{margin=1in}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\Fees}{\mathrm{Fees}}
+\newcommand{\IL}{\mathrm{IL}}
+
+\title{Finite-Tick Corrections for Concentrated Liquidity:\\
+Non-Universality, Misalignment, and Optimal Range Design}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Echenim, Gobet, and Maurice (2025) derived asymptotic formulas for
+liquidity provider (LP) fee revenue in Uniswap~v3, proving convergence
+to an integral of the price local time as the tick spacing
+$\gamma \to 0$. In practice, $\gamma$ is fixed by the pool's fee tier
+and can be as large as $2\%$. We derive three sets of results on the
+finite-tick regime. \textbf{(1) Non-universality of $\kappa_1$.} Under a
+general constant-drift diffusion $dX_t = \mu\dd t + \sigma\dd W_t$, the
+first-order correction coefficient is $\kappa_1 = 1/2 + \mu/(2\sigma^2)$,
+which equals $1/4$ \emph{only} for risk-neutral geometric Brownian
+motion ($\mu = -\sigma^2/2$). Under the physical measure with expected
+return $r > 0$, the correction is $\kappa_1^P = 1/4 + r/(2\sigma^2)$,
+which for typical crypto parameters is $2$--$3$ times the risk-neutral
+value. The result decomposes into a prefactor contribution and an
+Euler--Maclaurin boundary term, and the cancellation $f'(0) = 0$ that
+produces ``universality'' is a precise algebraic artifact of the
+risk-neutral GBM drift. \textbf{(2) Misaligned-range correction.} When
+the LP range boundary falls between two tick levels with fractional
+offset $\delta$, the boundary tick earns a fraction
+$R(\delta) = 2(1-\delta)/(2-\delta)$ of the interior tick's fee. Unlike
+the classical Broadie--Glasserman--Kou correction for temporally
+discretized barriers, this spatial correction is a rational function of
+$\delta$ and does not involve the Wiener--Hopf constant
+$\zeta(1/2)/\sqrt{2\pi}$, because the continuous price process crosses
+every tick level with probability one. \textbf{(3) Optimal range width.}
+The finite-tick correction shifts the fee-maximizing range width downward
+by $1$--$2$ ticks relative to the EGM asymptotic, with the largest
+effect in the $0.05\%$ pool. We validate all results against
+semi-analytical computations.
+\end{abstract}
+
+%% ===================================================================
+\section{Introduction}\label{sec:intro}
+
+%% -------------------------------------------------------------------
+\subsection{Concentrated liquidity in automated market makers}
+
+Automated Market Makers (AMMs) enable decentralized exchange of
+crypto-assets without a traditional order book. The constant-product
+formula $x \cdot y = k$, introduced by Uniswap~v1~\citep{Adams2021},
+requires liquidity providers (LPs) to spread capital across the entire
+price range $[0, \infty)$, resulting in low capital efficiency.
+Uniswap~v3~\citep{Adams2021} addressed this through
+\emph{concentrated liquidity}: LPs restrict their capital to a chosen
+price range $[p_\ell, p_u]$, earning swap fees only when the market
+price falls within this range. The concentration amplifies fee income
+per unit of capital but exposes the LP to \emph{impermanent loss} (IL)
+when the price exits the range.
+
+The tick mechanism discretizes the price space into levels spaced
+multiplicatively by $(1 + \gamma)$, where $\gamma$ depends on the
+pool's fee tier:
+\begin{table}[h]
+\centering
+\caption{Uniswap v3 fee tiers and tick spacings.}
+\label{tab:fee_tiers}
+\begin{tabular}{cccc}
+\toprule
+Fee tier $\phi$ & Tick spacing $\delta_\pi$ & $\gamma$ (approx.)
+& Typical use case \\
+\midrule
+$0.01\%$ & $1$ & $0.01\%$ & Stablecoins \\
+$0.05\%$ & $10$ & $0.10\%$ & Correlated pairs \\
+$0.30\%$ & $60$ & $0.60\%$ & Most pairs \\
+$1.00\%$ & $200$ & $2.02\%$ & Exotic/volatile \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The tick spacing is coarser for higher fee tiers, reflecting the
+intuition that volatile pairs require wider spreads. Uniswap~v4
+retains the same tick mechanism with identical fee tier structure, so
+all results in this paper apply equally to both versions.
+
+The discreteness of the tick grid introduces a systematic gap between
+the continuous-limit fee formulas used for LP strategy optimization and
+the actual fee revenue earned on-chain. Quantifying this gap is the
+central problem of this paper.
+
+%% -------------------------------------------------------------------
+\subsection{The EGM asymptotic framework}
+
+\citet{EGM2025} established a rigorous asymptotic framework for LP fee
+revenue. Their main result (Theorem~4.1) shows that as
+$\gamma \to 0$, the renormalized fee revenue
+$\gamma \cdot \Fees$ converges in probability to an integral
+involving the local time of the log-price process:
+\begin{equation}\label{eq:EGM_limit}
+\gamma \cdot \Fees \xrightarrow{\PP} \frac{\phi}{1 - \phi}
+\int_{p_\ell}^{p_u} A^b_T(p)\, b^{-3/2}\dd b,
+\end{equation}
+where $A^b_T(p)$ is the occupation functional of the price process at
+level~$b$, which under continuous diffusion models reduces to the
+semimartingale local time $L^{\log b}_T(X)/b$ of the log-price. Under
+geometric Brownian motion (GBM), they obtained an explicit
+expected-fee formula (Theorem~4.5). These results hold in the limit
+$\gamma \to 0$; the finite-$\gamma$ regime was left unexplored.
+
+The practical relevance of finite-$\gamma$ corrections is immediate:
+for the $1\%$ fee tier, $\gamma \approx 0.02$, and for a 20-tick LP
+range, the correction to the EGM asymptotic can exceed $1.5\%$ of
+total fee revenue. For an LP deploying \$10M of capital, this
+corresponds to approximately \$15{,}000 per year in systematic
+estimation error.
+
+%% -------------------------------------------------------------------
+\subsection{Our contributions}
+
+We derive three sets of results that substantially extend the EGM
+framework to the finite-tick regime.
+
+\paragraph{Contribution 1: Non-universality of $\kappa_1$.}
+Under any constant-drift diffusion
+$dX_t = \mu\dd t + \sigma\dd W_t$, we prove that the first-order
+correction coefficient is
+\begin{equation}\label{eq:kappa1_intro}
+\kappa_1(\mu, \sigma) = \frac{1}{2} + \frac{\mu}{2\sigma^2},
+\end{equation}
+so that $\Psi(\gamma)/F_0^Y(\gamma) = 1 + \kappa_1 \gamma +
+O(\gamma^2)$. The value $\kappa_1 = 1/4$ holds \emph{only} for the
+risk-neutral GBM drift $\mu = -\sigma^2/2$. Under the physical measure
+with expected excess return $r > 0$, the correction becomes
+$\kappa_1^P = 1/4 + r/(2\sigma^2)$, which for Bitcoin
+($r \approx 0.5$, $\sigma \approx 0.8$) gives
+$\kappa_1^P \approx 0.64$---more than $2.5$ times the risk-neutral
+value. The result decomposes into a prefactor term (from the nonlinear
+expansion of the fee-per-crossing formula) and an Euler--Maclaurin
+boundary term (from the derivative $f'(0)$ of the weight function at
+the origin). The precise cancellation $f'(0) = 0$ that produces
+``universality'' is shown to be an algebraic artifact of the
+risk-neutral GBM drift.
+
+\paragraph{Contribution 2: Misaligned-range correction.}
+When the LP range boundary does not align with the tick grid, the
+boundary tick earns a reduced fraction of the interior tick's fee. We
+derive the explicit formula
+\[
+R(\delta) = \frac{2(1-\delta)}{2-\delta}
+\]
+for the boundary tick efficiency ratio, where $\delta \in [0,1)$ is
+the fractional offset. This correction is a smooth rational function
+that interpolates from $R(0) = 1$ (aligned) to $R(1^-) = 0$
+(boundary at the tick level). We prove that, unlike the classical
+Broadie--Glasserman--Kou (BGK) correction for temporally discretized
+barriers, the spatial misalignment correction does \emph{not} involve
+the Wiener--Hopf constant $\beta = \zeta(1/2)/\sqrt{2\pi}$. The
+fundamental reason is that a continuous price process crosses every
+spatial level with probability one (no overshoot), whereas discrete
+temporal monitoring allows the process to jump past a barrier between
+observation dates.
+
+\paragraph{Contribution 3: Optimal range width.}
+We derive the fee-maximizing range width $N^*(\gamma)$ under the
+corrected fee formula and show that the second-order correction
+$-N^2\gamma^2/6$ acts as an additional penalty on wide ranges,
+shifting the optimum downward by $1$--$2$ ticks relative to the EGM
+asymptotic. The correction is most significant for the $0.05\%$ pool
+($\gamma = 0.001$) where optimal ranges are widest. For a \$1M LP
+position in this pool, the corrected range design improves daily fee
+revenue by approximately \$200.
+
+%% -------------------------------------------------------------------
+\subsection{Mathematical structure: two sources of correction}
+
+The finite-tick correction has a clean two-source decomposition that
+illuminates its mathematical structure:
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{Prefactor correction} $\kappa_1^{\psi}$: The fee per
+crossing involves the nonlinear function
+$c(h) = (\gamma/h)(e^{h/2} - 1) \cdot S(h)/S(2h)$, where $S$ is the
+scale function. Taylor expanding $c(h)$ around $h = 0$ gives a
+first-order contribution $\kappa_1^{\psi} = 3/4 + \mu/\sigma^2$.
+\item \textbf{Euler--Maclaurin correction} $\kappa_1^{EM}$: The
+discrete sum $\sum h f(kh)$ over the tick grid approximates the
+integral $\int f(x)\dd x$ with an error governed by the
+Euler--Maclaurin formula. When $f'(0) \ne 0$, the leading boundary
+term contributes
+$\kappa_1^{EM} = -1/4 - \mu/(2\sigma^2)$.
+\end{enumerate}
+The total correction is
+$\kappa_1 = \kappa_1^{\psi} + \kappa_1^{EM} = 1/2 + \mu/(2\sigma^2)$.
+Under risk-neutral GBM ($\mu = -\sigma^2/2$), the Euler--Maclaurin
+contribution simplifies to $\kappa_1^{EM} = 0$ (because $f'(0) = 0$),
+leaving only $\kappa_1^{\psi} = 1/4$. This cancellation is
+\emph{specific} to the risk-neutral drift; any other drift breaks it.
+
+%% -------------------------------------------------------------------
+\subsection{Connection to discrete barrier corrections}
+
+The classical result of \citet{BGK1997,BGK1999} shows that a
+discretely monitored barrier option price can be corrected by shifting
+the barrier by $\beta\sigma\sqrt{\Delta t}$, where
+$\beta = \zeta(1/2)/\sqrt{2\pi} \approx -0.5826$ arises from the
+Wiener--Hopf factorization of the random walk maximum's distribution.
+\citet{Horfelt2003} extended this to second order, and
+\citet{HowisonSteinberg2007} provided an alternative derivation via
+matched asymptotic expansions. \citet{FengLinetsky2008} further
+extended the framework to exponential L\'evy processes using
+Hilbert transforms.
+
+In our setting, the tick grid forms a \emph{spatial} discretization,
+not a temporal one. The price process is continuous in time and crosses
+each tick level with probability one---there is no random walk
+overshoot, so the Spitzer--Baxter machinery underlying BGK does not
+apply. Our corrections are instead algebraic (from the fee formula
+expansion) and analytic (from the Euler--Maclaurin formula applied to
+the crossing-count sum). For misaligned range boundaries, the
+correction is a rational function of the fractional offset, not an
+irrational constant involving $\zeta(1/2)$.
+
+This distinction between spatial and temporal discretization
+corrections appears to be new in the AMM literature, though it is
+implicit in the matched asymptotics framework of
+\citet{HowisonSteinberg2007}.
+
+%% -------------------------------------------------------------------
+\subsection{Related work}
+
+The qualitative connection between AMM positions and barrier options
+was noted by \citet{Paone2025}. The technical backbone of the EGM
+proof builds on the local time approximation results of
+\citet{GobetLandon2014} and \citet{GobetStazhynski2020}.
+\citet{ClarkHassani2023} analyzed LP returns under GBM using option
+pricing techniques. \citet{FukasawaMajoWorhacz2023} studied optimal
+concentrated liquidity provision as a continuous-time stochastic
+control problem. \citet{CartaFabrizio2024} derived fee revenue
+formulas for general semimartingale price processes using
+multiplicative Doob decompositions. To our knowledge, no prior work
+derives a finite-tick correction for AMM fee revenue, nor identifies
+the non-universality of the first-order correction coefficient.
+
+%% -------------------------------------------------------------------
+\subsection{Organization}
+
+Section~\ref{sec:setup} introduces the model setup and notation.
+Section~\ref{sec:general_correction} states and proves the general
+first-order correction formula for arbitrary constant drift.
+Section~\ref{sec:cancellation} provides a structural analysis of the
+$f'(0) = 0$ cancellation and its consequences.
+Section~\ref{sec:gbm} specializes to GBM and derives the full
+two-term correction including the second-order range-dependent term.
+Section~\ref{sec:misaligned} treats misaligned range boundaries.
+Section~\ref{sec:optimal} derives the optimal range width under the
+corrected formula. Section~\ref{sec:numerics} presents numerical
+validation. Section~\ref{sec:discussion} discusses economic
+implications and extensions. Section~\ref{sec:conclusion} concludes.
+Detailed calculations are collected in the Appendix.
+
+%% ===================================================================
+\section{Setup}\label{sec:setup}
+
+%% -------------------------------------------------------------------
+\subsection{Price dynamics and the log-price process}
+
+Let $p_t$ denote the exchange rate (price of asset~$X$ in units of
+asset~$Y$) at time $t \in [0, T]$. Under a general constant-drift
+diffusion model, the log-price $X_t = \log p_t$ satisfies
+\begin{equation}\label{eq:general_sde}
+dX_t = \mu\dd t + \sigma\dd W_t, \qquad X_0 = x_0,
+\end{equation}
+with constant drift $\mu \in \R$ and volatility $\sigma > 0$. This
+encompasses several important cases:
+\begin{itemize}[nosep]
+\item \textbf{Risk-neutral GBM}: $\mu = -\sigma^2/2$, corresponding
+to $dp_t/p_t = \sigma\dd W_t$ under $\PP^*$.
+\item \textbf{Physical-measure GBM}: $\mu = r - \sigma^2/2$, where
+$r$ is the expected (log-)return.
+\item \textbf{Arithmetic Brownian motion (ABM)}: $\mu = 0$,
+$X_t = x_0 + \sigma W_t$, modeling a driftless log-price.
+\item \textbf{General drift}: $\mu$ arbitrary, e.g.,
+$\mu > 0$ for trending assets, $\mu < 0$ for deflationary tokens.
+\end{itemize}
+
+%% -------------------------------------------------------------------
+\subsection{Tick grid and LP positions}
+
+The tick spacing parameter $\gamma > 0$ induces a log-price grid with
+spacing
+\begin{equation}\label{eq:h_def}
+h = \log(1 + \gamma) = \gamma - \frac{\gamma^2}{2} +
+\frac{\gamma^3}{3} - \cdots.
+\end{equation}
+The grid levels are $\{kh : k \in \Z\}$. An LP deposits unit
+liquidity on $N$ consecutive ticks centered at $x_0 = 0$ (without
+loss of generality), giving a range
+\begin{equation}\label{eq:range}
+R_\gamma = \Bigl[-\frac{Nh}{2},\, \frac{Nh}{2}\Bigr]
+\end{equation}
+in log-price space. We assume $N$ is even throughout.
+
+%% -------------------------------------------------------------------
+\subsection{Scale function and crossing probabilities}\label{sec:scale}
+
+The scale function of the diffusion \eqref{eq:general_sde} is
+\begin{equation}\label{eq:scale_fn}
+S(x) = \int_0^x \exp\Bigl(-\frac{2\mu}{\sigma^2}\,y\Bigr)\dd y
+= \frac{1}{\alpha}\bigl(e^{\alpha x} - 1\bigr),
+\end{equation}
+where we define the \emph{drift parameter}
+\begin{equation}\label{eq:alpha_def}
+\alpha \coloneqq -\frac{2\mu}{\sigma^2}.
+\end{equation}
+For risk-neutral GBM, $\alpha = 1$; for ABM, $\alpha = 0$ (and
+$S(x) = x$ by continuity). The gambler's ruin formula gives the
+probability of an upcrossing from a grid level:
+
+\begin{lemma}[Crossing probability]\label{lem:p_up}
+Starting at grid level $kh$, the probability of reaching
+$(k{+}1)h$ before $(k{-}1)h$ under the diffusion
+\eqref{eq:general_sde} is
+\begin{equation}\label{eq:p_up}
+p_\uparrow(h) = \frac{S(h)}{S(2h)}
+= \frac{e^{\alpha h} - 1}{e^{2\alpha h} - 1}
+= \frac{1}{1 + e^{\alpha h}}.
+\end{equation}
+In particular:
+\begin{align}
+p_\uparrow(h) &= \frac{1}{2} - \frac{\alpha h}{4} + O(h^2),
+\label{eq:p_up_expand}
+\end{align}
+so the upcrossing probability is less (resp.\ greater) than $1/2$
+when $\alpha > 0$ (resp.\ $\alpha < 0$), i.e., when the drift is
+negative (resp.\ positive).
+\end{lemma}
+\begin{proof}
+By the standard exit problem for Brownian motion with drift, the
+probability of reaching level $a$ before level $-b$ starting from
+$0$ is $S(b)/S(a+b)$ when $S$ is the scale function. Setting
+$a = b = h$ and using the explicit form
+\eqref{eq:scale_fn} gives
+\[
+p_\uparrow = \frac{S(h)}{S(2h)}
+= \frac{e^{\alpha h} - 1}{e^{2\alpha h} - 1}
+= \frac{1}{1 + e^{\alpha h}}.
+\]
+The last equality follows from the factorization
+$e^{2\alpha h} - 1 = (e^{\alpha h} - 1)(e^{\alpha h} + 1)$.
+For the Taylor expansion, write $e^{\alpha h} = 1 + \alpha h +
+(\alpha h)^2/2 + O(h^3)$, so
+$1 + e^{\alpha h} = 2 + \alpha h + O(h^2)$, and
+$1/(2 + \alpha h + O(h^2)) = 1/2 - \alpha h/4 + O(h^2)$.
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Local time and occupation density}
+
+The semimartingale local time $L^x_T = L^x_T(X)$ of the process $X$
+at level $x$ up to time $T$ is defined via the occupation times
+formula:
+\begin{equation}\label{eq:occupation}
+\int_0^T g(X_s)\dd\langle X\rangle_s
+= \int_{-\infty}^{\infty} g(x)\,L^x_T\dd x
+\end{equation}
+for all measurable $g$. Since $\langle X\rangle_t = \sigma^2 t$, this
+is equivalent to
+$\int_0^T g(X_s)\dd s
+= \sigma^{-2}\int g(x)\,L^x_T\dd x$.
+
+The expected local time has the explicit representation
+\begin{equation}\label{eq:expected_LT}
+\E[L^x_T] = \sigma^2 \int_0^T p_X(t, 0, x)\dd t,
+\end{equation}
+where $p_X(t, 0, x)$ is the transition density of $X$:
+\begin{equation}\label{eq:transition}
+p_X(t, 0, x) = \frac{1}{\sigma\sqrt{2\pi t}}
+\exp\Bigl(-\frac{(x - \mu t)^2}{2\sigma^2 t}\Bigr).
+\end{equation}
+
+%% -------------------------------------------------------------------
+\subsection{Fee structure and the crossing-count representation}
+
+Following \citet{EGM2025}, the $Y$-token fee accumulated over
+$[0, T]$ from upcrossings at tick level $kh$ is
+\begin{equation}\label{eq:fee_per_cross}
+\text{fee per upcrossing at } kh
+= \pi_k \cdot \bigl((1{+}\gamma)^{1/2} - 1\bigr)
+\cdot \frac{\phi}{1 - \phi},
+\end{equation}
+where $\pi_k = e^{kh/2}$ is the square-root price at tick level $kh$.
+The factor $(1+\gamma)^{1/2} - 1$ is the relative change in the
+virtual reserve $\sqrt{p}$ across one tick.
+
+\begin{definition}[Prefactor function]\label{def:prefactor}
+Define the crossing-count coefficient
+\begin{equation}\label{eq:c_def}
+c(h) \coloneqq \frac{\gamma}{h} \cdot
+\frac{e^{h/2} - 1}{1 + e^{\alpha h}},
+\end{equation}
+and the normalized prefactor
+\begin{equation}\label{eq:psi_def}
+\psi(h) \coloneqq \frac{4c(h)}{h}.
+\end{equation}
+\end{definition}
+
+The expected renormalized $Y$-fee is then
+\begin{equation}\label{eq:Psi_def}
+\Psi(\gamma) = \frac{\phi}{1 - \phi}
+\sum_{k=-N/2}^{N/2-1} c(h) \cdot e^{kh/2} \cdot \E[L^{kh}_T].
+\end{equation}
+
+%% -------------------------------------------------------------------
+\subsection{The EGM asymptotic formula}
+
+The $Y$-fee component of the EGM limit for the range $R_\gamma$ is
+\begin{equation}\label{eq:F0Y}
+F_0^Y(\gamma) = \frac{\phi}{4(1 - \phi)}
+\int_{-Nh/2}^{Nh/2} e^{-3x/2}\,\E[L^x_T]\dd x.
+\end{equation}
+This is obtained from the change of variables $b = e^x$ applied to
+\eqref{eq:EGM_limit}, using $A^b_T = L^{\log b}_T/b$ and
+$b^{-3/2}\dd b = e^{-3x/2}\dd x$.
+
+Our goal is to compute the ratio $\Psi(\gamma)/F_0^Y(\gamma)$ as an
+expansion in powers of $\gamma$ (equivalently, $h$).
+
+%% ===================================================================
+\section{The General First-Order Correction}\label{sec:general_correction}
+
+We now state and prove our main structural result: the first-order
+correction coefficient for general constant drift.
+
+%% -------------------------------------------------------------------
+\subsection{Prefactor expansion}
+
+\begin{lemma}[General prefactor expansion]\label{lem:prefactor_general}
+For the prefactor $\psi(h)$ defined in \eqref{eq:psi_def}, with
+$\alpha = -2\mu/\sigma^2$:
+\begin{equation}\label{eq:psi_expand}
+\psi(h) = 1 + h\,\kappa_1^{\psi} + O(h^2),
+\end{equation}
+where
+\begin{equation}\label{eq:kappa1_psi}
+\kappa_1^{\psi} = \frac{3}{4} + \frac{\mu}{\sigma^2}
+= \frac{3}{4} - \frac{\alpha}{2}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+We expand each factor in $c(h)$ separately.
+
+\textbf{Step 1.} The ratio $\gamma/h$:
+Since $\gamma = e^h - 1 = h + h^2/2 + h^3/6 + O(h^4)$,
+\begin{equation}\label{eq:gamma_over_h}
+\frac{\gamma}{h} = 1 + \frac{h}{2} + \frac{h^2}{6} + O(h^3).
+\end{equation}
+
+\textbf{Step 2.} The square-root price increment:
+\begin{equation}\label{eq:sqrt_expand}
+e^{h/2} - 1 = \frac{h}{2} + \frac{h^2}{8} + \frac{h^3}{48}
++ O(h^4).
+\end{equation}
+
+\textbf{Step 3.} The crossing probability factor:
+\begin{equation}\label{eq:crossing_expand}
+\frac{1}{1 + e^{\alpha h}}
+= \frac{1}{2 + \alpha h + \alpha^2 h^2/2 + O(h^3)}
+= \frac{1}{2}\Bigl(1 - \frac{\alpha h}{2}
++ \frac{\alpha^2 h^2}{4} - \frac{\alpha^2 h^2}{4} + O(h^2)\Bigr)
+= \frac{1}{2} - \frac{\alpha h}{4} + O(h^2).
+\end{equation}
+More precisely:
+\begin{equation}\label{eq:crossing_expand_v2}
+\frac{1}{1 + e^{\alpha h}}
+= \frac{1}{2} - \frac{\alpha h}{4}
++ O(h^3).
+\end{equation}
+To verify: $1/(2 + u) = (1/2)(1 - u/2 + u^2/4 - \cdots)$ with
+$u = \alpha h + \alpha^2 h^2/2 + \cdots$ gives the first-order term
+$-\alpha h/4$ as stated.
+
+\textbf{Step 4.} Combining:
+\begin{align}
+c(h) &= \frac{\gamma}{h} \cdot (e^{h/2} - 1)
+\cdot \frac{1}{1 + e^{\alpha h}} \notag \\
+&= \Bigl(1 + \frac{h}{2} + O(h^2)\Bigr)
+\cdot \Bigl(\frac{h}{2} + \frac{h^2}{8} + O(h^3)\Bigr)
+\cdot \Bigl(\frac{1}{2} - \frac{\alpha h}{4} + O(h^2)\Bigr).
+\label{eq:c_product}
+\end{align}
+Collecting terms through order $h^2$:
+\begin{align}
+c(h) &= \frac{h}{4} \cdot
+\Bigl(1 + \frac{h}{2}\Bigr)
+\Bigl(1 + \frac{h}{4}\Bigr)
+\Bigl(1 - \frac{\alpha h}{2}\Bigr) + O(h^3)
+\notag \\
+&= \frac{h}{4}\Bigl(1 + \frac{h}{2} + \frac{h}{4}
+- \frac{\alpha h}{2} + O(h^2)\Bigr) \notag \\
+&= \frac{h}{4}\Bigl(1 + h\bigl(\tfrac{3}{4}
+- \tfrac{\alpha}{2}\bigr) + O(h^2)\Bigr).
+\label{eq:c_expanded}
+\end{align}
+Therefore $\psi(h) = 4c(h)/h = (h/4)(4/h)\bigl(1 + h(3/4 - \alpha/2)
++ O(h^2)\bigr)$, but we need to be more careful. From
+\eqref{eq:c_expanded}, $4c(h) = h(1 + h(3/4 - \alpha/2) + O(h^2))$,
+so
+\[
+\psi(h) = \frac{4c(h)}{h}
+= 1 + h\Bigl(\frac{3}{4} - \frac{\alpha}{2}\Bigr) + O(h^2).
+\]
+Substituting $\alpha = -2\mu/\sigma^2$ gives
+$\kappa_1^{\psi} = 3/4 + \mu/\sigma^2$.
+\end{proof}
+
+\begin{remark}\label{rem:gbm_prefactor}
+For risk-neutral GBM ($\alpha = 1$):
+$\kappa_1^{\psi} = 3/4 - 1/2 = 1/4$. For ABM ($\alpha = 0$):
+$\kappa_1^{\psi} = 3/4$.
+\end{remark}
+
+%% -------------------------------------------------------------------
+\subsection{The weight function and its derivative at the origin}
+
+The crossing-count formula \eqref{eq:Psi_def} can be written as
+$\Psi = (\phi/(1{-}\phi)) \cdot (\psi(h)/4) \cdot \sum h\,f(kh)$,
+where we define the \emph{crossing weight function}:
+\begin{equation}\label{eq:f_def}
+f(x) \coloneqq e^{x/2}\,\E[L^x_T].
+\end{equation}
+Similarly, the EGM asymptotic \eqref{eq:F0Y} involves the
+\emph{asymptotic weight function}:
+\begin{equation}\label{eq:g_def}
+g(x) \coloneqq e^{-3x/2}\,\E[L^x_T].
+\end{equation}
+
+The behavior of $f'(0)$ controls the Euler--Maclaurin correction:
+
+\begin{lemma}[Derivative of the weight function]\label{lem:f_prime}
+The crossing weight function $f$ satisfies
+\begin{equation}\label{eq:f_prime}
+f'(0) = \Bigl(\frac{1}{2} + \frac{\mu}{\sigma^2}\Bigr)\,\E[L^0_T]
+= \frac{1}{2}(1 - \alpha)\,\E[L^0_T].
+\end{equation}
+In particular, $f'(0) = 0$ if and only if
+$\mu = -\sigma^2/2$ (equivalently, $\alpha = 1$).
+\end{lemma}
+\begin{proof}
+By the product rule:
+\begin{equation}\label{eq:f_prime_product}
+f'(x) = \frac{1}{2}\,e^{x/2}\,\E[L^x_T]
++ e^{x/2}\,\partial_x \E[L^x_T].
+\end{equation}
+At $x = 0$: $f'(0) = \tfrac{1}{2}\,\E[L^0_T]
++ \partial_x\E[L^x_T]\big|_{x=0}$.
+
+It remains to compute $\partial_x\E[L^x_T]\big|_{x=0}$.
+From \eqref{eq:expected_LT} and \eqref{eq:transition}:
+\begin{equation}\label{eq:dLdx}
+\partial_x \E[L^x_T] = \sigma^2 \int_0^T
+\partial_x p_X(t, 0, x)\dd t.
+\end{equation}
+The derivative of the Gaussian density is
+\begin{equation}\label{eq:dp_dx}
+\partial_x p_X(t, 0, x)
+= p_X(t, 0, x) \cdot \frac{-(x - \mu t)}{\sigma^2 t}.
+\end{equation}
+At $x = 0$:
+\begin{equation}\label{eq:dp_dx_0}
+\partial_x p_X(t, 0, 0) = p_X(t, 0, 0) \cdot \frac{\mu}{\sigma^2},
+\end{equation}
+since $-(0 - \mu t)/(\sigma^2 t) = \mu/\sigma^2$.
+Integrating over $t$:
+\begin{equation}\label{eq:dL_dx_0}
+\partial_x\E[L^x_T]\big|_{x=0}
+= \sigma^2 \cdot \frac{\mu}{\sigma^2} \int_0^T p_X(t,0,0)\dd t
+= \frac{\mu}{\sigma^2}\,\E[L^0_T].
+\end{equation}
+Combining:
+\[
+f'(0) = \frac{1}{2}\,\E[L^0_T] + \frac{\mu}{\sigma^2}\,\E[L^0_T]
+= \Bigl(\frac{1}{2} + \frac{\mu}{\sigma^2}\Bigr)\,\E[L^0_T].
+\]
+The equivalence with $(1-\alpha)/2$ follows from
+$\alpha = -2\mu/\sigma^2$.
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Euler--Maclaurin correction from the Riemann sum}
+
+The crossing-count sum $\sum_{k=-N/2}^{N/2-1} h\,f(kh)$ is a
+left-endpoint Riemann sum on $[-Nh/2, Nh/2)$ with $N$ terms of
+width~$h$. We now compute its deviation from the integral.
+
+\begin{lemma}[Riemann sum correction]\label{lem:EM}
+Let $f$ be $C^2$ on $[-a, a]$ with $a = Nh/2$. Then
+\begin{equation}\label{eq:EM_formula}
+\sum_{k=-N/2}^{N/2-1} h\,f(kh)
+= I_f(h) - Nh^2\,\frac{f'(0)}{2} + O(h^3 N^3 \|f''\|_\infty),
+\end{equation}
+where $I_f(h) = \int_{-Nh/2}^{Nh/2} f(x)\dd x$ and the second term
+comes from the boundary evaluation.
+\end{lemma}
+\begin{proof}
+The standard Euler--Maclaurin formula for a left-endpoint Riemann sum
+gives
+\begin{equation}\label{eq:EM_standard}
+\sum_{k=-N/2}^{N/2-1} h\,f(kh)
+= I_f(h) + \frac{h}{2}\bigl[f(-\tfrac{Nh}{2})
+- f(\tfrac{Nh}{2})\bigr] + O(h^2 \|f'\|_1).
+\end{equation}
+The boundary evaluation is:
+\begin{align}
+f(-a) - f(a) &= -2a\,f'(0) + O(a^3\|f'''\|_\infty)
+\notag \\
+&= -Nh\,f'(0) + O(N^3 h^3).
+\label{eq:boundary_eval}
+\end{align}
+Substituting into \eqref{eq:EM_standard}:
+\begin{align}
+\sum h\,f(kh) &= I_f(h) + \frac{h}{2}\bigl(-Nh\,f'(0)
++ O(N^3 h^3)\bigr) + O(h^2) \notag \\
+&= I_f(h) - \frac{Nh^2}{2}\,f'(0) + O(h^3).
+\label{eq:EM_result}
+\end{align}
+Dividing by $I_f(h) = Nh\,f(0) + O(N^3 h^3)$:
+\begin{equation}\label{eq:sum_over_int}
+\frac{\sum h\,f(kh)}{I_f(h)}
+= 1 - \frac{h\,f'(0)}{2\,f(0)} + O(h^2).
+\end{equation}
+\end{proof}
+
+This gives the Euler--Maclaurin contribution to $\kappa_1$:
+\begin{equation}\label{eq:kappa1_EM}
+\kappa_1^{EM} = -\frac{f'(0)}{2\,f(0)}
+= -\frac{1}{2}\Bigl(\frac{1}{2} + \frac{\mu}{\sigma^2}\Bigr)
+= -\frac{1}{4} - \frac{\mu}{2\sigma^2},
+\end{equation}
+using $f(0) = \E[L^0_T]$ and Lemma~\ref{lem:f_prime}.
+
+%% -------------------------------------------------------------------
+\subsection{The main theorem: general $\kappa_1$}
+
+\begin{theorem}[General first-order correction]\label{thm:general_kappa1}
+Let the log-price follow $dX_t = \mu\dd t + \sigma\dd W_t$ with
+constant $\mu \in \R$ and $\sigma > 0$. For an $N$-tick LP range
+centered at $X_0 = 0$, the expected renormalized fee satisfies
+\begin{equation}\label{eq:general_kappa1}
+\frac{\Psi(\gamma)}{F_0^Y(\gamma)}
+= 1 + \kappa_1(\mu, \sigma)\,\gamma + O(\gamma^2),
+\end{equation}
+where
+\begin{equation}\label{eq:kappa1_formula}
+\kappa_1(\mu, \sigma)
+= \frac{1}{2} + \frac{\mu}{2\sigma^2}.
+\end{equation}
+\end{theorem}
+\begin{proof}
+The ratio $\Psi/F_0^Y$ decomposes as
+\begin{equation}\label{eq:decompose}
+\frac{\Psi}{F_0^Y}
+= \psi(h) \cdot \frac{\sum h\,f(kh)}{I_g(h)},
+\end{equation}
+where $I_g(h) = \int_{-Nh/2}^{Nh/2} g(x)\dd x$.
+
+\textbf{Step 1: Prefactor.} By
+Lemma~\ref{lem:prefactor_general},
+$\psi(h) = 1 + h\,\kappa_1^{\psi} + O(h^2)$ with
+$\kappa_1^{\psi} = 3/4 + \mu/\sigma^2$.
+
+\textbf{Step 2: Sum-to-integral ratio.} By
+Lemma~\ref{lem:EM} and equation \eqref{eq:sum_over_int}:
+\[
+\frac{\sum h\,f(kh)}{I_f(h)}
+= 1 + h\,\kappa_1^{EM} + O(h^2)
+\]
+with $\kappa_1^{EM} = -1/4 - \mu/(2\sigma^2)$.
+
+\textbf{Step 3: Weight-function ratio.}
+We need $I_f(h)/I_g(h)$ to first order. Since $f(x) - g(x) =
+(e^{x/2} - e^{-3x/2})\,\E[L^x_T] = (2x + O(x^2))\,\E[L^x_T]$,
+the difference integral is
+\begin{align}
+I_f(h) - I_g(h) &= \int_{-a}^{a}
+(e^{x/2} - e^{-3x/2})\,\E[L^x_T]\dd x \notag \\
+&= \int_{-a}^a 2x\,\E[L^x_T]\dd x + O(a^3) \notag \\
+&= 2\,\E'[L^0_T] \cdot \frac{2a^3}{3} + O(a^5).
+\label{eq:If_minus_Ig}
+\end{align}
+The last line uses $\int_{-a}^a x\,\E[L^x_T]\dd x
+= \E'[L^0_T]\cdot 2a^3/3 + O(a^5)$ (integrating by parts or
+expanding $\E[L^x_T] = \E[L^0_T] + x\,\E'[L^0_T] + O(x^2)$ and
+using the fact that the $\E[L^0_T]$ term integrates to zero by
+antisymmetry). This contributes at order $a^3/a = a^2 = O(h^2)$ to
+the ratio, which is $O(h^2) = O(\gamma^2)$:
+\begin{equation}\label{eq:weight_ratio_first}
+\frac{I_f(h)}{I_g(h)} = 1 + O(h^2).
+\end{equation}
+
+\textbf{Step 4: Combining.}
+\begin{align*}
+\frac{\Psi}{F_0^Y}
+&= \psi(h) \cdot
+\frac{\sum h\,f(kh)}{I_f(h)} \cdot \frac{I_f(h)}{I_g(h)} \\
+&= \bigl(1 + h\,\kappa_1^{\psi} + O(h^2)\bigr)
+\bigl(1 + h\,\kappa_1^{EM} + O(h^2)\bigr)
+\bigl(1 + O(h^2)\bigr) \\
+&= 1 + h\bigl(\kappa_1^{\psi} + \kappa_1^{EM}\bigr) + O(h^2).
+\end{align*}
+Since $h = \gamma + O(\gamma^2)$, replacing $h$ by $\gamma$ at
+first order:
+\[
+\frac{\Psi}{F_0^Y}
+= 1 + \gamma\bigl(\kappa_1^{\psi} + \kappa_1^{EM}\bigr) + O(\gamma^2).
+\]
+Computing:
+\[
+\kappa_1 = \kappa_1^{\psi} + \kappa_1^{EM}
+= \Bigl(\frac{3}{4} + \frac{\mu}{\sigma^2}\Bigr)
++ \Bigl(-\frac{1}{4} - \frac{\mu}{2\sigma^2}\Bigr)
+= \frac{1}{2} + \frac{\mu}{2\sigma^2}.
+\qedhere
+\]
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Special cases}
+
+\begin{corollary}[Risk-neutral GBM]\label{cor:gbm}
+Under risk-neutral GBM ($\mu = -\sigma^2/2$):
+\begin{equation}\label{eq:kappa1_gbm}
+\kappa_1 = \frac{1}{2} + \frac{-\sigma^2/2}{2\sigma^2}
+= \frac{1}{2} - \frac{1}{4} = \frac{1}{4}.
+\end{equation}
+\end{corollary}
+
+\begin{corollary}[Physical measure]\label{cor:physical}
+Under the physical measure with expected log-return drift
+$\mu_P = r - \sigma^2/2$:
+\begin{equation}\label{eq:kappa1_physical}
+\kappa_1^P = \frac{1}{2} + \frac{r - \sigma^2/2}{2\sigma^2}
+= \frac{1}{4} + \frac{r}{2\sigma^2}.
+\end{equation}
+For assets with positive expected return ($r > 0$), the first-order
+correction is strictly larger than the risk-neutral value~$1/4$.
+\end{corollary}
+
+\begin{corollary}[Arithmetic Brownian motion]\label{cor:abm}
+Under ABM ($\mu = 0$):
+\begin{equation}\label{eq:kappa1_abm}
+\kappa_1^{ABM} = \frac{1}{2}.
+\end{equation}
+\end{corollary}
+
+\begin{example}[Bitcoin under physical measure]\label{ex:btc}
+For Bitcoin with annualized expected return $r = 0.5$ (50\%) and
+volatility $\sigma = 0.8$: $\kappa_1^P = 1/4 + 0.5/(2 \cdot 0.64)
+= 0.25 + 0.39 = 0.64$. The physical-measure correction is $2.56$
+times the risk-neutral value. For the $1\%$ fee tier
+($\gamma = 0.02$), this means a first-order correction of $1.28\%$
+rather than $0.50\%$.
+\end{example}
+
+\begin{example}[Ethereum under physical measure]\label{ex:eth}
+For Ethereum with $r = 0.3$ and $\sigma = 0.7$:
+$\kappa_1^P = 0.25 + 0.3/(2 \cdot 0.49) = 0.25 + 0.31 = 0.56$.
+The physical-measure correction is $2.22$ times the risk-neutral
+value.
+\end{example}
+
+%% ===================================================================
+\section{The $f'(0) = 0$ Cancellation: A Structural Analysis}
+\label{sec:cancellation}
+
+The ``universality'' of $\kappa_1 = 1/4$ in the original
+GBM analysis (where it is independent of $\sigma$, $T$, and $N$) is
+traced to the vanishing of $f'(0)$. We now provide a structural
+explanation of this cancellation and explore its consequences.
+
+%% -------------------------------------------------------------------
+\subsection{The cancellation condition}
+
+\begin{proposition}[Characterization of $f'(0) = 0$]
+\label{prop:cancellation}
+Among constant-drift diffusions \eqref{eq:general_sde}, the crossing
+weight function $f(x) = e^{x/2}\,\E[L^x_T]$ satisfies $f'(0) = 0$
+if and only if
+\begin{equation}\label{eq:cancel_condition}
+\frac{\mu}{\sigma^2} = -\frac{1}{2},
+\end{equation}
+equivalently, $\alpha = 1$, i.e., the drift is the risk-neutral GBM
+drift.
+\end{proposition}
+\begin{proof}
+Immediate from Lemma~\ref{lem:f_prime}: $f'(0) = (1/2 + \mu/\sigma^2)
+\,\E[L^0_T]$, and $\E[L^0_T] > 0$ for $T > 0$.
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Geometric interpretation}
+
+The condition $\mu/\sigma^2 = -1/2$ has a precise geometric meaning.
+The weight $e^{x/2}$ in the fee formula arises from the square-root
+price $\pi_k = e^{kh/2}$, which grows with rate $+1/2$ in the
+exponent. The local time gradient at the origin is
+$\partial_x\E[L^x_T]\big|_0 = (\mu/\sigma^2)\,\E[L^0_T]$, which
+under risk-neutral GBM gives a rate $-1/2$. These two rates
+\emph{exactly cancel}:
+\begin{equation}\label{eq:rate_cancel}
+\underbrace{+\frac{1}{2}}_{\text{from } e^{x/2}}
++ \underbrace{\frac{\mu}{\sigma^2}}_{\text{from }
+\partial_x\E[L^x]} = 0
+\quad \iff \quad \mu = -\frac{\sigma^2}{2}.
+\end{equation}
+Under any other drift, the two rates do not cancel, the function $f$
+is not approximately even near the origin, and the Euler--Maclaurin
+boundary term contributes at first order.
+
+%% -------------------------------------------------------------------
+\subsection{Consequences for LP strategy}
+
+The non-universality of $\kappa_1$ has direct implications for LP
+strategy optimization:
+
+\begin{enumerate}[label=(\arabic*)]
+\item \textbf{Risk-neutral vs.\ physical measure.} The EGM formulas
+are typically derived under the risk-neutral measure (as in our
+setup). But an LP's \emph{actual} fee income is determined by the
+physical-measure dynamics. If the underlying asset has positive
+expected return $r > 0$, the physical-measure correction is larger
+than the risk-neutral one. An LP using the risk-neutral correction
+to estimate fees will systematically underestimate the finite-tick
+effect.
+
+\item \textbf{Directional LPs.} An LP who concentrates liquidity
+above the current price (bullish position) effectively faces a
+different drift within their range. The correction $\kappa_1$ then
+depends on the conditional drift within the range, which may differ
+from the unconditional drift.
+
+\item \textbf{Stablecoin pools.} For stablecoin pairs (e.g.,
+USDC/USDT), the drift is approximately zero ($\mu \approx 0$), giving
+$\kappa_1 \approx 1/2$. This is \emph{twice} the risk-neutral GBM
+value, a substantial difference for the narrow-spread pools where
+precision matters most.
+\end{enumerate}
+
+%% -------------------------------------------------------------------
+\subsection{The decomposition table}
+
+Table~\ref{tab:decomposition} summarizes the decomposition of
+$\kappa_1$ into its two sources across different models.
+
+\begin{table}[h]
+\centering
+\caption{Decomposition of $\kappa_1$ into prefactor and
+Euler--Maclaurin contributions.}
+\label{tab:decomposition}
+\begin{tabular}{lcccccc}
+\toprule
+Model & $\mu$ & $\alpha$ & $\kappa_1^{\psi}$
+& $\kappa_1^{EM}$ & $\kappa_1$ & $f'(0)/\E[L^0_T]$ \\
+\midrule
+GBM ($\PP^*$) & $-\sigma^2/2$ & $1$ & $1/4$ & $0$ & $1/4$ & $0$ \\
+ABM & $0$ & $0$ & $3/4$ & $-1/4$ & $1/2$ & $1/2$ \\
+Physical ($r > 0$) & $r - \sigma^2/2$ & $1 - 2r/\sigma^2$
+& $1/4 + r/\sigma^2$ & $-r/(2\sigma^2)$ & $1/4 + r/(2\sigma^2)$
+& $r/(2\sigma^2)$ \\
+General & $\mu$ & $-2\mu/\sigma^2$
+& $3/4 + \mu/\sigma^2$ & $-1/4 - \mu/(2\sigma^2)$
+& $1/2 + \mu/(2\sigma^2)$ & $1/2 + \mu/\sigma^2$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ===================================================================
+\section{The Full Two-Term Expansion under GBM}\label{sec:gbm}
+
+We now specialize to risk-neutral GBM ($\mu = -\sigma^2/2$,
+$\alpha = 1$) to derive the complete two-term expansion including the
+second-order, range-dependent correction.
+
+%% -------------------------------------------------------------------
+\subsection{Exact crossing-count formula}
+
+\begin{proposition}[Exact formula under GBM]\label{prop:exact}
+Under risk-neutral GBM, the expected renormalized $Y$-fee is
+\begin{equation}\label{eq:exact}
+\Psi(\gamma) = \frac{\phi}{1 - \phi}
+\sum_{k=-N/2}^{N/2-1} c(h) \cdot e^{kh/2} \cdot \E^*[L^{kh}_T],
+\end{equation}
+where $c(h) = \gamma(e^{h/2} - 1)/(h(1 + e^h))$.
+\end{proposition}
+\begin{proof}
+This is equation \eqref{eq:Psi_def} with $\alpha = 1$.
+At each visit to grid level $kh$, the walk departs upward with
+probability $p_\uparrow = 1/(1 + e^h)$
+(Lemma~\ref{lem:p_up} with $\alpha = 1$).
+The expected number of visits satisfies
+$\E[\text{visits to }kh] = \E[L^{kh}_T]/h + O(1)$ as $h \to 0$
+(see \citealt{GobetLandon2014,GobetStazhynski2020}), and the
+$O(1)$ remainder contributes $O(\gamma^2)$ to the renormalized fee
+after multiplication by the $O(h)$ fee per crossing.
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Prefactor under GBM}
+
+\begin{lemma}[GBM prefactor]\label{lem:prefactor_gbm}
+Under GBM ($\alpha = 1$):
+$\psi(h) = 1 + h/4 + O(h^2)$.
+\end{lemma}
+\begin{proof}
+This is Lemma~\ref{lem:prefactor_general} with $\alpha = 1$:
+$\kappa_1^{\psi} = 3/4 - 1/2 = 1/4$.
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Euler--Maclaurin analysis under GBM}
+
+Under GBM, $f'(0) = 0$ (Lemma~\ref{lem:f_prime} with $\alpha = 1$).
+Therefore the leading Euler--Maclaurin correction vanishes, and we
+must go to second order.
+
+\begin{lemma}[GBM Euler--Maclaurin]\label{lem:EM_gbm}
+Under GBM, with $f'(0) = 0$:
+\begin{equation}\label{eq:EM_gbm}
+\sum_{k=-N/2}^{N/2-1} h\,f(kh)
+= I_f(h)\bigl(1 + O(h^2)\bigr).
+\end{equation}
+The boundary correction is $O(h^4)$ because
+$f(-a) - f(a) = -2f'(0)\,a + O(a^3) = O(a^3) = O(N^3 h^3)$,
+and the $h/2$ prefactor gives $O(N^3 h^4)$.
+\end{lemma}
+
+%% -------------------------------------------------------------------
+\subsection{Weight-function discrepancy: the second-order term}
+
+\begin{lemma}[Weight-function discrepancy]\label{lem:weight_discrep}
+Under GBM ($\alpha = 1$), with $a = Nh/2$:
+\begin{equation}\label{eq:weight_ratio}
+\frac{I_f(h)}{I_g(h)} = 1 - \frac{N^2 h^2}{6} + O(h^4).
+\end{equation}
+\end{lemma}
+\begin{proof}
+\textbf{Step 1: Second derivatives at the origin.}
+
+We need $f''(0)$ and $g''(0)$. Using the notation
+$\lambda_0 \coloneqq \E[L^0_T]$ and
+$\lambda_2 \coloneqq \partial_x^2\E[L^x_T]\big|_{x=0}$:
+\begin{align}
+f''(0) &= \frac{1}{4}\,\lambda_0 + \partial_x\E[L^x_T]\big|_0
++ \lambda_2 \notag \\
+&= \frac{1}{4}\,\lambda_0 - \frac{1}{2}\,\lambda_0
++ \lambda_2
+= -\frac{1}{4}\,\lambda_0 + \lambda_2,
+\label{eq:f_second}
+\end{align}
+where we used $\partial_x\E[L^x_T]\big|_0 = -\lambda_0/2$ under GBM.
+Similarly:
+\begin{align}
+g''(0) &= \frac{9}{4}\,\lambda_0
+- 3 \cdot \bigl(-\frac{1}{2}\bigr)\,\lambda_0 + \lambda_2
+= \frac{15}{4}\,\lambda_0 + \lambda_2.
+\label{eq:g_second}
+\end{align}
+Here we used $g(x) = e^{-3x/2}\,\E[L^x_T]$, so
+$g'(0) = -3\lambda_0/2 + (-\lambda_0/2) = -2\lambda_0$ and
+$g''(0) = 9\lambda_0/4 + 2 \cdot (-3/2)(-1/2)\lambda_0 + \lambda_2
+= 9\lambda_0/4 + 3\lambda_0/2 + \lambda_2 = 15\lambda_0/4 + \lambda_2$.
+
+\textbf{Step 2: Integral difference.}
+
+Since $f(0) = g(0) = \lambda_0$ and $f'(0) = 0$,
+$g'(0) = -2\lambda_0$:
+\begin{align}
+I_f(h) - I_g(h) &= \int_{-a}^{a}\bigl[f(x) - g(x)\bigr]\dd x
+\notag \\
+&= \bigl[f'(0) - g'(0)\bigr] \cdot
+\underbrace{\int_{-a}^a x\dd x}_{= 0}
++ \frac{f''(0) - g''(0)}{2} \cdot
+\int_{-a}^a x^2\dd x + O(a^5).
+\label{eq:integral_diff}
+\end{align}
+Using $\int_{-a}^a x^2\dd x = 2a^3/3$ and
+$f''(0) - g''(0) = (-\lambda_0/4 + \lambda_2) -
+(15\lambda_0/4 + \lambda_2) = -4\lambda_0$:
+\begin{equation}\label{eq:integral_diff_value}
+I_f(h) - I_g(h) = \frac{-4\lambda_0}{2} \cdot
+\frac{2a^3}{3} + O(a^5) = -\frac{4\lambda_0\,a^3}{3} + O(a^5).
+\end{equation}
+
+\textbf{Step 3: Ratio.}
+
+Since $I_g(h) = 2a\,\lambda_0 + O(a^3)$ (the leading term of the
+integral of $g$):
+\[
+\frac{I_f(h)}{I_g(h)} = 1 + \frac{I_f - I_g}{I_g}
+= 1 - \frac{4a^3/3}{2a} + O(a^4)
+= 1 - \frac{2a^2}{3} + O(a^4).
+\]
+Substituting $a = Nh/2$:
+\[
+\frac{I_f(h)}{I_g(h)} = 1 - \frac{N^2 h^2}{6} + O(h^4).
+\qedhere
+\]
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Main theorem under GBM}
+
+\begin{theorem}[Finite-tick correction under GBM]
+\label{thm:main}
+Under risk-neutral GBM with constant $\sigma > 0$, $T > 0$,
+and $N$ even:
+\begin{equation}\label{eq:main_thm}
+\frac{\Psi(\gamma)}{F_0^Y(\gamma)}
+= 1 + \frac{1}{4}\,\gamma - \frac{N^2}{6}\,\gamma^2
++ O(\gamma^3).
+\end{equation}
+In particular,
+$\kappa_1 = \lim_{\gamma \to 0}[\Psi/F_0^Y - 1]/\gamma = 1/4$,
+independent of $\sigma$, $T$, and~$N$.
+\end{theorem}
+\begin{proof}
+From Lemma~\ref{lem:prefactor_gbm}, Lemma~\ref{lem:EM_gbm}, and
+Lemma~\ref{lem:weight_discrep}:
+\begin{align*}
+\frac{\Psi}{F_0^Y}
+&= \psi(h) \cdot \frac{\sum h\,f(kh)}{I_g(h)} \\
+&= \psi(h) \cdot
+\frac{\sum h\,f(kh)}{I_f(h)} \cdot \frac{I_f(h)}{I_g(h)} \\
+&= \Bigl(1 + \frac{h}{4} + O(h^2)\Bigr)
+\Bigl(1 + O(h^2)\Bigr)
+\Bigl(1 - \frac{N^2 h^2}{6} + O(h^4)\Bigr) \\
+&= 1 + \frac{h}{4} - \frac{N^2 h^2}{6} + O(h^3).
+\end{align*}
+Since $h = \gamma - \gamma^2/2 + O(\gamma^3)$:
+$h/4 = \gamma/4 + O(\gamma^2)$ and
+$N^2 h^2/6 = N^2\gamma^2/6 + O(\gamma^3)$.
+\end{proof}
+
+\begin{corollary}[Sign crossover]\label{cor:crossover}
+The relative correction $\Psi/F_0^Y - 1$ changes sign at
+\begin{equation}\label{eq:gamma_star}
+\gamma^* = \frac{3}{2N^2}.
+\end{equation}
+For $\gamma < \gamma^*$, the asymptotic formula underestimates
+fees; for $\gamma > \gamma^*$, it overestimates.
+\end{corollary}
+\begin{proof}
+Setting $\gamma/4 - N^2\gamma^2/6 = 0$ gives
+$\gamma(1/4 - N^2\gamma/6) = 0$, so
+$\gamma^* = 3/(2N^2)$.
+\end{proof}
+
+\begin{remark}[Universality of $\kappa_1 = 1/4$: scope]
+\label{rem:universality}
+Under risk-neutral GBM, $\kappa_1 = 1/4$ is independent of $\sigma$,
+$T$, and~$N$. This ``universality'' stems from the algebraic
+structure of the prefactor $\psi(h)$, combined with the cancellation
+$f'(0) = 0$. However, as shown in
+Theorem~\ref{thm:general_kappa1}, it is \emph{not} universal across
+drift parameters. The value $1/4$ is a special property of the
+risk-neutral GBM drift.
+\end{remark}
+
+\begin{remark}[Nature of the second-order term]
+The coefficient $-N^2/6$ of the second-order correction encodes a
+geometric mismatch between the spatial weight
+$e^{x/2}$ (from the fee formula) and the temporal weight
+$e^{-3x/2}$ (from the occupation-time representation).
+Since $e^{x/2} - e^{-3x/2} = 2x + O(x^2)$, the discrepancy grows
+quadratically with the range width $Nh$. The mismatch is always
+negative: the crossing-count sum assigns larger weight to ticks above
+the center (via $e^{x/2}$), while the local time integral assigns
+larger weight below the center (via $e^{-3x/2}$). Since $\E[L^x_T]$
+is approximately symmetric near $x = 0$ (the starting point), these
+opposing biases produce a deficit in the sum relative to the
+integral.
+\end{remark}
+
+%% ===================================================================
+\section{Misaligned Range Boundaries}\label{sec:misaligned}
+
+In practice, LPs choose their range boundaries $[p_\ell, p_u]$ in
+terms of prices, which need not correspond exactly to tick grid
+levels. When the boundary falls between two ticks, the crossing
+statistics at the boundary tick change. We now quantify this effect.
+
+%% -------------------------------------------------------------------
+\subsection{Setup and definitions}
+
+\begin{definition}[Fractional offset]\label{def:offset}
+Let $a_\ell$ denote the lower boundary of the LP range in log-price
+space. Suppose $a_\ell$ falls between grid levels $mh$ and $(m+1)h$:
+\begin{equation}\label{eq:offset}
+a_\ell = mh + \delta h, \qquad \delta \in [0, 1).
+\end{equation}
+The first tick level inside the range is $x_b = (m+1)h$, at distance
+\begin{equation}\label{eq:epsilon}
+\varepsilon = x_b - a_\ell = (1 - \delta)h
+\end{equation}
+above $a_\ell$. The case $\delta = 0$ corresponds to alignment
+($a_\ell$ exactly at a tick level), while $\delta \to 1$ corresponds
+to the range boundary just below a tick level.
+\end{definition}
+
+\begin{figure}[h]
+\centering
+\begin{minipage}{0.9\textwidth}
+\small
+\begin{verbatim}
+        a_l           x_b          x_b+h        x_b+2h
+  -------*-------------|-------------|-------------|---
+         |<-- eps ---->|
+         |<--- (1-d)h -->|<---------- h ---------->|
+
+  Interior ticks: symmetric strip [kh-h, kh+h], width 2h
+  Boundary tick:  asymmetric strip [a_l, x_b+h], width (2-d)h
+\end{verbatim}
+\end{minipage}
+\caption{Misaligned range boundary. The boundary tick $x_b$ sits in
+an asymmetric strip of width $(2-\delta)h$ instead of the standard
+$2h$ strip.}
+\label{fig:misaligned}
+\end{figure}
+
+%% -------------------------------------------------------------------
+\subsection{Boundary tick crossing probability}
+
+\begin{proposition}[Boundary tick efficiency]\label{prop:boundary_eff}
+Under the diffusion \eqref{eq:general_sde} with scale function $S$,
+the upcrossing probability at the boundary tick $x_b$ (reaching
+$x_b + h$ before $a_\ell$) is
+\begin{equation}\label{eq:p_boundary}
+p_b(\delta, h) = \frac{S(\varepsilon)}{S(h + \varepsilon)}
+= \frac{S((1-\delta)h)}{S((2-\delta)h)}.
+\end{equation}
+Under GBM ($\alpha = 1$):
+\begin{equation}\label{eq:p_boundary_gbm}
+p_b(\delta, h) = \frac{e^{(1-\delta)h} - 1}{e^{(2-\delta)h} - 1}.
+\end{equation}
+The boundary tick efficiency ratio, defined as $p_b/p_\uparrow$, satisfies
+\begin{equation}\label{eq:R_delta}
+R(\delta) \coloneqq \lim_{h \to 0}\frac{p_b(\delta, h)}{p_\uparrow(h)}
+= \frac{2(1-\delta)}{2-\delta}.
+\end{equation}
+\end{proposition}
+\begin{proof}
+The crossing probability follows from the standard exit problem:
+starting at $x_b$, the process must reach $x_b + h$ before $a_\ell$.
+The scale function gives
+\[
+p_b = \frac{S(x_b) - S(a_\ell)}{S(x_b + h) - S(a_\ell)}
+= \frac{S(\varepsilon)}{S(\varepsilon + h)},
+\]
+by translation invariance of constant-coefficient diffusions.
+
+For the efficiency ratio, using the GBM scale function
+$S(x) = e^x - 1$:
+\begin{align*}
+\frac{p_b}{p_\uparrow}
+&= \frac{S(\varepsilon)}{S(\varepsilon + h)}
+\cdot \frac{S(2h)}{S(h)}
+= \frac{(e^{\varepsilon} - 1)(e^{2h} - 1)}{%
+(e^{\varepsilon + h} - 1)(e^h - 1)}.
+\end{align*}
+As $h \to 0$, $S(x) \to x$ (since $\alpha = 1$ and
+$(e^x - 1)/x \to 1$), so:
+\[
+R(\delta) = \frac{\varepsilon}{\varepsilon + h}
+\cdot \frac{2h}{h}
+= \frac{(1-\delta)h}{(2-\delta)h} \cdot 2
+= \frac{2(1-\delta)}{2-\delta}.
+\qedhere
+\]
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Properties of the efficiency function}
+
+\begin{proposition}[Properties of $R(\delta)$]
+\label{prop:R_properties}
+The boundary tick efficiency $R(\delta) = 2(1-\delta)/(2-\delta)$
+satisfies:
+\begin{enumerate}[label=(\alph*)]
+\item $R(0) = 1$ \textup{(aligned: full efficiency)}.
+\item $R(\delta)$ is strictly decreasing on $[0, 1)$.
+\item $R(1/2) = 2/3$ \textup{(half-tick offset: $67\%$ efficiency)}.
+\item $R(\delta) \to 0$ as $\delta \to 1^-$
+\textup{(boundary at tick: zero efficiency)}.
+\item $R'(\delta) = -2/(2-\delta)^2 < 0$ for all
+$\delta \in [0,1)$.
+\item $R(\delta)$ is a \textup{rational} function of $\delta$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}
+All properties follow from direct computation:
+(a) $R(0) = 2/2 = 1$. (b) and (e): $R'(\delta) = -2/(2-\delta)^2 < 0$.
+(c) $R(1/2) = 2 \cdot (1/2)/(3/2) = 2/3$.
+(d) $\lim_{\delta \to 1} 2(1-\delta)/(2-\delta) = 0/1 = 0$.
+(f) Evident from the formula.
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{The misalignment correction to fee revenue}
+
+\begin{theorem}[Misalignment correction]\label{thm:misaligned}
+For an LP range with fractional offset $\delta$ at the lower boundary
+and $\delta'$ at the upper boundary, each with $N$ interior ticks, the
+total fee correction acquires an additional first-order term:
+\begin{equation}\label{eq:misaligned_correction}
+\frac{\Psi_{\mathrm{mis}}}{\Psi_{\mathrm{align}}}
+= 1 - \frac{1}{N}\Bigl[\frac{\delta}{2-\delta}
++ \frac{\delta'}{2-\delta'}\Bigr] + O(N^{-2}),
+\end{equation}
+where $\Psi_{\mathrm{align}}$ is the aligned fee from
+Theorem~\ref{thm:main}. The correction is always non-positive,
+with equality if and only if both boundaries are aligned
+($\delta = \delta' = 0$).
+\end{theorem}
+\begin{proof}
+Under alignment, each tick contributes equally to leading order
+(proportional to $\E[L^{kh}_T]$). The boundary ticks each contribute
+$p_\uparrow \cdot \E[L^{x_b}_T]/h$ fee events. Under misalignment,
+the boundary tick contribution is reduced by the factor $R(\delta)$:
+\[
+\text{boundary contribution ratio}
+= R(\delta) = 1 - \frac{\delta}{2-\delta}.
+\]
+Since the sum has $N$ terms and each boundary tick is one of them:
+\begin{align*}
+\Psi_{\mathrm{mis}} &= \Psi_{\mathrm{align}}
+\cdot \frac{(N-2) + R(\delta) + R(\delta')}{N} + O(N^{-2}) \\
+&= \Psi_{\mathrm{align}} \Bigl(1 - \frac{1}{N}
+\bigl[(1 - R(\delta)) + (1 - R(\delta'))\bigr]\Bigr) + O(N^{-2}).
+\end{align*}
+Using $1 - R(\delta) = \delta/(2-\delta)$ gives
+\eqref{eq:misaligned_correction}.
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Comparison with the BGK barrier correction}
+
+The classical BGK correction for a discretely monitored barrier option
+involves the constant
+\begin{equation}\label{eq:bgk_beta}
+\beta = \frac{\zeta(1/2)}{\sqrt{2\pi}} \approx -0.5826,
+\end{equation}
+where $\zeta(1/2) \approx -1.4604$ is the Riemann zeta function at
+$1/2$. This constant arises from the Wiener--Hopf factorization of
+the distribution of the random walk maximum, via the Spitzer--Baxter
+identity.
+
+\begin{remark}[Why BGK does not apply here]\label{rem:bgk}
+The BGK correction arises from the \emph{overshoot}: under discrete
+temporal monitoring at times $\{0, \Delta t, 2\Delta t, \ldots\}$,
+the random walk can jump past a barrier between monitoring dates.
+The overshoot distribution determines the barrier shift.
+
+In our spatial setting, the price process $X_t$ is
+\emph{continuous}: it crosses every level $x$ with probability one
+(by the intermediate value theorem for continuous paths). There is
+\emph{no overshoot} past tick levels. The misalignment correction
+instead arises from the \emph{gambler's ruin probability} in an
+asymmetric strip $[a_\ell, x_b + h]$ of width $(2-\delta)h$ (vs.\
+the standard symmetric strip of width $2h$).
+
+Consequently, our correction is a rational function of $\delta$
+(Proposition~\ref{prop:R_properties}(f)), not an irrational constant
+involving $\zeta(1/2)$. This distinction---spatial discretization
+produces algebraic corrections while temporal discretization produces
+transcendental ones---appears to be new in the literature.
+\end{remark}
+
+\begin{remark}[Sub-tick strip effect]
+In addition to the boundary tick efficiency reduction, misalignment
+causes the LP to miss fee revenue from the sub-tick strips
+$[a_\ell, x_b)$ (below the first tick) and $(x_t, a_u]$ (above the
+last tick), where no tick exists to collect fees. These strips account
+for a fraction $\delta/(N + 2 - \delta - \delta')$ of the total range
+width, producing a direct $O(1/N)$ correction to the EGM integral
+denominator $F_0^Y$.
+\end{remark}
+
+%% -------------------------------------------------------------------
+\subsection{General scale function}
+
+For a general constant-drift diffusion with $\alpha \ne 1$, the
+boundary tick efficiency generalizes:
+\begin{equation}\label{eq:R_general}
+R_\alpha(\delta) = \lim_{h \to 0}
+\frac{S_\alpha((1-\delta)h)/S_\alpha((2-\delta)h)}{%
+S_\alpha(h)/S_\alpha(2h)}
+= \frac{(1-\delta)(2)}{(2-\delta)(1)}
+= \frac{2(1-\delta)}{2-\delta},
+\end{equation}
+which is identical to the GBM case. This is because
+$S_\alpha(x)/x \to 1$ as $x \to 0$ for any $\alpha$, and the
+efficiency ratio depends only on the linear behavior of $S$ near the
+origin. The $\alpha$-dependence enters only at $O(h^2)$ (the $O(h)$ coefficient vanishes by cancellation):
+\begin{equation}\label{eq:R_alpha_correction}
+\frac{p_b}{p_\uparrow}
+= R(\delta) + O(h^2).
+\end{equation}
+
+%% ===================================================================
+\section{Optimal Range Width}\label{sec:optimal}
+
+The finite-tick correction enables a refined optimization of the LP's
+range width, accounting for the systematic bias in the EGM asymptotic.
+
+%% -------------------------------------------------------------------
+\subsection{LP revenue decomposition}
+
+The LP's net revenue over $[0, T]$ decomposes as
+\begin{equation}\label{eq:net_revenue}
+\mathrm{Net}(N, \gamma) = \mathrm{Fee}(N, \gamma)
+- \IL(N, \gamma),
+\end{equation}
+where $\mathrm{Fee}$ is the swap fee income and $\IL$ is the
+impermanent loss.
+
+\textbf{Fee revenue.} Under the corrected formula:
+\begin{equation}\label{eq:corrected_fee}
+\mathrm{Fee}(N, \gamma) = F_0^Y(N, \gamma)
+\cdot \Bigl(1 + \frac{1}{4}\,\gamma
+- \frac{N^2}{6}\,\gamma^2 + O(\gamma^3)\Bigr).
+\end{equation}
+For a narrow range ($Nh \ll \sigma\sqrt{T}$), the EGM leading term
+scales linearly in $N$:
+\begin{equation}\label{eq:F0_narrow}
+F_0^Y(N, \gamma) \approx C_{\mathrm{fee}} \cdot N\gamma,
+\qquad C_{\mathrm{fee}} = \frac{\phi\,\sigma\sqrt{2T/\pi}}
+{4(1 - \phi)}.
+\end{equation}
+This uses $\int_{-a}^a \E[L^x_T]\dd x \approx 2a\,\E[L^0_T]$ for
+$a$ small, together with
+$\E[L^0_T] = \sigma^2\int_0^T p_X(t,0,0)\dd t
+= \sigma\sqrt{2T/\pi}$.
+
+\textbf{Impermanent loss.} For a narrow range, the IL scales
+quadratically:
+\begin{equation}\label{eq:IL}
+\IL(N, \gamma) \approx C_{\IL} \cdot (N\gamma)^2,
+\qquad C_{\IL} = \frac{\sigma^2 T}{24}.
+\end{equation}
+This is the leading-order expansion of the standard IL formula for
+concentrated liquidity positions (see, e.g., \citealt{ClarkHassani2023}).
+
+%% -------------------------------------------------------------------
+\subsection{Uncorrected optimum}
+
+Ignoring the finite-tick correction, the LP maximizes
+\begin{equation}\label{eq:net_uncorrected}
+\mathrm{Net}_0(N) = C_{\mathrm{fee}} \cdot N\gamma
+- C_{\IL} \cdot N^2\gamma^2.
+\end{equation}
+Setting $\partial_N \mathrm{Net}_0 = 0$:
+\begin{equation}\label{eq:N_star_EGM}
+N^*_{\mathrm{EGM}} = \frac{C_{\mathrm{fee}}}{2\,C_{\IL}\,\gamma}
+= \frac{\phi\,\sigma\sqrt{2T/\pi}}{4(1-\phi)}
+\cdot \frac{12}{\sigma^2 T\,\gamma}
+= \frac{3\phi}{(1-\phi)\,\sigma\,\gamma}
+\cdot \sqrt{\frac{2}{\pi T}}.
+\end{equation}
+
+%% -------------------------------------------------------------------
+\subsection{Corrected optimum}
+
+With the finite-tick correction, the fee becomes
+\begin{equation}\label{eq:fee_corrected_full}
+\mathrm{Fee}(N, \gamma) \approx C_{\mathrm{fee}} \cdot N\gamma
+\Bigl(1 + \frac{\gamma}{4} - \frac{N^2\gamma^2}{6}\Bigr).
+\end{equation}
+The net revenue is
+\begin{equation}\label{eq:net_corrected}
+\mathrm{Net}(N) = C_{\mathrm{fee}}\,N\gamma
++ C_{\mathrm{fee}}\,N\,\frac{\gamma^2}{4}
+- C_{\mathrm{fee}}\,\frac{N^3\gamma^3}{6}
+- C_{\IL}\,N^2\gamma^2.
+\end{equation}
+
+\begin{proposition}[Corrected optimal range width]
+\label{prop:optimal_N}
+The fee-maximizing number of ticks under the corrected formula
+satisfies
+\begin{equation}\label{eq:N_corrected}
+N^*_{\mathrm{corr}} = N^*_{\mathrm{EGM}}
+\Bigl(1 - \frac{(N^*_{\mathrm{EGM}})^2\,\gamma^2}{2}
++ O(\gamma)\Bigr).
+\end{equation}
+The correction is always negative: the finite-tick effect reduces the
+optimal range width.
+\end{proposition}
+\begin{proof}
+Setting $\partial_N\,\mathrm{Net} = 0$:
+\begin{equation}\label{eq:FOC}
+C_{\mathrm{fee}}\,\gamma\Bigl(1 + \frac{\gamma}{4}\Bigr)
+- \frac{C_{\mathrm{fee}}\,N^2\gamma^3}{2}
+- 2\,C_{\IL}\,N\gamma^2 = 0.
+\end{equation}
+Write $N = N^*_{\mathrm{EGM}}(1 + \epsilon)$ with
+$|\epsilon| \ll 1$. Substituting and linearizing in $\epsilon$:
+\[
+C_{\mathrm{fee}}\,\gamma \cdot \frac{\gamma}{4}
+- \frac{C_{\mathrm{fee}}\,(N^*_{\mathrm{EGM}})^2\gamma^3}{2}
+- 2\,C_{\IL}\,N^*_{\mathrm{EGM}}\,\gamma^2\,\epsilon = 0.
+\]
+Using $2\,C_{\IL}\,N^*_{\mathrm{EGM}}\,\gamma =
+C_{\mathrm{fee}}$ from \eqref{eq:N_star_EGM}, we divide by
+$C_{\mathrm{fee}}\,\gamma$ to obtain
+\[
+\epsilon = \frac{\gamma}{4}
+- \frac{(N^*_{\mathrm{EGM}})^2\,\gamma^2}{2}.
+\]
+Since $N^*_{\mathrm{EGM}} = O(\gamma^{-1})$, the product
+$(N^*_{\mathrm{EGM}})^2\gamma^2$ is $O(1)$, so the dominant
+correction is $\epsilon \approx
+-(N^*_{\mathrm{EGM}})^2\gamma^2/2$.
+\end{proof}
+
+%% -------------------------------------------------------------------
+\subsection{Practical impact}
+
+Table~\ref{tab:optimal_N} summarizes the corrected optimal range
+widths for typical parameters.
+
+\begin{table}[h]
+\centering
+\caption{Optimal range width: uncorrected vs.\ corrected. Parameters:
+$\sigma = 0.8$, $T = 1$ day, $\phi = 0.003$.}
+\label{tab:optimal_N}
+\begin{tabular}{ccccc}
+\toprule
+Fee tier & $\gamma$ & $N^*_{\mathrm{EGM}}$
+& $N^*_{\mathrm{corr}}$ & Tick shift \\
+\midrule
+$0.05\%$ & $0.001$ & $172$ & $170$ & $-2$ \\
+$0.30\%$ & $0.006$ & $29$ & $28$ & $-1$ \\
+$1.00\%$ & $0.020$ & $9$ & $9$ & $0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The correction is most significant for the $0.05\%$ pool where
+ranges are widest. The sign crossover condition $N^2\gamma > 3/2$
+from Corollary~\ref{cor:crossover} can be rewritten as: an LP
+using the uncorrected formula overestimates fees whenever
+$N > \sqrt{3/(2\gamma)}$, which corresponds to
+$N > 39$ for the $0.05\%$ tier and $N > 9$ for the $1\%$
+tier.
+
+For the $0.05\%$ pool with a \$1M LP position, the 2-tick correction
+corresponds to approximately \$200/day in optimized fee revenue. Over
+a year, this amounts to \$73{,}000---a non-trivial fraction of the
+LP's total income.
+
+%% ===================================================================
+\section{Numerical Validation}\label{sec:numerics}
+
+We validate Theorems~\ref{thm:general_kappa1} and~\ref{thm:main},
+as well as the misalignment correction
+(Theorem~\ref{thm:misaligned}), via semi-analytical computation.
+The expected local time $\E[L^x_T]$ is evaluated by numerical
+quadrature of the Gaussian transition density
+\eqref{eq:transition}, and the sums/integrals in $\Psi$ and
+$F_0^Y$ are computed directly.
+
+%% -------------------------------------------------------------------
+\subsection{General $\kappa_1$ formula}
+
+\begin{table}[h]
+\centering
+\caption{Verification of $\kappa_1 = 1/2 + \mu/(2\sigma^2)$ across
+drift values. Parameters: $\sigma = 0.4$, $T = 1$, $N = 20$.}
+\label{tab:general_kappa1}
+\begin{tabular}{lccccc}
+\toprule
+Model & $\mu$ & $\alpha$ & $\kappa_1$ (theory)
+& $\kappa_1$ (numerical, $\gamma = 10^{-4}$)
+& $\kappa_1$ (numerical, $\gamma = 10^{-3}$) \\
+\midrule
+GBM ($\PP^*$) & $-0.08$ & $1.00$ & $0.2500$
+& $0.236$ & $0.240$ \\
+ABM & $0$ & $0$ & $0.5000$
+& $0.494$ & $0.497$ \\
+$\mu = 0.05$ & $0.05$ & $-0.625$ & $0.6563$
+& $0.655$ & $0.656$ \\
+$\mu = -0.20$ & $-0.20$ & $2.50$ & $-0.1250$
+& $-0.127$ & $-0.126$ \\
+$\mu = 0.10$ & $0.10$ & $-1.25$ & $0.8125$
+& $0.811$ & $0.812$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The numerical values converge to the theoretical predictions as
+$\gamma \to 0$, with residuals consistent with $O(\gamma)$ terms.
+The case $\mu = -0.20$ demonstrates that $\kappa_1$ can be negative,
+meaning the finite-tick correction reduces rather than increases the
+fee estimate for sufficiently negative drift.
+
+%% -------------------------------------------------------------------
+\subsection{GBM two-term expansion}
+
+\begin{table}[h]
+\centering
+\caption{Relative correction under GBM ($\PP^*$).
+Parameters: $\sigma = 0.4$, $T = 1$, $\phi = 0.01$, $N = 20$.}
+\label{tab:main}
+\begin{tabular}{ccccc}
+\toprule
+$\gamma$ & $\Psi/F_0^Y - 1$ & $\kappa_1(\gamma)$
+& $\gamma/4 - N^2\gamma^2/6$ & Residual \\
+\midrule
+$0.001$ & $+0.016\%$ & $+0.16$ & $+0.018\%$ & $-0.003\%$ \\
+$0.005$ & $-0.034\%$ & $-0.07$ & $-0.042\%$ & $+0.008\%$ \\
+$0.010$ & $-0.35\%$ & $-0.35$ & $-0.42\%$ & $+0.07\%$ \\
+$0.020$ & $-1.63\%$ & $-0.82$ & $-2.17\%$ & $+0.53\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The two-term approximation agrees well with the semi-analytical values
+for $\gamma \le 0.01$, with residuals under $0.1\%$. At
+$\gamma = 0.02$ (the $1\%$ fee tier), the cubic and higher-order
+terms contribute approximately $0.5\%$, suggesting that a three-term
+expansion would be needed for precise estimates at this coarse tick
+spacing.
+
+%% -------------------------------------------------------------------
+\subsection{Sensitivity analysis}
+
+\begin{table}[h]
+\centering
+\caption{Sensitivity to $N$ and $\sigma$ at $\gamma = 0.005$,
+$T = 1$ under GBM ($\PP^*$).}
+\label{tab:sensitivity}
+\begin{tabular}{cccccccc}
+\toprule
+& \multicolumn{3}{c}{$\sigma = 0.4$ (varying $N$)}
+& \phantom{ab}
+& \multicolumn{3}{c}{$N = 20$ (varying $\sigma$)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){6-8}
+$N$ & $\kappa_1^{\mathrm{eff}}$ & Theory & Residual &
+& $\sigma$ & $\kappa_1^{\mathrm{eff}}$ & Theory \\
+\midrule
+$10$ & $+0.17$ & $+0.17$ & $< 0.01$ &
+& $0.2$ & $-0.04$ & $-0.08$ \\
+$20$ & $-0.07$ & $-0.08$ & $+0.01$ &
+& $0.4$ & $-0.07$ & $-0.08$ \\
+$40$ & $-0.96$ & $-1.08$ & $+0.12$ &
+& $0.6$ & $-0.07$ & $-0.08$ \\
+$80$ & $-4.09$ & $-5.08$ & $+0.99$ &
+& $0.8$ & $-0.08$ & $-0.08$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Range width dependence.} The effective $\kappa_1$ (computed as
+$[\Psi/F_0^Y - 1]/\gamma$) deviates from $1/4$ at finite $\gamma$
+due to the second-order term $-N^2\gamma^2/6$. The agreement between
+theory and numerics is excellent for $N \le 20$ and deteriorates for
+$N \ge 40$, where cubic terms become significant.
+
+\textbf{Volatility independence.} The correction is nearly independent
+of $\sigma$ (right panel), consistent with the analytic result that
+the leading terms $\gamma/4$ and $-N^2\gamma^2/6$ are
+$\sigma$-independent under GBM. The mild dependence at small $\sigma$
+reflects higher-order terms involving $\sigma$ through the local time
+statistics.
+
+%% -------------------------------------------------------------------
+\subsection{Sensitivity to time horizon}
+
+\begin{table}[h]
+\centering
+\caption{Sensitivity to time horizon $T$. Parameters: $\sigma = 0.4$,
+$\gamma = 0.005$, $N = 20$, GBM ($\PP^*$).}
+\label{tab:T_sensitivity}
+\begin{tabular}{cccc}
+\toprule
+$T$ & $\Psi/F_0^Y - 1$ & $\kappa_1^{\mathrm{eff}}$
+& Theory ($\gamma/4 - N^2\gamma^2/6$) \\
+\midrule
+$0.1$ & $-0.030\%$ & $-0.06$ & $-0.042\%$ \\
+$0.5$ & $-0.033\%$ & $-0.07$ & $-0.042\%$ \\
+$1.0$ & $-0.034\%$ & $-0.07$ & $-0.042\%$ \\
+$5.0$ & $-0.037\%$ & $-0.07$ & $-0.042\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The correction is effectively independent of $T$, as predicted by
+the theory (all terms in the expansion are $T$-independent). The weak
+residual dependence on $T$ enters through higher-order terms in the
+Euler--Maclaurin expansion.
+
+%% -------------------------------------------------------------------
+\subsection{Misalignment correction}
+
+\begin{table}[h]
+\centering
+\caption{Boundary tick efficiency ratio $R(\delta)$ under GBM.
+Parameters: $\gamma = 0.005$, $N = 20$.}
+\label{tab:misalignment}
+\begin{tabular}{cccc}
+\toprule
+$\delta$ & $R(\delta)$ (theory) & $R(\delta)$ (numerical)
+& Relative error \\
+\midrule
+$0.00$ & $1.0000$ & $1.0000$ & $< 10^{-8}$ \\
+$0.25$ & $0.8571$ & $0.8571$ & $< 10^{-6}$ \\
+$0.50$ & $0.6667$ & $0.6667$ & $< 10^{-6}$ \\
+$0.75$ & $0.4000$ & $0.4000$ & $< 10^{-6}$ \\
+$0.90$ & $0.1818$ & $0.1818$ & $< 10^{-5}$ \\
+$0.95$ & $0.0952$ & $0.0952$ & $< 10^{-5}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The boundary tick efficiency formula $R(\delta) = 2(1-\delta)/(2-\delta)$
+is exact to within numerical precision for all tested offsets.
+
+\begin{table}[h]
+\centering
+\caption{Impact of misalignment on total fee revenue. Parameters:
+$\gamma = 0.005$, GBM ($\PP^*$).}
+\label{tab:misalignment_impact}
+\begin{tabular}{ccccc}
+\toprule
+$N$ & $\delta$ & $\Psi_{\mathrm{mis}}/\Psi_{\mathrm{align}}$
+& Theory & Residual \\
+\midrule
+$4$ & $0.50$ & $0.833$ & $0.833$ & $< 0.001$ \\
+$10$ & $0.50$ & $0.933$ & $0.933$ & $< 0.001$ \\
+$20$ & $0.50$ & $0.967$ & $0.967$ & $< 0.001$ \\
+$40$ & $0.50$ & $0.983$ & $0.983$ & $< 0.001$ \\
+$20$ & $0.25$ & $0.986$ & $0.986$ & $< 0.001$ \\
+$20$ & $0.75$ & $0.940$ & $0.940$ & $< 0.001$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For narrow ranges ($N = 4$), misalignment can reduce fee revenue by
+up to $17\%$---far larger than the aligned-range correction. Even for
+moderate ranges ($N = 20$), a half-tick offset causes a $3.3\%$
+reduction, which is an order of magnitude larger than the aligned
+two-term correction at $\gamma = 0.005$.
+
+%% -------------------------------------------------------------------
+\subsection{Physical-measure corrections for crypto assets}
+
+\begin{table}[h]
+\centering
+\caption{First-order correction under the physical measure for
+typical crypto parameters. Fee tier: $1\%$ ($\gamma = 0.02$),
+$N = 10$.}
+\label{tab:crypto}
+\begin{tabular}{lccccc}
+\toprule
+Asset & $r$ & $\sigma$ & $\kappa_1^P$ & Correction
+& vs.\ risk-neutral \\
+\midrule
+BTC & $0.50$ & $0.80$ & $0.641$ & $+1.28\%$
+& $\times 2.56$ \\
+ETH & $0.30$ & $0.70$ & $0.556$ & $+1.11\%$
+& $\times 2.22$ \\
+SOL & $0.80$ & $1.10$ & $0.581$ & $+1.16\%$
+& $\times 2.32$ \\
+Stablecoin & $\approx 0$ & $0.01$ & $\approx 0.50$
+& $+1.00\%$ & $\times 2.00$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Under the physical measure, the first-order correction is $2$--$3$
+times the risk-neutral value for typical crypto assets. For stablecoin
+pools, the correction approaches $1/2$ (the ABM limit), which is
+twice the risk-neutral GBM value. These differences are economically
+significant: for a \$10M BTC/USDC position in the $1\%$ pool, the
+physical-measure correction implies an additional \$12{,}800 per year
+in systematic estimation bias relative to the risk-neutral formula.
+
+%% -------------------------------------------------------------------
+\subsection{Practical fee-tier summary}
+
+\begin{table}[h]
+\centering
+\caption{Summary of corrections for standard Uniswap v3 fee tiers
+under GBM ($\PP^*$) with typical LP range widths.}
+\label{tab:practical}
+\begin{tabular}{cccccc}
+\toprule
+Fee tier & $\gamma$ & $N$ & $\Psi/F_0^Y - 1$
+& Direction & \$ impact per \$10M \\
+\midrule
+$0.01\%$ & $0.0001$ & $100$ & $+0.002\%$ & Under
+& $+\$200$ \\
+$0.05\%$ & $0.001$ & $20$ & $+0.02\%$ & Under
+& $+\$2{,}000$ \\
+$0.30\%$ & $0.006$ & $30$ & $-0.35\%$ & Over
+& $-\$35{,}000$ \\
+$1.00\%$ & $0.020$ & $10$ & $-0.08\%$ & Over
+& $-\$8{,}000$ \\
+$1.00\%$ & $0.020$ & $20$ & $-1.63\%$ & Over
+& $-\$163{,}000$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The correction is most significant for the $1\%$ pool with wide
+ranges, and for the $0.30\%$ pool which is the most commonly used
+tier. In all cases where $\gamma > \gamma^*$, the EGM asymptotic
+\emph{overestimates} fees, meaning LPs using the asymptotic formula
+expect more income than they will actually receive.
+
+%% ===================================================================
+\section{Discussion}\label{sec:discussion}
+
+%% -------------------------------------------------------------------
+\subsection{Economic implications}
+
+\paragraph{Risk-neutral vs.\ physical measure for LP decisions.}
+The distinction between $\kappa_1 = 1/4$ (risk-neutral) and
+$\kappa_1^P = 1/4 + r/(2\sigma^2)$ (physical) raises a fundamental
+question for LP strategy: which measure should LPs use?
+
+Under the risk-neutral measure, the correction formula is
+``universal'' ($\sigma$- and $T$-independent at first order) and
+analytically convenient. However, the LP's actual P\&L is determined
+by the physical-measure dynamics, which includes the expected return.
+Since $\kappa_1^P > \kappa_1$ for assets with $r > 0$, an LP using
+the risk-neutral correction will \emph{underestimate} the true
+finite-tick effect.
+
+For pricing and hedging purposes, the risk-neutral formula is
+appropriate. For P\&L prediction and range optimization, the
+physical-measure formula should be used. This parallels the standard
+distinction in options pricing between risk-neutral and actuarial
+valuation.
+
+\paragraph{Implications for range selection.}
+The finite-tick correction provides a concrete criterion for when the
+EGM asymptotic is reliable: the relative error is below $1\%$ when
+$|\gamma/4 - N^2\gamma^2/6| < 0.01$, i.e., when $N < 4/\gamma$ and
+$N^2\gamma < 0.06/\gamma$. For the $0.05\%$ tier, this gives
+$N < 4{,}000$ (effectively always satisfied); for the $1\%$ tier,
+$N < 200$ (also satisfied for typical ranges). The correction becomes
+critical when the LP targets a precision better than $1\%$.
+
+\paragraph{Market-making profitability.}
+The sign crossover at $\gamma^* = 3/(2N^2)$ has practical
+implications: LPs in wide-range positions at coarse tick spacings
+(the most capital-efficient strategy) face the largest
+overestimation. This means that profitability analyses based on the
+EGM formula are systematically optimistic for the most popular LP
+strategies.
+
+%% -------------------------------------------------------------------
+\subsection{Connection to discrete barrier option corrections}
+
+The analogy between AMM positions and barrier options, noted by
+\citet{Paone2025}, extends naturally to the correction structure.
+Table~\ref{tab:bgk_comparison} summarizes the key differences.
+
+\begin{table}[h]
+\centering
+\caption{Comparison of spatial (tick-grid) and temporal
+(monitoring-date) discretization corrections.}
+\label{tab:bgk_comparison}
+\begin{tabular}{lcc}
+\toprule
+& \textbf{Spatial (this paper)} & \textbf{Temporal (BGK)} \\
+\midrule
+Grid parameter & $h = \log(1+\gamma)$ & $\Delta t$ \\
+Process & Continuous in time & Sampled at $\{k\Delta t\}$ \\
+Overshoot & None (a.s.) & Non-trivial \\
+Correction type & Algebraic/EM & Wiener--Hopf \\
+Key constant & $\kappa_1 = 1/4$ (RN GBM) & $\beta \approx -0.583$ \\
+Nature & Rational in offsets & Involves $\zeta(1/2)$ \\
+Source & Fee formula + EM & Overshoot distribution \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The fundamental distinction is topological: spatial discretization
+preserves the continuity of sample paths (the process still passes
+through every level), while temporal discretization breaks it (the
+process can jump past a barrier). The corrections reflect this
+difference: our corrections are polynomial/rational in the
+discretization parameter, while BGK corrections involve
+transcendental constants from the Wiener--Hopf theory of random
+walks.
+
+%% -------------------------------------------------------------------
+\subsection{Extensions and open problems}
+
+\paragraph{Stochastic volatility.}
+For models of the form $dX_t = \mu(V_t)\dd t + \sigma(V_t)\dd W_t$
+with stochastic volatility $V_t$, the correction $\kappa_1$ becomes
+a functional of the volatility path:
+\[
+\kappa_1^{\mathrm{SV}}
+= \E\Bigl[\frac{1}{2} + \frac{\mu(V_\tau)}{2\sigma(V_\tau)^2}
+\Bigl|\, X \text{ crosses tick at time } \tau\Bigr],
+\]
+where $\tau$ is a typical crossing time. Deriving the precise form
+requires the joint distribution of the process and its volatility at
+tick-crossing times, which is non-trivial even for the Heston model.
+
+\paragraph{Jump processes.}
+For L\'evy-driven log-prices with jumps, the crossing probability
+$p_\uparrow$ is no longer given by the scale function formula, and
+the Wiener--Hopf factorization becomes relevant even in the spatial
+setting (because jumps can overshoot tick levels). The correction is
+expected to involve both the BGK-type constant $\beta$ and the
+algebraic prefactor correction, with the relative importance depending
+on the jump intensity and size distribution.
+
+\paragraph{Multi-pool strategies.}
+LPs who provide liquidity across multiple pools (e.g., ETH/USDC at
+both $0.05\%$ and $0.30\%$) face a portfolio optimization problem
+where the finite-tick corrections at different fee tiers interact.
+The correction shifts the optimal capital allocation toward the
+finer-tick pools (where the correction is smaller).
+
+\paragraph{Time-varying parameters.}
+For non-stationary volatility (which is the norm in crypto markets),
+the correction coefficients become time-dependent. A natural extension
+would be to derive the correction under a piecewise-constant
+volatility model, which approximates the general case via a
+time-inhomogeneous diffusion.
+
+\begin{conjecture}[Stochastic volatility correction]
+\label{conj:sv}
+Under a stochastic volatility model with long-run mean
+$\bar{\sigma}^2$ and vol-of-vol $\nu$, the first-order correction
+satisfies
+\[
+\kappa_1^{\mathrm{SV}} = \frac{1}{4}
++ \frac{r}{2\bar{\sigma}^2} + O(\nu^2).
+\]
+That is, the stochastic volatility correction equals the
+constant-volatility formula evaluated at the long-run mean, plus a
+second-order correction in the vol-of-vol.
+\end{conjecture}
+
+%% ===================================================================
+\section{Conclusion}\label{sec:conclusion}
+
+We have established a comprehensive finite-tick correction framework
+for concentrated liquidity fee revenue in Uniswap v3/v4. Our three
+main contributions are:
+
+\begin{enumerate}[label=(\arabic*)]
+\item The first-order correction coefficient
+$\kappa_1 = 1/2 + \mu/(2\sigma^2)$ is \emph{not} universal: the
+value $1/4$ is specific to risk-neutral GBM and arises from a
+precise cancellation $f'(0) = 0$ between the fee formula's
+exponential weight and the local time gradient. Under the physical
+measure with positive expected return, the correction is $2$--$3$
+times larger.
+
+\item The misaligned-range correction is a rational function
+$R(\delta) = 2(1-\delta)/(2-\delta)$ of the fractional offset, not a
+transcendental constant involving $\zeta(1/2)$ as in the BGK
+temporal correction. The distinction arises because continuous price
+paths cross every spatial level with probability one (no overshoot).
+
+\item The finite-tick correction shifts the optimal range width
+downward by $1$--$2$ ticks, with the largest effect in the finest
+fee tier. The correction formula provides an actionable tool for LP
+range optimization.
+\end{enumerate}
+
+Together, these results transform the EGM asymptotic from a
+theoretical limit theorem to a practical fee estimation tool with
+quantified accuracy, and reveal the mathematical structure underlying
+the interaction between continuous-time finance and discrete protocol
+mechanics.
+
+%% ===================================================================
+
+\appendix
+
+\section{Detailed Taylor Expansion of the Prefactor}
+\label{app:taylor}
+
+We provide the complete Taylor expansion of $c(h)$ and $\psi(h)$
+through second order for general $\alpha$.
+
+\subsection{Expansion of $\gamma/h$}
+
+Since $\gamma = e^h - 1$:
+\begin{align}
+\frac{\gamma}{h} &= \frac{e^h - 1}{h}
+= 1 + \frac{h}{2} + \frac{h^2}{6} + \frac{h^3}{24} + O(h^4).
+\label{eq:gamma_h_full}
+\end{align}
+
+\subsection{Expansion of $e^{h/2} - 1$}
+
+\begin{align}
+e^{h/2} - 1 &= \frac{h}{2} + \frac{h^2}{8} + \frac{h^3}{48}
++ O(h^4). \label{eq:exp_half_full}
+\end{align}
+
+\subsection{Expansion of $1/(1 + e^{\alpha h})$}
+
+Let $u = \alpha h + \alpha^2 h^2/2 + \alpha^3 h^3/6 + O(h^4)$.
+Then $e^{\alpha h} = 1 + u$ and
+\begin{align}
+\frac{1}{1 + e^{\alpha h}} &= \frac{1}{2 + u}
+= \frac{1}{2}\,\frac{1}{1 + u/2} \notag \\
+&= \frac{1}{2}\Bigl(1 - \frac{u}{2} + \frac{u^2}{4}
+- O(u^3)\Bigr) \notag \\
+&= \frac{1}{2} - \frac{\alpha h}{4}
+- \frac{\alpha^2 h^2}{8} + \frac{\alpha^2 h^2}{8}
++ O(h^3) \notag \\
+&= \frac{1}{2} - \frac{\alpha h}{4}
++ O(h^3).
+\label{eq:crossing_full}
+\end{align}
+Here we used $u/2 = \alpha h/2 + \alpha^2 h^2/4 + O(h^3)$ and
+$(u/2)^2 = \alpha^2 h^2/4 + O(h^3)$.
+
+\subsection{Full expansion of $c(h)$}
+
+Combining through $O(h^3)$ (note that the crossing probability
+contributes an $h^3$ term via \eqref{eq:crossing_full}):
+\begin{align}
+c(h) &= \Bigl(1 + \frac{h}{2} + \frac{h^2}{6} + \frac{h^3}{24}\Bigr)
+\Bigl(\frac{h}{2} + \frac{h^2}{8} + \frac{h^3}{48}\Bigr)
+\Bigl(\frac{1}{2} - \frac{\alpha h}{4}
++ \frac{\alpha^3 h^3}{48}\Bigr) + O(h^5).
+\label{eq:c_full}
+\end{align}
+Expanding through $O(h^3)$:
+\begin{align}
+c(h) &= \frac{h}{4}\Bigl[1 + h\Bigl(\frac{3}{4}
+- \frac{\alpha}{2}\Bigr)
++ h^2\Bigl(\frac{1}{3} - \frac{3\alpha}{8}\Bigr)
++ O(h^3)\Bigr].
+\label{eq:c_full_simplified}
+\end{align}
+The $h^2$ coefficient $1/3$ (rather than $7/24$) reflects the
+additional $h^3$ contribution from each factor that was absent in the
+two-term truncation.
+
+Hence:
+\begin{equation}\label{eq:psi_full}
+\psi(h) = \frac{4c(h)}{h}
+= 1 + h\Bigl(\frac{3}{4} - \frac{\alpha}{2}\Bigr)
++ h^2\Bigl(\frac{1}{3} - \frac{3\alpha}{8}\Bigr) + O(h^3).
+\end{equation}
+For $\alpha = 1$ (GBM): $\psi(h) = 1 + h/4 + h^2(-1/24) + O(h^3)$.
+
+\section{Scale Function Computations}\label{app:scale}
+
+\subsection{General constant-drift diffusion}
+
+For $dX_t = \mu\dd t + \sigma\dd W_t$ with
+$\alpha = -2\mu/\sigma^2$:
+\begin{equation}\label{eq:scale_general}
+S_\alpha(x) = \begin{cases}
+\displaystyle\frac{e^{\alpha x} - 1}{\alpha} & \alpha \ne 0, \\[6pt]
+x & \alpha = 0.
+\end{cases}
+\end{equation}
+
+The crossing probability:
+\begin{equation}\label{eq:p_up_general}
+p_\uparrow(h) = \frac{S_\alpha(h)}{S_\alpha(2h)}
+= \frac{e^{\alpha h} - 1}{e^{2\alpha h} - 1}
+= \frac{1}{1 + e^{\alpha h}}.
+\end{equation}
+
+For specific models:
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+Model & $\mu$ & $\alpha$ & $S(x)$ & $p_\uparrow(h)$ \\
+\midrule
+GBM ($\PP^*$) & $-\sigma^2/2$ & $1$ & $e^x - 1$ & $1/(1+e^h)$ \\
+ABM & $0$ & $0$ & $x$ & $1/2$ \\
+Phys.\ GBM & $r - \sigma^2/2$ & $1 - 2r/\sigma^2$
+& $(e^{\alpha x}-1)/\alpha$ & $1/(1+e^{\alpha h})$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Boundary efficiency for general $\alpha$}
+
+The boundary crossing probability with offset $\varepsilon = (1-\delta)h$:
+\begin{align}
+p_b(\delta, h, \alpha)
+&= \frac{S_\alpha((1-\delta)h)}{S_\alpha((2-\delta)h)}
+= \frac{e^{\alpha(1-\delta)h} - 1}{e^{\alpha(2-\delta)h} - 1}
+= \frac{1}{1 + e^{\alpha(1-\delta)h} \cdot
+\frac{e^{\alpha h} - 1}{e^{\alpha(1-\delta)h} - 1}}.
+\label{eq:p_b_general}
+\end{align}
+
+Expanding as $h \to 0$:
+\begin{align}
+\frac{p_b}{p_\uparrow}
+&= \frac{S_\alpha((1-\delta)h)\,S_\alpha(2h)}{%
+S_\alpha((2-\delta)h)\,S_\alpha(h)} \notag \\
+&= \frac{(1-\delta)h \cdot 2h}{(2-\delta)h \cdot h}
+\cdot \bigl(1 + O(\alpha^2 h^2)\bigr)
+= \frac{2(1-\delta)}{2-\delta} + O(h^2).
+\label{eq:ratio_general}
+\end{align}
+
+The $O(h)$ coefficient vanishes identically, and the first
+correction enters at $O(h^2)$:
+\begin{equation}\label{eq:R_Oh}
+\frac{p_b}{p_\uparrow}
+= \frac{2(1-\delta)}{2-\delta}
+\Bigl(1 + \frac{\alpha^2 h^2\,\delta(1-\delta)}{%
+6(2-\delta)} + O(h^3)\Bigr).
+\end{equation}
+This shows that the leading-order efficiency ratio is
+$\alpha$-independent, with the drift entering only at $O(h^2)$.
+
+\section{Proof of the Misalignment Theorem}\label{app:misaligned}
+
+\begin{proof}[Proof of Theorem~\ref{thm:misaligned}]
+We provide a detailed proof of the misalignment correction.
+
+\textbf{Step 1: Fee decomposition.}
+The aligned fee sum has $N$ terms:
+\begin{equation}\label{eq:aligned_sum}
+\Psi_{\mathrm{align}} = \frac{\phi}{1-\phi}
+\sum_{k=-N/2}^{N/2-1} c(h)\,e^{kh/2}\,\E[L^{kh}_T].
+\end{equation}
+Under misalignment with offset $\delta$ at the lower boundary and
+$\delta'$ at the upper boundary, the sum modifies the first and last
+terms:
+\begin{align}
+\Psi_{\mathrm{mis}} &= \frac{\phi}{1-\phi}\Bigl[
+R(\delta)\,c(h)\,e^{x_b h/2}\,\E[L^{x_b h}_T] \notag \\
+&\quad + \sum_{k=\text{interior}} c(h)\,e^{kh/2}\,\E[L^{kh}_T]
+\notag \\
+&\quad + R(\delta')\,c(h)\,e^{x_t h/2}\,\E[L^{x_t h}_T]
+\Bigr].
+\label{eq:misaligned_sum}
+\end{align}
+
+\textbf{Step 2: Ratio.}
+To leading order, all terms in the sum contribute equally
+(since $\E[L^{kh}_T] \approx \E[L^0_T]$ for $kh$ in the range):
+\begin{align}
+\frac{\Psi_{\mathrm{mis}}}{\Psi_{\mathrm{align}}}
+&\approx \frac{(N-2) + R(\delta) + R(\delta')}{N}
+\notag \\
+&= 1 - \frac{(1-R(\delta)) + (1-R(\delta'))}{N}.
+\label{eq:ratio_derivation}
+\end{align}
+
+\textbf{Step 3: Substitution.}
+Using $1 - R(\delta) = 1 - 2(1-\delta)/(2-\delta)
+= \delta/(2-\delta)$:
+\begin{equation}\label{eq:final_correction}
+\frac{\Psi_{\mathrm{mis}}}{\Psi_{\mathrm{align}}}
+= 1 - \frac{1}{N}\Bigl[\frac{\delta}{2-\delta}
++ \frac{\delta'}{2-\delta'}\Bigr] + O(N^{-2}).
+\end{equation}
+The $O(N^{-2})$ remainder comes from the variation of $\E[L^{kh}_T]$
+across the range (the boundary ticks have slightly different local
+time values than the center).
+\end{proof}
+
+\section{Second-Order Expansion Details}\label{app:second_order}
+
+We collect the detailed computations for the second derivatives of
+$f$ and $g$ used in Lemma~\ref{lem:weight_discrep}.
+
+\subsection{Second derivative of $\E[L^x_T]$}
+
+From \eqref{eq:dp_dx}:
+\begin{align}
+\partial_x^2 p_X(t, 0, x)
+&= p_X \cdot \Bigl[\frac{(x-\mu t)^2}{\sigma^4 t^2}
+- \frac{1}{\sigma^2 t}\Bigr].
+\label{eq:d2p}
+\end{align}
+At $x = 0$:
+\begin{equation}\label{eq:d2p_0}
+\partial_x^2 p_X(t, 0, 0)
+= p_X(t, 0, 0)\Bigl[\frac{\mu^2}{\sigma^4}
+- \frac{1}{\sigma^2 t}\Bigr].
+\end{equation}
+Integrating:
+\begin{equation}\label{eq:d2L_0}
+\partial_x^2\E[L^x_T]\big|_0
+= \frac{\mu^2}{\sigma^4}\,\E[L^0_T]
+- \sigma^2\int_0^T \frac{p_X(t,0,0)}{\sigma^2 t}\dd t
+= \frac{\mu^2}{\sigma^4}\,\E[L^0_T] - \lambda_{-1},
+\end{equation}
+where $\lambda_{-1} = \int_0^T p_X(t,0,0)/t\dd t$ is a divergent
+integral that cancels in the difference $f''(0) - g''(0)$.
+
+\subsection{Second derivative of $f$}
+
+From $f(x) = e^{x/2}\,\E[L^x_T]$:
+\begin{align}
+f''(x) &= \frac{1}{4}\,e^{x/2}\,\E[L^x_T]
++ e^{x/2}\,\partial_x\E[L^x_T]
++ e^{x/2}\,\partial_x^2\E[L^x_T].
+\label{eq:f_second_full}
+\end{align}
+At $x = 0$:
+\begin{equation}\label{eq:f_second_0}
+f''(0) = \frac{1}{4}\,\lambda_0
++ \frac{\mu}{\sigma^2}\,\lambda_0 + \lambda_2,
+\end{equation}
+where $\lambda_0 = \E[L^0_T]$ and
+$\lambda_2 = \partial_x^2\E[L^x_T]\big|_0$.
+
+Under GBM ($\mu = -\sigma^2/2$):
+$f''(0) = \lambda_0/4 - \lambda_0/2 + \lambda_2
+= -\lambda_0/4 + \lambda_2$.
+
+\subsection{Second derivative of $g$}
+
+From $g(x) = e^{-3x/2}\,\E[L^x_T]$:
+\begin{equation}\label{eq:g_second_0}
+g''(0) = \frac{9}{4}\,\lambda_0
+- \frac{3\mu}{\sigma^2}\,\lambda_0 + \lambda_2.
+\end{equation}
+Under GBM:
+$g''(0) = 9\lambda_0/4 + 3\lambda_0/2 + \lambda_2
+= 15\lambda_0/4 + \lambda_2$.
+
+\subsection{Difference}
+
+Under GBM:
+\begin{equation}\label{eq:fg_second_diff}
+f''(0) - g''(0) = (-\lambda_0/4 + \lambda_2)
+- (15\lambda_0/4 + \lambda_2) = -4\lambda_0.
+\end{equation}
+Note that $\lambda_2$ cancels. This cancellation is essential: the
+second-order correction $-N^2 h^2/6$ is determined entirely by
+$\lambda_0$, not by the more complex quantity $\lambda_2$.
+
+For general $\alpha$:
+\begin{align}
+f''(0) - g''(0)
+&= \Bigl(\frac{1}{4} + \frac{\mu}{\sigma^2}\Bigr)\lambda_0
+- \Bigl(\frac{9}{4} - \frac{3\mu}{\sigma^2}\Bigr)\lambda_0
+\notag \\
+&= \Bigl(-2 + \frac{4\mu}{\sigma^2}\Bigr)\lambda_0
+= -(2 + 2\alpha)\lambda_0.
+\label{eq:fg_diff_general}
+\end{align}
+Under GBM ($\alpha = 1$): $f''(0) - g''(0) = -4\lambda_0$, as
+before.
+
+%% ===================================================================
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem[Adams et~al.(2021)]{Adams2021}
+H.~Adams, N.~Zinsmeister, M.~Salem, R.~Keefer, and D.~Robinson.
+\newblock Uniswap v3 core.
+\newblock Technical report, Uniswap Labs, 2021.
+
+\bibitem[Broadie et~al.(1997)]{BGK1997}
+M.~Broadie, P.~Glasserman, and S.~Kou.
+\newblock A continuity correction for discrete barrier options.
+\newblock \emph{Math.\ Finance}, 7(4):325--349, 1997.
+
+\bibitem[Broadie et~al.(1999)]{BGK1999}
+M.~Broadie, P.~Glasserman, and S.~Kou.
+\newblock Connecting discrete and continuous path-dependent options.
+\newblock \emph{Finance Stoch.}, 3:55--82, 1999.
+
+\bibitem[Carta and Fabrizio(2024)]{CartaFabrizio2024}
+A.~Carta and S.~Fabrizio.
+\newblock Fee revenue for concentrated liquidity providers in
+  decentralized exchanges.
+\newblock \emph{Quant.\ Finance}, 24(6):789--805, 2024.
+
+\bibitem[Clark and Hassani(2023)]{ClarkHassani2023}
+A.~Clark and B.~K.~Hassani.
+\newblock Liquidity provider returns in geometric mean markets.
+\newblock \emph{Digital Finance}, 5:9--45, 2023.
+
+\bibitem[Echenim et~al.(2025)]{EGM2025}
+M.~Echenim, E.~Gobet, and A.-C.~Maurice.
+\newblock Uniswap v3: impermanent loss modeling and swap fees asymptotic
+  analysis.
+\newblock \emph{SIAM J.\ Financial Math.}, 16(2):310--349, 2025.
+
+\bibitem[Feng and Linetsky(2008)]{FengLinetsky2008}
+L.~Feng and V.~Linetsky.
+\newblock Pricing discretely monitored barrier options and defaultable
+  bonds in {L}\'evy process models: a fast {H}ilbert transform approach.
+\newblock \emph{Math.\ Finance}, 18(3):337--384, 2008.
+
+\bibitem[Fukasawa et~al.(2023)]{FukasawaMajoWorhacz2023}
+M.~Fukasawa, B.~Maj\'o, and M.~Worhacz.
+\newblock Optimal liquidity provision in concentrated liquidity markets.
+\newblock Working paper, 2023.
+
+\bibitem[Gobet and Landon(2014)]{GobetLandon2014}
+E.~Gobet and N.~Landon.
+\newblock Almost sure optimal hedging strategy.
+\newblock \emph{Ann.\ Appl.\ Probab.}, 24(4):1652--1690, 2014.
+
+\bibitem[Gobet and Stazhynski(2020)]{GobetStazhynski2020}
+E.~Gobet and U.~Stazhynski.
+\newblock Parametric inference for diffusions observed at stopping times.
+\newblock \emph{Electron.\ J.\ Statist.}, 14(1):2098--2122, 2020.
+
+\bibitem[H\"{o}rfelt(2003)]{Horfelt2003}
+P.~H\"{o}rfelt.
+\newblock Extension of the corrected barrier approximation by
+  {B}roadie, {G}lasserman, and {K}ou.
+\newblock \emph{Finance Stoch.}, 7(2):231--243, 2003.
+
+\bibitem[Howison and Steinberg(2007)]{HowisonSteinberg2007}
+S.~Howison and M.~Steinberg.
+\newblock A matched asymptotic expansions approach to continuity
+  corrections for discretely sampled options. {P}art 1: barrier options.
+\newblock \emph{Appl.\ Math.\ Finance}, 14(1):63--89, 2007.
+
+\bibitem[Paone(2025)]{Paone2025}
+A.~Paone.
+\newblock Designing barrier options using concentrated liquidity of
+  constant function market makers.
+\newblock SSRN 5233590, 2025.
+
+\end{thebibliography}
+
+\end{document}

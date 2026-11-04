@@ -1,0 +1,48 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name aimath.billfan.cn;
+
+    add_header X-Robots-Tag "noindex, nofollow, noarchive, nosnippet" always;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        try_files $uri =404;
+    }
+
+    location = /robots.txt {
+        default_type text/plain;
+        return 200 "User-agent: *\nDisallow: /\n";
+    }
+
+    location / {
+        return 403;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name aimath.billfan.cn;
+
+    ssl_certificate /etc/letsencrypt/live/aimath.billfan.cn/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/aimath.billfan.cn/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    add_header X-Robots-Tag "noindex, nofollow, noarchive, nosnippet" always;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        try_files $uri =404;
+    }
+
+    location = /robots.txt {
+        default_type text/plain;
+        return 200 "User-agent: *\nDisallow: /\n";
+    }
+
+    location / {
+        return 403;
+    }
+}

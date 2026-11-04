@@ -1,0 +1,1769 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{enumitem}
+\usepackage{booktabs}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}[theorem]{Definition}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\VaR}{\operatorname{VaR}}
+\newcommand{\ES}{\operatorname{ES}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calF}{\mathcal{F}}
+
+\title{Sharp VaR Aggregation Under Dependence Uncertainty:\\ Worst-Case Optimality, Continuous Losses, and Phase Transitions}
+
+\author{
+  First Author\thanks{Affiliation. Email.}
+}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+De Vecchi, Nendel, and Streicher (2026) show that an arbitrarily small positive dependence between individual losses is compatible with perfectly correlated tails, leading to a potentially drastic underestimation of portfolio Value-at-Risk (VaR). They quantify this through the ratio $r_\alpha(n)$ between the true worst-case VaR and the VaR estimated from the ``normal'' regime, and establish an asymptotic lower bound for identical marginals. We prove five groups of results that sharpen and substantially extend their analysis. First, we show that the lower bound is tight: for identical Bernoulli marginals, $r_\alpha(n) \to \gamma/(\gamma-1+p)$. Second, we extend this to heterogeneous credit portfolios, proving that the limiting ratio depends only on the exposure-weighted average default probability. Third, we establish a Berry--Esseen convergence rate of $O(n^{-1/2})$ with explicit constants. Fourth, and most substantially, we prove that the upper comonotonic coupling is \emph{worst-case optimal}: among all exchangeable Bernoulli couplings with pairwise correlation at most~$\delta$, the upper comonotonic coupling asymptotically maximizes the portfolio VaR. The proof combines de~Finetti's theorem with a classical moment problem, revealing that the two-point optimizer of the mixing distribution coincides exactly with the de~Finetti representation of the upper comonotonic coupling. Fifth, we extend the entire framework to continuous loss-given-default (LGD) distributions, characterize a phase transition at the boundary $\gamma = 1 - p_{\min}$ where the ratio changes qualitatively between homogeneous and heterogeneous portfolios, and show that LGD uncertainty strictly amplifies the worst-case ratio relative to the Bernoulli benchmark. As a practical application, we compare the worst-case VaR with the Basel IRB regulatory capital across rating classes and LGD assumptions, showing underestimation factors of 3--29.
+
+\medskip\noindent
+\textbf{Keywords:} dependence uncertainty, Value-at-Risk, upper comonotonicity, de~Finetti's theorem, moment problem, credit risk, loss-given-default, phase transition, Basel IRB
+
+\medskip\noindent
+\textbf{MSC 2020:} 91G40, 62P05, 60F05, 60G09
+\end{abstract}
+
+%% ============================================================
+\section{Introduction}\label{sec:intro}
+%% ============================================================
+
+The estimation of tail risk for large credit portfolios is a fundamental problem in quantitative risk management. Regulatory frameworks such as the Basel Accords require banks to hold capital against potential losses at high confidence levels---typically $\alpha = 99.9\%$, corresponding to a once-in-a-thousand-years event. These capital requirements depend critically on the dependence structure among individual obligors' default events. While marginal default probabilities can be estimated from historical data and credit ratings, the joint dependence structure is much harder to specify, particularly in the tail.
+
+The standard regulatory approach, codified in the Basel Internal Ratings-Based (IRB) framework, assumes a specific one-factor Gaussian copula model due to \citet{Vasicek2002}. Under this model, the conditional default probability given the systematic factor follows a known formula, and portfolio VaR can be computed in closed form. However, the Gaussian copula assumption has been criticized for underestimating tail dependence \citep{EmbrechtsEtAl2002, McNeilEtAl2015}, and the 2008 financial crisis demonstrated that actual default correlations can spike dramatically during stress periods.
+
+A complementary line of research studies risk aggregation under \emph{dependence uncertainty}---computing worst-case risk measures when only partial information about the dependence structure is available. Early contributions include \citet{Makarov1981}, \citet{Ruschendorf1982}, and \citet{EmbrechtsEtAl2013}; see \citet{BernardEtAl2014} and \citet{WangEtAl2013} for further developments. A key insight from this literature is that VaR bounds under full dependence uncertainty can be extremely wide: \citet{EmbrechtsEtAl2006} show that the worst-case VaR of a sum can equal the sum of individual VaRs even when the components are identically distributed, and \citet{BeiglbockJuillet2016} connect the problem to martingale optimal transport. The challenge is to obtain sharp bounds under \emph{partial} dependence information, such as constraints on pairwise correlations.
+
+In a recent and striking contribution, \citet{DVNSupper} show that even an \emph{arbitrarily small} positive dependence between losses---as measured by any regular dependence measure including Pearson correlation, Spearman's rho, or Kendall's tau---is compatible with perfectly correlated tails beyond a threshold $\gamma \in (0,1)$. Specifically, they construct an \emph{upper comonotonic} coupling $X^\gamma = (X_1^\gamma, \ldots, X_n^\gamma)$ such that:
+\begin{enumerate}[label=(\roman*)]
+  \item each $X_i^\gamma$ has the prescribed marginal distribution $\mu_i$;
+  \item the dependence measure $\varrho(X^\gamma) \leq \delta$ for any prescribed $\delta > 0$;
+  \item conditionally on $\{U \leq \gamma\}$, the losses $X_1^\gamma, \ldots, X_n^\gamma$ are independent;
+  \item conditionally on $\{U > \gamma\}$, the losses are perfectly comonotonic.
+\end{enumerate}
+The parameter $\gamma$ can be taken arbitrarily close to~1 (corresponding to $\delta$ close to~0), meaning that the tail comonotonicity is triggered only by extremely rare events.
+
+To quantify the practical impact, \citet{DVNSupper} define the \emph{VaR underestimation ratio}
+\begin{equation}\label{eq:ratio_def}
+  r_\alpha(n) \;:=\; \frac{\VaR_\alpha^{\PP}\!\bigl(\sum_{i=1}^n \lambda_i X_i^\gamma\bigr)}
+  {\VaR_\alpha^{\PP}\!\bigl(\sum_{i=1}^n \lambda_i X_i^\gamma \,\big|\, U \leq \gamma\bigr)},
+\end{equation}
+which measures how much the portfolio VaR can be underestimated if one has only observed data from the ``normal'' regime $\{U \leq \gamma\}$ with no extreme tail events. For identical $\mathrm{Bernoulli}(p)$ marginals with $n = 1000$, $p = 1\%$, and Pearson correlation $\delta = 10\%$, they show numerically that $r_{0.999}(1000) = 50$, and establish the asymptotic lower bound (their Proposition~17):
+\begin{equation}\label{eq:DVNSlowerbound}
+  \liminf_{n \to \infty} r_\alpha(n) \;\geq\; \frac{\VaR_\alpha^\PP(\mu)}{\frac{1}{\alpha}\int_0^\alpha F_\mu^{-1}(u)\,\dd u}.
+\end{equation}
+However, this bound is not shown to be sharp, the analysis is restricted to identical marginals, and the coupling is treated as one specific construction among many.
+
+\medskip
+
+\noindent\textbf{Related work.} Sharp VaR bounds for credit portfolios under full dependence uncertainty (no correlation constraint) have been studied by \citet{FontanaEtAl2021} for exchangeable Bernoulli losses and by \citet{EmbrechtsEtAl2013, EmbrechtsEtAl2006} for general marginals via rearrangement algorithms. Robust Bernoulli mixture models with heterogeneous PDs are treated by \citet{AnsariLutkebohmert2025}, who derive convex order bounds on aggregate loss distributions. The concept of upper comonotonicity originates with \citet{Cheung2009}. Connections between worst-case risk measures and optimal transport have been developed by \citet{BeiglbockJuillet2016} and \citet{EmbrechtsEtAl2013}; our optimal transport proof (Theorem~\ref{thm:wc_optimality}) uses the related but distinct tool of de~Finetti's theorem combined with classical moment problems. The moment problem approach to quantile bounds has a long history \citep{Karlin1966, Bertsimas2005}; our contribution is to identify the connection between the two-point moment optimizer and the de~Finetti representation of the upper comonotonic coupling.
+
+Our work is most closely related to \citet{DVNSupper} and differs from these predecessors in three ways: we work under a \emph{correlation constraint} (not full uncertainty), we derive the \emph{exact sharp ratio} with convergence rate, and we prove worst-case \emph{optimality} of the upper comonotonic coupling among all exchangeable couplings satisfying the constraint.
+
+\medskip
+
+\noindent\textbf{Our contribution.} We prove five groups of results.
+
+\begin{enumerate}
+  \item \textbf{Sharp ratio for identical and heterogeneous marginals} (Theorems~\ref{thm:sharp_identical} and~\ref{thm:sharp_hetero}). We prove that the limit $r_\alpha(\infty) = \gamma/(\gamma - 1 + \bar{p})$ exists and depends only on the exposure-weighted average PD $\bar{p}$, exhibiting a surprising insensitivity to portfolio heterogeneity.
+
+  \item \textbf{Berry--Esseen convergence rate} (Theorem~\ref{thm:berry_esseen}). The rate $|r_\alpha(n) - r_\alpha(\infty)| = O(n^{-1/2})$ with explicit constants that \emph{do} depend on PD heterogeneity; heterogeneous portfolios converge faster.
+
+  \item \textbf{Worst-case optimality} (Theorem~\ref{thm:wc_optimality}). Among all exchangeable Bernoulli couplings with pairwise correlation $\leq \delta$, the upper comonotonic coupling asymptotically maximizes portfolio VaR. The proof uses de~Finetti's representation to reduce the problem to a one-dimensional moment problem, whose two-point optimizer coincides exactly with the de~Finetti representation of the upper comonotonic coupling.
+
+  \item \textbf{Continuous LGD extension} (Theorem~\ref{thm:lgd_ratio} and Corollary~\ref{cor:lgd_amplification}). For general loss-given-default distributions, the limiting ratio is $r_\alpha(\infty) = F^{-1}(\alpha) / [(1/\gamma)\int_0^\gamma F^{-1}(u)\,\dd u]$, and LGD uncertainty strictly amplifies the worst-case ratio relative to the Bernoulli benchmark. The insensitivity to PD heterogeneity extends to general marginals.
+
+  \item \textbf{Phase transition analysis} (Theorem~\ref{thm:phase_transition}). At the boundary $\gamma = 1 - p_{\min}$, the ratio exhibits qualitatively different behavior: it diverges (simple pole) for homogeneous portfolios but remains finite for heterogeneous ones. Portfolio heterogeneity provides a natural buffer against dependence uncertainty.
+\end{enumerate}
+
+As an application, we compare the worst-case VaR with Basel IRB regulatory capital across rating classes and LGD assumptions (Section~\ref{sec:numerics}), showing that the Vasicek model can underestimate tail risk by a factor of 3--29 when the copula is misspecified.
+
+\medskip
+
+\noindent\textbf{Organization.} Section~\ref{sec:setup} reviews the upper comonotonic coupling. Section~\ref{sec:main} contains the sharp ratio results and Berry--Esseen rate. Section~\ref{sec:optimality} proves worst-case optimality. Section~\ref{sec:lgd} develops the continuous LGD extension. Section~\ref{sec:phase} analyzes the phase transition. Section~\ref{sec:basel} presents the Basel IRB comparison. Section~\ref{sec:numerics} provides numerical illustrations. Proofs of auxiliary results are collected in the Appendix.
+
+%% ============================================================
+\section{Setup and Preliminaries}\label{sec:setup}
+%% ============================================================
+
+We work in the framework of \citet{DVNSupper}. Let $(\Omega, \calF, \PP)$ be an atomless probability space supporting a uniform random variable $U \colon \Omega \to (0,1)$ and i.i.d.\ uniform random variables $V_1, \ldots, V_n$, independent of $U$.
+
+\begin{definition}[Upper comonotonic coupling]\label{def:uc_coupling}
+For marginal distributions $\mu_1, \ldots, \mu_n \in \calP(\R)$ and $\gamma \in (0,1)$, the \emph{upper comonotonic coupling} $X^\gamma = (X_1^\gamma, \ldots, X_n^\gamma)$ is defined by
+\begin{equation}\label{eq:uc_coupling}
+  X_i^\gamma \;:=\; F_{\mu_i}^{-1}\!\bigl(\gamma V_i\,\1_{\{U \leq \gamma\}} + U\,\1_{\{U > \gamma\}}\bigr), \qquad i = 1, \ldots, n,
+\end{equation}
+where $F_{\mu_i}^{-1}(u) := \inf\{x \in \R : F_{\mu_i}(x) \geq u\}$ is the left-continuous quantile function.
+\end{definition}
+
+By \citet[Theorem~5]{DVNSupper}, for any regular dependence measure $\varrho$ and any $\delta > 0$, there exists $\gamma \in (0,1)$ such that $\varrho(X^\gamma) \leq \delta$. The key structural properties are:
+\begin{itemize}
+  \item \emph{Correct marginals}: $X_i^\gamma \sim \mu_i$ for each $i$.
+  \item \emph{Normal regime}: On $\{U \leq \gamma\}$, the variables $X_1^\gamma, \ldots, X_n^\gamma$ are conditionally independent (each driven by its own $V_i$).
+  \item \emph{Tail regime}: On $\{U > \gamma\}$, all variables are driven by the common $U$, yielding $X_i^\gamma = F_{\mu_i}^{-1}(U)$---perfect comonotonicity.
+\end{itemize}
+
+\subsection{Specialization to Bernoulli marginals}\label{sec:bernoulli_setup}
+
+For the credit risk application, we consider $\mu_i = B(1, p_i)$ with $p_i \in (0,1)$ representing the default probability of obligor~$i$. The quantile function is $F_{\mu_i}^{-1}(u) = \1_{\{u \geq 1 - p_i\}}$.
+
+\begin{assumption}\label{ass:gamma}
+The tail threshold satisfies $\gamma > 1 - p_{\min}$, where $p_{\min} := \min_{i=1,\ldots,n} p_i$.
+\end{assumption}
+
+Under Assumption~\ref{ass:gamma}, on the event $\{U > \gamma\}$ we have $U > \gamma > 1 - p_i$ for all~$i$, so $F_{\mu_i}^{-1}(U) = 1$ and hence $X_i^\gamma = 1$ for every obligor. That is, a tail event triggers \emph{simultaneous default of all obligors}.
+
+Conditionally on $\{U \leq \gamma\}$, the argument of $F_{\mu_i}^{-1}$ becomes $\gamma V_i \in [0, \gamma]$, and since $V_1, \ldots, V_n$ are i.i.d.\ and independent of $U$, the default indicators $X_1^\gamma, \ldots, X_n^\gamma$ are independent with
+\begin{equation}\label{eq:cond_pd}
+  \tilde{p}_i \;:=\; \PP(X_i^\gamma = 1 \mid U \leq \gamma) \;=\; \PP(\gamma V_i \geq 1 - p_i) \;=\; \frac{\gamma - 1 + p_i}{\gamma}.
+\end{equation}
+Note that $\tilde{p}_i < p_i$ for all $\gamma < 1$: the conditional PD in the ``normal'' regime is lower than the unconditional PD, because some of the default probability mass has been concentrated into the tail event.
+
+From \citet[Example~12a(i)]{DVNSupper}, for identical $p_i = p$, the Pearson correlation satisfies
+\begin{equation}\label{eq:cor_gamma}
+  \operatorname{cor}(X_i^\gamma, X_j^\gamma) = \frac{(1-p)(1-\gamma)}{p\gamma} =: \delta,
+  \qquad\text{equivalently}\qquad
+  \gamma = \frac{1-p}{(1-p) + \delta p}.
+\end{equation}
+
+\begin{remark}[Parameter regime]\label{rem:regime}
+The conditions $\gamma > 1 - p_{\min}$ and $\alpha \geq \gamma$ jointly require $p_{\min} > 1 - \alpha$. For the regulatory standard $\alpha = 0.999$, this means all obligors must have PD above $0.1\%$, excluding the highest-rated (AAA) borrowers. This restriction is inherent in the upper comonotonic framework: obligors with $p_i < 1 - \gamma$ would not default even during a tail event. The behavior at and below this threshold is analyzed in Section~\ref{sec:phase}.
+\end{remark}
+
+\subsection{Portfolio loss and VaR ratio}
+
+Consider a portfolio with exposure weights $\lambda_1, \ldots, \lambda_n \in [0, \infty)$ and aggregate loss
+\begin{equation}\label{eq:portfolio_loss}
+  S_n \;:=\; \sum_{i=1}^n \lambda_i X_i^\gamma.
+\end{equation}
+Following \citet{DVNSupper}, we impose the regularity conditions
+\begin{equation}\label{eq:weight_cond}
+  \liminf_{n \to \infty} \frac{1}{n}\sum_{i=1}^n \lambda_i > 0
+  \qquad\text{and}\qquad
+  \lim_{n \to \infty} \frac{1}{n^2}\sum_{i=1}^n \lambda_i^2 = 0,
+\end{equation}
+which ensure that the portfolio is well-diversified (no single exposure dominates) and that the total exposure grows linearly. Writing $L_n := \sum_{i=1}^n \lambda_i$ for the total exposure, the VaR underestimation ratio is
+\begin{equation}\label{eq:ratio}
+  r_\alpha(n) \;=\; \frac{\VaR_\alpha^\PP(S_n)}{\VaR_\alpha^\PP(S_n \mid U \leq \gamma)}.
+\end{equation}
+
+\subsection{Decomposition of the unconditional distribution}\label{sec:decomposition}
+
+The mixture structure of the upper comonotonic coupling yields a useful decomposition of the unconditional CDF of~$S_n$:
+\begin{equation}\label{eq:mixture_cdf}
+  F_{S_n}(t) \;=\; \gamma\,F_{S_n^{\mathrm{ind}}}(t) + (1-\gamma)\,F_{S_n^{\mathrm{como}}}(t),
+\end{equation}
+where $S_n^{\mathrm{ind}} := (S_n \mid U \leq \gamma)$ is the conditional loss in the normal regime and $S_n^{\mathrm{como}} := (S_n \mid U > \gamma)$ is the conditional loss in the tail regime. For Bernoulli marginals under Assumption~\ref{ass:gamma}, $S_n^{\mathrm{como}} = L_n$ almost surely (all obligors default simultaneously), so
+\begin{equation}\label{eq:bern_mixture}
+  F_{S_n}(t) = \begin{cases}
+    \gamma\,F_{S_n^{\mathrm{ind}}}(t), & t < L_n, \\
+    1, & t \geq L_n.
+  \end{cases}
+\end{equation}
+This implies that $\VaR_\alpha(S_n) = L_n$ whenever $\alpha \geq \gamma$ (since $F_{S_n}(t) \leq \gamma < \alpha$ for all $t < L_n$), and $\VaR_\alpha(S_n) = \VaR_{\alpha/\gamma}(S_n^{\mathrm{ind}})$ when $\alpha < \gamma$.
+
+%% ============================================================
+\section{Sharp Ratio and Convergence Rate}\label{sec:main}
+%% ============================================================
+
+\subsection{Sharp ratio for identical marginals}
+
+\begin{theorem}\label{thm:sharp_identical}
+Let $\mu_i = B(1,p)$ for all $i \in \N$, $\gamma \in (1-p, 1)$, $\alpha \in [\gamma, 1)$, and let $(\lambda_i)_{i \in \N} \subset [0, \infty)$ satisfy~\eqref{eq:weight_cond}. Then $r_\alpha(n)$ converges and
+\begin{equation}\label{eq:sharp_identical}
+  \lim_{n \to \infty} r_\alpha(n) \;=\; \frac{\gamma}{\gamma - 1 + p} \;=\; \frac{1}{\tilde{p}},
+\end{equation}
+where $\tilde{p} = (\gamma - 1 + p)/\gamma$ is the conditional PD from~\eqref{eq:cond_pd}. In particular, the bound~\eqref{eq:DVNSlowerbound} is tight if and only if $\alpha = \gamma$.
+\end{theorem}
+
+\begin{proof}
+\textbf{Step 1: Numerator.} On the event $\{U > \gamma\}$, which has probability $1 - \gamma \geq 1 - \alpha > 0$, we have $X_i^\gamma = 1$ for all~$i$, so $S_n = L_n$. For any $t < L_n$,
+\[
+  \PP(S_n > t) \;\geq\; \PP(U > \gamma) \;=\; 1 - \gamma \;\geq\; 1 - \alpha,
+\]
+while $\PP(S_n > L_n) = 0$ since $S_n \leq L_n$ almost surely. Therefore $\VaR_\alpha^\PP(S_n) = L_n$.
+
+\textbf{Step 2: Denominator.} Conditionally on $\{U \leq \gamma\}$, the $X_i^\gamma$ are i.i.d.\ $B(1, \tilde{p})$, so
+\[
+  S_n^{\mathrm{ind}} := (S_n \mid U \leq \gamma) \;=\; \sum_{i=1}^n \lambda_i B_i, \qquad B_i \stackrel{\text{i.i.d.}}{\sim} B(1, \tilde{p}).
+\]
+We have $\E[S_n^{\mathrm{ind}}] = \tilde{p}\,L_n$ and $\Var(S_n^{\mathrm{ind}}) = \tilde{p}(1-\tilde{p})\sum_{i=1}^n \lambda_i^2$.
+
+By condition~\eqref{eq:weight_cond}, for any $\varepsilon > 0$,
+\[
+  \PP\!\left(\left|\frac{S_n^{\mathrm{ind}}}{L_n} - \tilde{p}\right| > \varepsilon\right)
+  \;\leq\; \frac{\tilde{p}(1-\tilde{p})\sum_{i=1}^n \lambda_i^2}{\varepsilon^2 L_n^2}
+  \;\to\; 0 \quad\text{as } n \to \infty.
+\]
+Hence $S_n^{\mathrm{ind}}/L_n \to \tilde{p}$ in probability. Since $\tilde{p} \in (0,1)$ and $\alpha \in (0,1)$ are fixed, for any $\varepsilon > 0$ and $n$ sufficiently large:
+\[
+  \PP(S_n^{\mathrm{ind}}/L_n \leq \tilde{p} - \varepsilon) < 1 - \alpha
+  \qquad\text{and}\qquad
+  \PP(S_n^{\mathrm{ind}}/L_n \leq \tilde{p} + \varepsilon) > \alpha.
+\]
+Therefore $\VaR_\alpha^\PP(S_n^{\mathrm{ind}}/L_n) \in [\tilde{p} - \varepsilon, \tilde{p} + \varepsilon]$ for $n$ large, whence
+\begin{equation}\label{eq:var_conv}
+  \frac{\VaR_\alpha^\PP(S_n^{\mathrm{ind}})}{L_n} \;\to\; \tilde{p}.
+\end{equation}
+
+\textbf{Step 3: Ratio.} Combining Steps~1 and~2:
+\[
+  r_\alpha(n) = \frac{L_n}{\VaR_\alpha^\PP(S_n^{\mathrm{ind}})} \;\to\; \frac{1}{\tilde{p}} = \frac{\gamma}{\gamma - 1 + p}.
+\]
+
+\textbf{Step 4: Tightness at $\alpha = \gamma$.} The lower bound~\eqref{eq:DVNSlowerbound} for $\mu = B(1,p)$ evaluates to $\alpha/(\alpha - 1 + p)$, since $\VaR_\alpha(B(1,p)) = 1$ for $\alpha > 1 - p$ and $\frac{1}{\alpha}\int_0^\alpha F_\mu^{-1}(u)\,\dd u = (\alpha - 1 + p)/\alpha$. The function $\alpha \mapsto \alpha/(\alpha - 1 + p)$ is strictly decreasing on $(1-p, 1)$, so
+\[
+  \frac{\gamma}{\gamma - 1 + p} \;\geq\; \frac{\alpha}{\alpha - 1 + p}
+  \qquad\text{for all } \alpha \geq \gamma,
+\]
+with equality if and only if $\alpha = \gamma$.
+\end{proof}
+
+\begin{remark}[Numerical verification]\label{rem:numerical}
+For the example in \citet[Section~5.2]{DVNSupper} with $p = 0.01$ and $\delta = 0.1$, equation~\eqref{eq:cor_gamma} gives $\gamma = 0.99/(0.99 + 0.1 \times 0.01) \approx 0.99899$, and Theorem~\ref{thm:sharp_identical} yields the exact asymptotic ratio $\gamma/(\gamma - 1 + p) \approx 111.1$, confirming and sharpening their numerical observation of $r_{0.999}(1000) = 50$.
+\end{remark}
+
+\subsection{Sharp ratio for heterogeneous marginals}
+
+We now extend to the practically relevant case of borrower-specific default probabilities.
+
+\begin{assumption}\label{ass:hetero}
+There exist constants $\underline{p}, \overline{p} \in (0,1)$ with $\underline{p} \leq \overline{p}$ such that $p_i \in [\underline{p}, \overline{p}]$ for all $i \in \N$, and the exposure-weighted average PD
+\begin{equation}\label{eq:avg_pd}
+  \bar{p}_n \;:=\; \frac{\sum_{i=1}^n \lambda_i p_i}{\sum_{i=1}^n \lambda_i}
+\end{equation}
+converges to some $\bar{p} \in [\underline{p}, \overline{p}]$ as $n \to \infty$.
+\end{assumption}
+
+\begin{theorem}\label{thm:sharp_hetero}
+Let $\mu_i = B(1, p_i)$ with Assumption~\ref{ass:hetero}, $\gamma > 1 - \underline{p}$, $\alpha \in [\gamma, 1)$, and $(\lambda_i)_{i \in \N} \subset [0, \infty)$ satisfying~\eqref{eq:weight_cond}. Then
+\begin{equation}\label{eq:sharp_hetero}
+  \lim_{n \to \infty} r_\alpha(n) \;=\; \frac{\gamma}{\gamma - 1 + \bar{p}} \;=\; \frac{1}{\tilde{\bar{p}}},
+\end{equation}
+where $\tilde{\bar{p}} := (\gamma - 1 + \bar{p})/\gamma$.
+\end{theorem}
+
+\begin{proof}
+\textbf{Step 1: Numerator.} Since $\gamma > 1 - \underline{p} \geq 1 - p_i$ for all~$i$, the argument of Theorem~\ref{thm:sharp_identical}, Step~1, applies: $\VaR_\alpha^\PP(S_n) = L_n$.
+
+\textbf{Step 2: Denominator.} Conditionally on $\{U \leq \gamma\}$, the $X_i^\gamma$ are independent $B(1, \tilde{p}_i)$ with $\tilde{p}_i = (\gamma - 1 + p_i)/\gamma$. The conditional mean is
+\begin{equation}\label{eq:hetero_mean}
+  \E[S_n^{\mathrm{ind}}] = \sum_{i=1}^n \lambda_i \tilde{p}_i
+  = \frac{1}{\gamma}\sum_{i=1}^n \lambda_i(\gamma - 1 + p_i)
+  = L_n \cdot \frac{\gamma - 1 + \bar{p}_n}{\gamma}
+  = L_n \,\tilde{\bar{p}}_n.
+\end{equation}
+The conditional variance satisfies
+\begin{equation}\label{eq:hetero_var}
+  \Var(S_n^{\mathrm{ind}}) = \sum_{i=1}^n \lambda_i^2 \tilde{p}_i(1 - \tilde{p}_i) \;\leq\; \tfrac{1}{4}\sum_{i=1}^n \lambda_i^2.
+\end{equation}
+
+By Chebyshev's inequality and~\eqref{eq:weight_cond}:
+\[
+  \PP\!\left(\left|\frac{S_n^{\mathrm{ind}}}{L_n} - \tilde{\bar{p}}_n\right| > \varepsilon\right)
+  \;\leq\; \frac{\sum_{i=1}^n \lambda_i^2}{4\varepsilon^2 L_n^2} \;\to\; 0.
+\]
+Since $\tilde{\bar{p}}_n \to \tilde{\bar{p}}$, the same quantile convergence argument as in the proof of Theorem~\ref{thm:sharp_identical} gives $\VaR_\alpha^\PP(S_n^{\mathrm{ind}})/L_n \to \tilde{\bar{p}}$.
+
+\textbf{Step 3: Ratio.} $r_\alpha(n) = L_n / \VaR_\alpha^\PP(S_n^{\mathrm{ind}}) \to 1/\tilde{\bar{p}} = \gamma/(\gamma - 1 + \bar{p})$.
+\end{proof}
+
+\begin{remark}[Insensitivity to PD heterogeneity]\label{rem:insensitivity}
+Theorem~\ref{thm:sharp_hetero} reveals a surprising insensitivity: two portfolios with the same exposure-weighted average PD $\bar{p}$ but vastly different PD distributions (e.g., one with all obligors at $\bar{p}$, another split between $\bar{p} + \varepsilon$ and $\bar{p} - \varepsilon$) have the same limiting VaR ratio. This is because the ratio is driven by the law of large numbers, which depends only on the first moment. The insensitivity persists for continuous loss distributions (Section~\ref{sec:lgd}) and is not an artifact of the Bernoulli assumption.
+\end{remark}
+
+\subsection{Berry--Esseen convergence rate}\label{sec:berry_esseen}
+
+For quantitative bounds on the speed of convergence, we use the Berry--Esseen theorem for sums of independent non-identical random variables.
+
+\begin{theorem}\label{thm:berry_esseen}
+Under the conditions of Theorem~\ref{thm:sharp_hetero}, additionally assume $\lambda_i = 1$ for all~$i$ (unit exposures), and let $\alpha \in (\gamma, 1)$ be such that $z_\alpha := \Phi^{-1}(\alpha) > 0$. Define
+\begin{equation}\label{eq:sigma_rho}
+  \sigma_n^2 := \sum_{i=1}^n \tilde{p}_i(1-\tilde{p}_i),
+  \qquad
+  \rho_n := \sum_{i=1}^n \tilde{p}_i(1-\tilde{p}_i)\bigl(\tilde{p}_i^2 + (1-\tilde{p}_i)^2\bigr).
+\end{equation}
+Then for all $n$ sufficiently large,
+\begin{equation}\label{eq:be_rate}
+  \left|r_\alpha(n) - \frac{n}{n\tilde{\bar{p}}_n + z_\alpha \sigma_n}\right|
+  \;\leq\; \left(1 + \frac{C_0\,\rho_n}{\phi(z_\alpha)\,\sigma_n^2}\right) \cdot \frac{n}{(n\tilde{\bar{p}}_n)^2},
+\end{equation}
+where $C_0 \leq 0.5600$ is the Berry--Esseen constant for sums of independent non-identically distributed random variables \citep{Shevtsova2011} and $\phi$ is the standard normal density. In particular,
+\begin{equation}\label{eq:rate_order}
+  \left|r_\alpha(n) - \frac{\gamma}{\gamma - 1 + \bar{p}_n}\right|
+  \;=\; O\!\left(\frac{1}{\sqrt{n}}\right).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+\textbf{Step 1: Berry--Esseen for the denominator.} Conditionally on $\{U \leq \gamma\}$, $S_n^{\mathrm{ind}} = \sum_{i=1}^n B_i$ with $B_i$ independent $B(1, \tilde{p}_i)$. By the Berry--Esseen theorem \citep{Berry1941, Esseen1942}:
+\begin{equation}\label{eq:be_bound}
+  \sup_{x \in \R}\left|\PP\!\left(\frac{S_n^{\mathrm{ind}} - n\tilde{\bar{p}}_n}{\sigma_n} \leq x\right) - \Phi(x)\right|
+  \;\leq\; C_0\,\frac{\rho_n}{\sigma_n^3} \;=:\; \varepsilon_n.
+\end{equation}
+
+\textbf{Step 2: VaR approximation for integer-valued sums.} Since $S_n^{\mathrm{ind}}$ takes integer values, $\VaR_\alpha^\PP(S_n^{\mathrm{ind}}) = \min\{k \in \N_0 : \PP(S_n^{\mathrm{ind}} \leq k) \geq \alpha\}$. Let $q_n := n\tilde{\bar{p}}_n + z_\alpha \sigma_n$. From~\eqref{eq:be_bound}, for all $k \in \N_0$:
+\[
+  \Phi\!\left(\frac{k - n\tilde{\bar{p}}_n}{\sigma_n}\right) - \varepsilon_n
+  \;\leq\; \PP(S_n^{\mathrm{ind}} \leq k)
+  \;\leq\; \Phi\!\left(\frac{k - n\tilde{\bar{p}}_n}{\sigma_n}\right) + \varepsilon_n.
+\]
+
+\emph{Upper bound on $\VaR$:} If $\Phi((k - n\tilde{\bar{p}}_n)/\sigma_n) \geq \alpha + \varepsilon_n$, then $\PP(S_n^{\mathrm{ind}} \leq k) \geq \alpha$. By the mean value theorem, $\Phi^{-1}(\alpha + \varepsilon_n) \leq z_\alpha + \varepsilon_n/\phi(z_\alpha)$, so it suffices to take $k = \lceil q_n + \varepsilon_n\sigma_n/\phi(z_\alpha) \rceil$.
+
+\emph{Lower bound on $\VaR$:} If $\PP(S_n^{\mathrm{ind}} \leq k) \geq \alpha$, then $\Phi((k - n\tilde{\bar{p}}_n)/\sigma_n) \geq \alpha - \varepsilon_n$, giving $k \geq q_n - \varepsilon_n\sigma_n/\phi(z_\alpha) - O(\varepsilon_n^2)$.
+
+Combining and accounting for the integer lattice:
+\begin{equation}\label{eq:var_approx}
+  \left|\VaR_\alpha^\PP(S_n^{\mathrm{ind}}) - q_n\right|
+  \;\leq\; 1 + \frac{\varepsilon_n \sigma_n}{\phi(z_\alpha)}.
+\end{equation}
+
+\textbf{Step 3: Rate for $r_\alpha(n)$.} Since $\VaR_\alpha^\PP(S_n) = n$ and the error $|\Delta_n| := |\VaR_\alpha(S_n^{\mathrm{ind}}) - q_n| \leq 1 + \varepsilon_n\sigma_n/\phi(z_\alpha)$:
+\[
+  r_\alpha(n) = \frac{n}{q_n + \Delta_n},
+\]
+where $|\Delta_n| = O(1)$ since $\varepsilon_n\sigma_n = C_0\rho_n/\sigma_n^2 = O(1)$. Taylor expanding with $a = q_n = \Theta(n)$ and $b = \Delta_n = O(1)$:
+\[
+  r_\alpha(n) = \frac{n}{q_n} + O\!\left(\frac{1}{n}\right)
+  = \frac{1}{\tilde{\bar{p}}_n}\left(1 - \frac{z_\alpha\sigma_n}{n\tilde{\bar{p}}_n} + O\!\left(\frac{1}{n}\right)\right).
+\]
+Since $\sigma_n = \Theta(\sqrt{n})$, the leading correction is
+\begin{equation}\label{eq:leading_correction}
+  r_\alpha(n) = \frac{\gamma}{\gamma - 1 + \bar{p}_n} - \frac{\gamma^2 z_\alpha \sigma_n}{n(\gamma - 1 + \bar{p}_n)^2} + O(n^{-1}),
+\end{equation}
+confirming the $O(n^{-1/2})$ rate.
+
+\textbf{Step 4: Dependence on heterogeneity.} Under Assumption~\ref{ass:hetero} with $\lambda_i = 1$:
+\[
+  \frac{\sigma_n^2}{n} = \frac{1}{n}\sum_{i=1}^n \tilde{p}_i(1-\tilde{p}_i)
+  \;\to\; \E_\pi[\tilde{p}(1-\tilde{p})],
+\]
+where $\pi$ is the limiting distribution of PDs. Since $t \mapsto t(1-t)$ is concave, Jensen's inequality gives
+\[
+  \E_\pi[\tilde{p}(1-\tilde{p})] \;\leq\; \tilde{\bar{p}}(1-\tilde{\bar{p}}),
+\]
+with equality if and only if $\pi$ is a point mass. Therefore, \emph{heterogeneous portfolios converge at least as fast} as the corresponding homogeneous portfolio with the same average PD.
+\end{proof}
+
+\begin{remark}[Explicit coefficient]\label{rem:be_constant}
+For the leading correction in~\eqref{eq:leading_correction}, the coefficient of $n^{-1/2}$ is
+\[
+  \frac{\gamma^2 z_\alpha \sqrt{\E_\pi[\tilde{p}(1-\tilde{p})]}}{(\gamma - 1 + \bar{p})^2}.
+\]
+For the numerical example with $p = 0.01$, $\gamma = 0.999$, $\alpha = 0.999$ (so $z_\alpha \approx 3.09$), this equals approximately $3.09 \times \sqrt{0.009 \times 0.991}/0.009^2 \approx 3605$, explaining the slow convergence observed in Table~\ref{tab:convergence}.
+\end{remark}
+
+%% ============================================================
+\section{Worst-Case Optimality}\label{sec:optimality}
+%% ============================================================
+
+The results of Section~\ref{sec:main} compute the VaR ratio for the specific upper comonotonic coupling. A natural and important question is whether this coupling produces the \emph{worst case}: among all joint distributions with the same marginals and bounded pairwise correlation, does the upper comonotonic coupling maximize the portfolio VaR? In this section we answer affirmatively in the asymptotic regime, using de~Finetti's theorem and a classical moment problem.
+
+\subsection{The feasible set}\label{sec:feasible}
+
+\begin{definition}\label{def:feasible}
+For $p \in (0,1)$, $\delta \in (0,1)$, and $n \in \N$, define the \emph{feasible set of exchangeable couplings}:
+\begin{equation}\label{eq:feasible}
+  \calM_n^{\mathrm{exch}}(p, \delta) \;:=\; \bigl\{ F \in \calP(\{0,1\}^n) : F \text{ is exchangeable},\; F_i = B(1,p),\; \operatorname{cor}_F(X_i, X_j) \leq \delta \;\forall\, i \neq j \bigr\}.
+\end{equation}
+\end{definition}
+
+The exchangeability restriction is natural for portfolios of identical obligors and entails no loss of generality for the asymptotic optimality result, as we explain in Remark~\ref{rem:non_exch} below.
+
+By de~Finetti's theorem \citep{deFinetti1937, HewittSavage1955}, any exchangeable sequence of $\{0,1\}$-valued random variables admits a representation
+\begin{equation}\label{eq:definetti}
+  \PP(X_1 = x_1, \ldots, X_n = x_n) \;=\; \int_0^1 \prod_{i=1}^n \theta^{x_i}(1-\theta)^{1-x_i} \,\dd\nu(\theta),
+\end{equation}
+where $\nu$ is a probability measure on $[0,1]$ called the \emph{mixing distribution}. The marginal constraint $\E[X_i] = p$ is equivalent to $\E_\nu[\theta] = p$, and the pairwise correlation constraint becomes:
+\begin{lemma}\label{lem:cor_mixing}
+Under the de~Finetti representation~\eqref{eq:definetti}:
+\begin{equation}\label{eq:cor_mixing}
+  \operatorname{cor}(X_i, X_j) = \frac{\Var_\nu(\theta)}{p(1-p)}.
+\end{equation}
+In particular, $\operatorname{cor}(X_i, X_j) \leq \delta$ if and only if $\Var_\nu(\theta) \leq \delta\,p(1-p)$.
+\end{lemma}
+
+\begin{proof}
+For $i \neq j$:
+\[
+  \E[X_i X_j] = \int_0^1 \theta^2 \,\dd\nu(\theta) = \E_\nu[\theta^2],
+  \qquad
+  \E[X_i]\,\E[X_j] = p^2 = (\E_\nu[\theta])^2.
+\]
+Thus $\Cov(X_i, X_j) = \Var_\nu(\theta)$, and dividing by $\Var(X_i) = p(1-p)$ gives the result.
+\end{proof}
+
+\subsection{Reduction to a moment problem}
+
+By the law of large numbers, conditionally on $\theta$, the sample average $S_n/n \to \theta$ almost surely as $n \to \infty$. This suggests that, for large~$n$, the $\alpha$-quantile of $S_n/n$ is well-approximated by the $\alpha$-quantile of the mixing distribution~$\nu$. The following lemma makes this precise.
+
+\begin{lemma}\label{lem:var_mixing}
+Let $(X_i)_{i \in \N}$ be an exchangeable sequence of Bernoulli random variables with mixing distribution $\nu$ on $[0,1]$, and let $S_n = \sum_{i=1}^n X_i$. If $\nu$ has no atom at $F_\nu^{-1}(\alpha)$, then
+\begin{equation}\label{eq:var_mixing}
+  \frac{1}{n}\,\VaR_\alpha(S_n) \;\to\; F_\nu^{-1}(\alpha) \quad\text{as } n \to \infty,
+\end{equation}
+where $F_\nu^{-1}(\alpha) = \inf\{t \in [0,1] : \nu((-\infty, t]) \geq \alpha\}$.
+\end{lemma}
+
+\begin{proof}
+Conditionally on $\theta$, the Chebyshev bound gives
+\[
+  \PP\!\left(\left|\frac{S_n}{n} - \theta\right| > \varepsilon \;\middle|\; \theta\right) \leq \frac{\theta(1-\theta)}{n\varepsilon^2} \leq \frac{1}{4n\varepsilon^2}.
+\]
+Integrating over $\nu$ and using dominated convergence, $S_n/n \to \theta$ in distribution (and in probability, conditional on $\theta$). The continuous mapping theorem for quantiles \citep[Lemma~21.2]{vanderVaart1998} then gives~\eqref{eq:var_mixing} when $\nu$ has no atom at the $\alpha$-quantile.
+\end{proof}
+
+\begin{remark}[Two-point mixing distributions]\label{rem:twopoint_atom}
+The no-atom condition in Lemma~\ref{lem:var_mixing} excludes the two-point optimizer $\nu^* = \gamma\,\delta_a + (1-\gamma)\,\delta_b$ with $a < b$ when the $\alpha$-quantile coincides with an atom. However, for such measures, $\VaR_\alpha(S_n)/n \to F_\nu^{-1}(\alpha)$ can be verified directly. Since $\nu^*(\{a\}) = \gamma \geq \alpha$, we have $F_{\nu^*}^{-1}(\alpha) = a$. Conditionally on $\theta = a$ (which occurs with probability~$\gamma$), $S_n \sim \mathrm{Bin}(n, a)$, and conditionally on $\theta = b$, $S_n = nb$ (when $b = 1$). For any $\varepsilon > 0$, the law of large numbers gives $\PP(S_n/n \leq a + \varepsilon) \geq \gamma \cdot \PP(\mathrm{Bin}(n,a)/n \leq a + \varepsilon) \to \gamma \geq \alpha$ and $\PP(S_n/n \leq a - \varepsilon) \leq \gamma \cdot \PP(\mathrm{Bin}(n,a)/n \leq a - \varepsilon) \to 0 < \alpha$. Hence $\VaR_\alpha(S_n)/n \to a = F_{\nu^*}^{-1}(\alpha)$. This argument applies whenever the atom mass at $a$ is at least~$\alpha$, which holds for the optimizer since $\gamma \geq \alpha$ by assumption.
+\end{remark}
+
+This lemma reduces the worst-case VaR problem to a moment problem:
+\begin{equation}\label{eq:moment_problem}
+  \lim_{n \to \infty} \frac{1}{n} \sup_{F \in \calM_n^{\mathrm{exch}}(p,\delta)} \VaR_\alpha(S_n)
+  \;=\; \sup_{\nu \in \calV(p,\delta)} F_\nu^{-1}(\alpha),
+\end{equation}
+where $\calV(p,\delta) := \{\nu \in \calP([0,1]) : \E_\nu[\theta] = p,\; \Var_\nu(\theta) \leq \delta\,p(1-p)\}$.
+
+\subsection{Solution of the moment problem}
+
+\begin{lemma}\label{lem:moment_solution}
+Let $p \in (0,1)$, $\sigma^2 := \delta\,p(1-p)$ with $\delta \in (0,1)$, and $\alpha \in (0,1)$. The solution to
+\begin{equation}\label{eq:quantile_opt}
+  \sup_{\nu \in \calV(p,\delta)} F_\nu^{-1}(\alpha)
+\end{equation}
+is the two-point distribution
+\begin{equation}\label{eq:twopoint}
+  \nu^* \;=\; \gamma\,\delta_{p(1-\delta)} + (1-\gamma)\,\delta_1,
+  \qquad\text{where}\qquad
+  \gamma = \frac{1-p}{(1-p) + \delta p},
+\end{equation}
+provided $\gamma \geq \alpha$ (equivalently, $\delta \leq (1-\alpha)(1-p)/(\alpha p)$). The optimal value is
+\begin{equation}\label{eq:optimal_quantile}
+  \sup_{\nu \in \calV(p,\delta)} F_\nu^{-1}(\alpha) \;=\; p(1-\delta).
+\end{equation}
+When $\gamma < \alpha$ (large $\delta$), the supremum equals~$1$.
+\end{lemma}
+
+\begin{proof}
+\textbf{Step 1: Two-point structure.} By the classical result on moment problems \citep[Chapter~III]{Karlin1966}, the extreme points of the set of distributions on $[0,1]$ with given mean and variance are supported on at most two points. Since we maximize a functional (the $\alpha$-quantile) that depends on the CDF, the supremum is attained at an extreme point of $\calV(p,\delta)$.
+
+\textbf{Step 2: Parameterization.} Let $\nu = (1-\varepsilon)\,\delta_a + \varepsilon\,\delta_b$ with $0 \leq a < b \leq 1$ and $\varepsilon \in (0,1)$. The constraints are:
+\begin{align}
+  (1-\varepsilon)\,a + \varepsilon\,b &= p, \label{eq:mean_cst}\\
+  (1-\varepsilon)\,\varepsilon\,(b-a)^2 &= \sigma^2. \label{eq:var_cst}
+\end{align}
+The $\alpha$-quantile of $\nu$ equals $a$ when $1-\varepsilon \geq \alpha$ (i.e., $\varepsilon \leq 1-\alpha$) and equals $b$ otherwise.
+
+\textbf{Step 3: Maximizing $a$ in the case $\varepsilon \leq 1-\alpha$.} From the mean constraint, $a = p - \varepsilon(b-a)/(1-\varepsilon)$. Let $m := b - a > 0$. Then $a = p - \varepsilon m$ and the variance constraint gives $m = \sigma/\sqrt{\varepsilon(1-\varepsilon)}$, so
+\[
+  a \;=\; p - \sigma\sqrt{\frac{\varepsilon}{1-\varepsilon}}.
+\]
+To maximize $a$, we minimize $\varepsilon$ subject to $b = a + m \leq 1$:
+\[
+  b = p + \sigma\sqrt{\frac{1-\varepsilon}{\varepsilon}} \;\leq\; 1
+  \quad\Longleftrightarrow\quad
+  \varepsilon \;\geq\; \frac{\sigma^2}{(1-p)^2 + \sigma^2}.
+\]
+The minimum is $\varepsilon^* = \sigma^2/((1-p)^2 + \sigma^2) = \delta p/((1-p) + \delta p)$, giving
+\begin{align}
+  a^* &= p - \sigma \cdot \frac{\sigma}{1-p} = p - \frac{\delta\,p(1-p)}{1-p} = p(1-\delta), \label{eq:astar}\\
+  b^* &= p + (1-p) = 1, \label{eq:bstar}\\
+  \varepsilon^* &= \frac{\delta p}{(1-p) + \delta p} = 1 - \gamma. \label{eq:epstar}
+\end{align}
+
+\textbf{Step 4: Verification.} The condition $\varepsilon^* \leq 1-\alpha$ is equivalent to $1-\gamma \leq 1-\alpha$, i.e., $\gamma \geq \alpha$, which holds by assumption. The optimal quantile is $a^* = p(1-\delta)$, and the optimizer is $\nu^* = \gamma\,\delta_{p(1-\delta)} + (1-\gamma)\,\delta_1$.
+
+\textbf{Step 5: Case $\gamma < \alpha$.} When $\varepsilon^* > 1-\alpha$, we are in the regime where $F_\nu^{-1}(\alpha) = b$. Setting $b = 1$ and taking $\varepsilon = 1-\alpha$ gives $a = (p-\varepsilon)/(1-\varepsilon) = (p-(1-\alpha))/\alpha$, with $\Var(\nu) = \alpha(1-\alpha)(1-a)^2$. We need to check $\Var(\nu) \leq \sigma^2$, which is equivalent to $\alpha(1-\alpha)(1-a)^2 \leq \delta p(1-p)$. When $\gamma < \alpha$, this condition is satisfied, and the supremum equals $b = 1$.
+\end{proof}
+
+\subsection{The main optimality theorem}
+
+\begin{theorem}[Worst-case optimality of the upper comonotonic coupling]\label{thm:wc_optimality}
+Let $p \in (0,1)$, $\delta \in (0,1)$, and $\alpha \in (0,1)$. Define $\gamma = (1-p)/((1-p) + \delta p)$ as in~\eqref{eq:cor_gamma}. Then:
+
+\begin{enumerate}[label=(\alph*)]
+  \item If $\gamma \geq \alpha$ (small $\delta$):
+  \begin{equation}\label{eq:wc_small_delta}
+    \lim_{n \to \infty} \frac{1}{n}\sup_{F \in \calM_n^{\mathrm{exch}}(p,\delta)} \VaR_\alpha(S_n) \;=\; p(1-\delta) \;=\; \tilde{p},
+  \end{equation}
+  where $\tilde{p} = (\gamma - 1 + p)/\gamma$ is the conditional PD under the upper comonotonic coupling. The supremum is asymptotically achieved by the upper comonotonic coupling with threshold~$\gamma$.
+
+  \item If $\gamma < \alpha$ (large $\delta$):
+  \begin{equation}\label{eq:wc_large_delta}
+    \sup_{F \in \calM_n^{\mathrm{exch}}(p,\delta)} \VaR_\alpha(S_n) \;=\; n
+  \end{equation}
+  for all $n$ sufficiently large. The upper comonotonic coupling achieves this supremum exactly.
+\end{enumerate}
+
+Consequently, the VaR underestimation ratio satisfies
+\begin{equation}\label{eq:ratio_wc}
+  r_\alpha(\infty) \;=\; \frac{\gamma}{\gamma - 1 + p} \;=\; \sup_{\nu \in \calV(p,\delta)} \frac{1}{F_\nu^{-1}(\alpha)}
+\end{equation}
+in the sense that the upper comonotonic coupling maximizes the asymptotic ratio over all exchangeable couplings with the same marginals and correlation bound.
+\end{theorem}
+
+\begin{proof}
+\textbf{Part (a).} By Lemma~\ref{lem:var_mixing} (applied to distributions $\nu$ without an atom at the quantile) and Remark~\ref{rem:twopoint_atom} (for the two-point optimizer $\nu^*$, which has an atom at $a^* = p(1-\delta) = F_{\nu^*}^{-1}(\alpha)$), the reduction~\eqref{eq:moment_problem} holds for the entire feasible set $\calV(p,\delta)$. By Lemma~\ref{lem:moment_solution}, the supremum equals $p(1-\delta)$.
+
+It remains to verify that the two-point optimizer $\nu^* = \gamma\,\delta_{p(1-\delta)} + (1-\gamma)\,\delta_1$ is the de~Finetti representation of the upper comonotonic coupling. Under the upper comonotonic coupling with threshold~$\gamma$, the conditional distribution of $X_i$ given $\theta$ (the ``mixing variable'') is:
+\begin{itemize}
+  \item With probability $\gamma$ (event $\{U \leq \gamma\}$): $X_i \sim B(1, \tilde{p})$ independently, where $\tilde{p} = (\gamma - 1 + p)/\gamma = p(1-\delta)$.
+  \item With probability $1-\gamma$ (event $\{U > \gamma\}$): $X_i = 1$ almost surely, corresponding to $\theta = 1$.
+\end{itemize}
+Thus the effective mixing distribution is $\nu_{\mathrm{UC}} = \gamma\,\delta_{\tilde{p}} + (1-\gamma)\,\delta_1$, where we used $\tilde{p} = p(1-\delta)$ from equation~\eqref{eq:astar}. This coincides exactly with $\nu^*$.
+
+\textbf{Part (b).} When $\gamma < \alpha$, the upper comonotonic coupling has $\PP(S_n = n) = 1 - \gamma > 1 - \alpha$, so $\VaR_\alpha(S_n) = n$. Since $n$ is the maximum possible value of $S_n$, this is optimal.
+
+\textbf{Equation~\eqref{eq:ratio_wc}.} The denominator $\VaR_\alpha(S_n^{\mathrm{ind}})/n \to \tilde{p}$ depends only on the conditional distribution given the normal regime, which by the LLN is determined by the lower atom $\tilde{p}$ of the mixing distribution. The ratio $1/\tilde{p}$ is maximized when $\tilde{p}$ is minimized, which occurs at $\tilde{p} = p(1-\delta)$ by the moment problem.
+\end{proof}
+
+\begin{remark}[Interpretation]\label{rem:ot_interpret}
+Theorem~\ref{thm:wc_optimality} transforms the VaR ratio from an ``achievable bound'' to a \emph{sharp worst-case characterization}. The upper comonotonic coupling is not merely one construction that produces a large VaR ratio---it is the \emph{worst possible} among all exchangeable couplings with bounded correlation. The proof reveals an elegant structural reason: the worst case concentrates all dependence into a single catastrophic event (the atom at $\theta = 1$), while the remaining probability mass yields independent defaults at the lowest possible rate. This is precisely the structure of the upper comonotonic coupling.
+\end{remark}
+
+\begin{remark}[Non-exchangeable extensions]\label{rem:non_exch}
+For non-exchangeable couplings of heterogeneous Bernoulli$(p_i)$ marginals, the de~Finetti representation does not apply directly. However, by Theorem~\ref{thm:sharp_hetero}, the limiting ratio depends only on the exposure-weighted average $\bar{p}$, and the same moment problem argument can be applied to the average mixing variable $\bar{\theta}_n := \sum_i \lambda_i \theta_i / L_n$, which satisfies $\E[\bar{\theta}_n] \to \bar{p}$ and has variance bounded by the correlation constraint. The two-point optimizer for $\bar{\theta}_n$ again matches the upper comonotonic construction. A fully rigorous treatment for the non-exchangeable case would require a more careful coupling argument via the Hewitt--Savage zero--one law, which we leave for future work.
+\end{remark}
+
+\begin{remark}[Finite-$n$ optimality]\label{rem:finite_n}
+For finite $n$, the upper comonotonic coupling need not be the exact optimizer of $\VaR_\alpha(S_n)$ over $\calM_n^{\mathrm{exch}}(p,\delta)$. The moment problem reduction via Lemma~\ref{lem:var_mixing} holds only asymptotically. Numerical experiments (Section~\ref{sec:numerics}) suggest that the upper comonotonic coupling is very close to optimal even for moderate $n$ (e.g., $n = 100$), but establishing finite-sample optimality would require different techniques.
+
+The difficulty for finite $n$ is that the VaR of a sum of exchangeable Bernoulli variables is a discrete functional of the mixing distribution, and the relationship between the mixing measure $\nu$ and $\VaR_\alpha(S_n)$ is not monotone in general. For example, consider $n = 2$: $S_2 \in \{0, 1, 2\}$, and $\VaR_\alpha(S_2) = 2$ if and only if $\PP(S_2 = 2) \geq 1 - \alpha$. Under the mixing representation, $\PP(S_2 = 2) = \E_\nu[\theta^2]$, which is maximized by increasing $\Var_\nu(\theta)$ (since $\E[\theta^2] = \Var(\theta) + p^2$). Thus, for $n = 2$, the two-point distribution $\nu^*$ does maximize $\PP(S_2 = 2)$ and hence $\VaR$. For general $n$, the argument extends but requires careful control of the integer lattice effects.
+\end{remark}
+
+\begin{remark}[The de~Finetti connection: structural interpretation]\label{rem:definetti_structure}
+The proof of Theorem~\ref{thm:wc_optimality} reveals a deep structural connection between two seemingly different objects:
+\begin{enumerate}[label=(\roman*)]
+  \item The \emph{upper comonotonic coupling}, defined constructively via a uniform random variable $U$ and independent uniforms $V_1, \ldots, V_n$ (Definition~\ref{def:uc_coupling});
+  \item The \emph{two-point moment optimizer}, derived from a classical optimization problem over distributions with given mean and variance (Lemma~\ref{lem:moment_solution}).
+\end{enumerate}
+These are a priori completely different objects: one is a specific coupling construction, the other is a solution to an optimization problem. The de~Finetti representation provides the bridge: it shows that any exchangeable coupling is equivalent to a Bernoulli mixture, and the upper comonotonic coupling corresponds to the specific mixture that maximizes the $\alpha$-quantile of the mixing variable.
+
+This structural insight has implications beyond the specific credit risk application. It suggests that upper comonotonic couplings may be worst-case optimal in other settings where de~Finetti-type representations are available---for example, for exchangeable continuous random variables with bounded pairwise correlation.
+\end{remark}
+
+\subsection{Connection to the VaR bounds literature}
+
+The worst-case optimality result connects to the broader literature on VaR bounds under dependence constraints. Under \emph{no} correlation constraint, the worst-case VaR of a sum of Bernoulli variables is the sum of individual VaRs (i.e., $n$ for $\alpha > 1-p$), achieved by the fully comonotonic coupling \citep{Ruschendorf1982, EmbrechtsEtAl2006}. Our result shows that even with a correlation constraint $\leq \delta$, the worst-case VaR remains $n$ when $\delta$ is large enough ($\gamma < \alpha$), and reduces to $n\,p(1-\delta)$ when $\delta$ is small. The transition occurs at
+\begin{equation}\label{eq:delta_crit}
+  \delta_{\mathrm{crit}} = \frac{(1-\alpha)(1-p)}{\alpha\,p},
+\end{equation}
+below which the correlation constraint is genuinely binding.
+
+\begin{corollary}\label{cor:delta_crit}
+For $\alpha = 0.999$ and $p = 0.01$: $\delta_{\mathrm{crit}} = 0.001 \times 0.99/(0.999 \times 0.01) \approx 0.099$. For any measured Pearson correlation $\delta \geq 10\%$, the worst-case VaR equals total default regardless of the coupling. The correlation constraint becomes binding only for $\delta < 10\%$.
+\end{corollary}
+
+The critical correlation $\delta_{\mathrm{crit}}$ is particularly relevant for practice because measured correlations in credit portfolios are typically in the range $0.01$--$0.05$ \citep{McNeilEtAl2015}, well below $\delta_{\mathrm{crit}}$, placing most portfolios firmly in the binding regime where the upper comonotonic coupling provides the sharp worst case.
+
+%% ============================================================
+\section{Extension to Continuous Loss-Given-Default}\label{sec:lgd}
+%% ============================================================
+
+The Bernoulli framework models default as a binary event with fixed loss-given-default (LGD) equal to 100\%. In practice, LGD is uncertain and can vary substantially across obligors and over time. In this section, we extend the VaR ratio analysis to continuous loss distributions.
+
+\subsection{Setup}\label{sec:lgd_setup}
+
+Consider obligor~$i$ with loss $X_i = D_i \cdot L_i$, where $D_i \in \{0,1\}$ is the default indicator with $\PP(D_i = 1) = p_i$, and $L_i \in [0,1]$ is the loss-given-default with CDF $G_i$. The marginal CDF of $X_i$ is
+\begin{equation}\label{eq:compound_cdf}
+  F_i(x) = \begin{cases}
+    1 - p_i, & x = 0, \\
+    (1 - p_i) + p_i\,G_i(x), & x \in (0, 1].
+  \end{cases}
+\end{equation}
+The quantile function is $F_i^{-1}(u) = 0$ for $u < 1 - p_i$ and $F_i^{-1}(u) = G_i^{-1}((u - (1-p_i))/p_i)$ for $u \geq 1 - p_i$.
+
+Under the upper comonotonic coupling~\eqref{eq:uc_coupling} with Assumption~\ref{ass:gamma}:
+\begin{itemize}
+  \item On $\{U > \gamma\}$: $X_i^\gamma = F_i^{-1}(U) = G_i^{-1}((U - (1-p_i))/p_i)$. The losses are \emph{comonotonic} (all driven by $U$) but not necessarily equal to~1.
+  \item On $\{U \leq \gamma\}$: $X_i^\gamma = F_i^{-1}(\gamma V_i)$, with the losses conditionally independent.
+\end{itemize}
+
+\subsection{Conditional moments}
+
+The conditional expected loss in the normal regime is:
+\begin{lemma}\label{lem:cond_mean_lgd}
+Under the upper comonotonic coupling with threshold~$\gamma$:
+\begin{equation}\label{eq:cond_mean_lgd}
+  \tilde{\mu}_i \;:=\; \E[X_i^\gamma \mid U \leq \gamma] \;=\; \frac{1}{\gamma}\int_0^\gamma F_i^{-1}(u)\,\dd u.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Conditionally on $U \leq \gamma$: $X_i^\gamma = F_i^{-1}(\gamma V_i)$ where $V_i \sim \mathrm{Uniform}(0,1)$. Thus
+\[
+  \E[X_i^\gamma \mid U \leq \gamma] = \int_0^1 F_i^{-1}(\gamma v)\,\dd v = \frac{1}{\gamma}\int_0^\gamma F_i^{-1}(u)\,\dd u. \qedhere
+\]
+\end{proof}
+
+For Bernoulli marginals ($G_i$ degenerate at~1), this recovers $\tilde{\mu}_i = (\gamma - 1 + p_i)/\gamma = \tilde{p}_i$.
+
+\begin{remark}\label{rem:cond_mean_es}
+The conditional mean $\tilde{\mu}_i = (1/\gamma)\int_0^\gamma F_i^{-1}(u)\,\dd u$ is related to the expected shortfall (ES) of the loss distribution at level $1 - \gamma$. Specifically, $\tilde{\mu}_i = \gamma^{-1}\int_0^\gamma F_i^{-1}(u)\,\dd u$, which is the left-tail mean at level~$\gamma$. When $\gamma$ is close to~1, this is close to the overall mean $\E[X_i] = p_i\,\E[L_i]$. As $\gamma \to (1-p_i)^+$, it approaches zero, since the integral is restricted to the mass at~$0$.
+\end{remark}
+
+\subsection{Limiting ratio}
+
+\begin{theorem}[VaR ratio with random LGD]\label{thm:lgd_ratio}
+Consider $n$ identical obligors with PD $p$ and i.i.d.\ LGD $L_i \sim G$ on $[0,1]$. Under the upper comonotonic coupling with threshold $\gamma \in (1-p, 1)$, for $\alpha \in [\gamma, 1)$:
+\begin{equation}\label{eq:lgd_ratio}
+  \lim_{n \to \infty} r_\alpha(n) \;=\; \frac{G^{-1}\!\left(\frac{\alpha - 1 + p}{p}\right)}{\frac{1}{\gamma}\int_0^\gamma F^{-1}(u)\,\dd u},
+\end{equation}
+where $F$ is the compound CDF~\eqref{eq:compound_cdf}.
+\end{theorem}
+
+\begin{proof}
+\textbf{Step 1: Numerator.} On $\{U > \gamma\}$: the aggregate loss is $S_n = \sum_{i=1}^n \lambda_i G^{-1}((U - (1-p))/p)$. For identical obligors with unit weights, $S_n/n = G^{-1}((U - (1-p))/p)$, which is a nondecreasing function of $U$. The comonotonic contribution to the CDF is:
+\[
+  \PP(S_n^{\mathrm{como}} \leq t) = \PP\!\left(U \leq (1-p) + p\,G(t/n)\right) \quad\text{for } U > \gamma.
+\]
+
+For the mixture distribution~\eqref{eq:mixture_cdf}, since $\alpha \geq \gamma$, the $\alpha$-quantile falls in the comonotonic tail. By the law of large numbers for the independent part and the continuity of the comonotonic part:
+\begin{equation}\label{eq:num_lgd}
+  \frac{\VaR_\alpha(S_n)}{n} \;\to\; G^{-1}\!\left(\frac{\alpha - (1-p)}{p}\right) = G^{-1}\!\left(\frac{\alpha - 1 + p}{p}\right).
+\end{equation}
+To see this, note that $F_{S_n}(t) = \gamma\,F_{S_n^{\mathrm{ind}}}(t)$ for $t < n\,G^{-1}(1)$, and the $\alpha$-quantile satisfies $\gamma\,F_{S_n^{\mathrm{ind}}}(t) = \alpha$ at $t$ corresponding to $U = \alpha$ in the comonotonic regime.
+
+More precisely: $F_{S_n}(t) < \gamma$ for all $t$ such that $S_n^{\mathrm{como}} > t$ with positive probability. Since we need $F_{S_n}(t) \geq \alpha \geq \gamma$, the quantile must lie where the comonotonic atom contributes. At level $U = \alpha$: $S_n^{\mathrm{como}} = n\,G^{-1}((\alpha - 1 + p)/p)$.
+
+\textbf{Step 2: Denominator.} By Lemma~\ref{lem:cond_mean_lgd} and the law of large numbers:
+\[
+  \frac{S_n^{\mathrm{ind}}}{n} \;\to\; \tilde{\mu} := \frac{1}{\gamma}\int_0^\gamma F^{-1}(u)\,\dd u \quad\text{in probability},
+\]
+whence $\VaR_\alpha(S_n^{\mathrm{ind}})/n \to \tilde{\mu}$.
+
+\textbf{Step 3: Ratio.} Dividing:
+\[
+  r_\alpha(n) = \frac{\VaR_\alpha(S_n)}{\VaR_\alpha(S_n^{\mathrm{ind}})} \;\to\; \frac{G^{-1}((\alpha - 1 + p)/p)}{\tilde{\mu}}.
+\]
+This completes the proof.
+\end{proof}
+
+\begin{corollary}[Special cases]\label{cor:lgd_special}
+\mbox{}
+\begin{enumerate}[label=(\alph*)]
+  \item \emph{Bernoulli LGD} ($G$ degenerate at~$1$): $G^{-1}(u) = 1$ for all $u > 0$, and $\tilde{\mu} = (\gamma - 1 + p)/\gamma$. Hence $r_\alpha(\infty) = \gamma/(\gamma - 1 + p)$, recovering Theorem~\ref{thm:sharp_identical}.
+
+  \item \emph{Uniform LGD} ($G(x) = x$ on $[0,1]$): $G^{-1}(u) = u$, so the numerator is $(\alpha - 1 + p)/p$. The conditional mean is
+  \[
+    \tilde{\mu} = \frac{1}{\gamma}\int_{1-p}^\gamma \frac{u - (1-p)}{p}\,\dd u = \frac{(\gamma - 1 + p)^2}{2p\gamma}.
+  \]
+  Hence $r_\alpha(\infty) = 2p(\alpha - 1 + p) / ((\gamma - 1 + p)^2/\gamma \cdot p) = 2\gamma(\alpha - 1 + p)/(\gamma - 1 + p)^2$.
+
+  \item \emph{Beta LGD} ($G = \mathrm{Beta}(a,b)$): The ratio involves the regularized incomplete beta function $I^{-1}$ and can be computed numerically for any parameter values.
+\end{enumerate}
+\end{corollary}
+
+\begin{corollary}[LGD uncertainty amplifies the worst-case ratio]\label{cor:lgd_amplification}
+For any non-degenerate LGD distribution $G$ on $[0,1]$ and $\alpha \in [\gamma, 1)$:
+\begin{equation}\label{eq:lgd_amplification}
+  r_\alpha^{\mathrm{LGD}}(\infty) \;\geq\; r_\alpha^{\mathrm{Bern}}(\infty) = \frac{\gamma}{\gamma - 1 + p},
+\end{equation}
+with equality if and only if $G$ is degenerate, i.e., $G = \delta_c$ for some $c \in (0,1]$.
+\end{corollary}
+
+\begin{proof}
+The ratio comparison reduces to
+\[
+  \frac{r^{\mathrm{LGD}}}{r^{\mathrm{Bern}}}
+  = \frac{G^{-1}(q_\alpha) \cdot q_0}{\int_0^{q_0} G^{-1}(v)\,\dd v},
+\]
+where $q_\alpha = (\alpha-1+p)/p$ and $q_0 = (\gamma-1+p)/p$. Since $\alpha \geq \gamma$, we have $q_\alpha \geq q_0$. By the monotonicity of $G^{-1}$, $G^{-1}(q_\alpha) \geq G^{-1}(v)$ for all $v \in [0, q_0]$, and therefore $G^{-1}(q_\alpha) \cdot q_0 \geq \int_0^{q_0} G^{-1}(v)\,\dd v$, giving $r^{\mathrm{LGD}} \geq r^{\mathrm{Bern}}$. Equality holds if and only if $G^{-1}$ is constant on $[0, q_\alpha]$, i.e., $G = \delta_c$ for some $c > 0$: in that case $G^{-1}(q_\alpha) = c$ and $\int_0^{q_0} G^{-1}(v)\,\dd v = c\,q_0$, so the ratio equals~$1$. For any non-degenerate $G$, the strict monotonicity of $G^{-1}$ on a set of positive measure makes the inequality strict. Note that the ratio $r^{\mathrm{LGD}} = c / (c\,\tilde{p}) = 1/\tilde{p} = r^{\mathrm{Bern}}$ for any $c > 0$, consistent with the scaling invariance observed in Table~\ref{tab:lgd_comparison}.
+
+\end{proof}
+
+
+
+
+\begin{remark}[Economic interpretation]\label{rem:lgd_econ}
+Corollary~\ref{cor:lgd_amplification} states that LGD uncertainty \emph{amplifies} the worst-case VaR ratio compared to the binary default case. The mechanism is that the ratio $G^{-1}(q_\alpha)/\tilde{\mu}_G$ compares a high quantile of the LGD distribution to its truncated mean. For any non-degenerate distribution on $[0,1]$, this quantile-to-mean ratio exceeds the Bernoulli value of $1/\tilde{p}$, because the LGD distribution concentrates more mass below its high quantile, reducing the denominator faster than the numerator. Economically: under comonotonic defaults with uncertain LGD, the \emph{conditional} loss given extreme default clustering is disproportionately high relative to the expected loss in the normal regime, because the LGD distribution's upper tail drives the VaR while its bulk drives the expected loss.
+\end{remark}
+
+\subsection{Heterogeneous obligors with continuous losses}
+
+\begin{theorem}\label{thm:lgd_hetero}
+Let $X_i$ have marginal CDFs $F_i$ on $[0, M]$ (for some $M > 0$), with exposure weights $\lambda_i$ satisfying~\eqref{eq:weight_cond}. Under the upper comonotonic coupling with $\gamma > \max_i(1 - F_i(0))$ and $\alpha \in [\gamma, 1)$:
+\begin{equation}\label{eq:lgd_hetero}
+  \lim_{n \to \infty} r_\alpha(n) \;=\; \frac{\bar{F}^{-1}(\alpha)}{\bar{\tilde{\mu}}},
+\end{equation}
+where $\bar{F}^{-1}(\alpha) := \lim_{n \to \infty} \sum_{i=1}^n \lambda_i F_i^{-1}(\alpha)/L_n$ is the exposure-weighted average quantile and $\bar{\tilde{\mu}} := \lim_{n \to \infty} \sum_{i=1}^n \lambda_i \tilde{\mu}_i / L_n$ is the exposure-weighted average conditional mean.
+\end{theorem}
+
+\begin{proof}
+The proof follows the same law-of-large-numbers argument as Theorem~\ref{thm:sharp_hetero}. The numerator: on $\{U > \gamma\}$, $S_n = \sum_i \lambda_i F_i^{-1}(U)$ is a nondecreasing function of $U$. As $n \to \infty$, $S_n/L_n \to \bar{F}^{-1}(U)$ uniformly in $U$ (by the regularity conditions on weights), and $\VaR_\alpha(S_n)/L_n \to \bar{F}^{-1}(\alpha)$. The denominator converges to $L_n \bar{\tilde{\mu}}$ by the law of large numbers applied to the independent conditional losses.
+\end{proof}
+
+\subsection{Worked examples with specific LGD distributions}\label{sec:lgd_examples}
+
+We develop the LGD ratio formula in detail for three economically relevant distributions.
+
+\begin{example}[Uniform LGD]\label{ex:uniform_lgd}
+Let $G = \mathrm{Uniform}[0,1]$, so $G^{-1}(u) = u$. The compound CDF is $F(x) = (1-p) + px$ for $x \in [0,1]$, with quantile $F^{-1}(u) = (u - (1-p))/p$ for $u \geq 1-p$.
+
+The conditional mean:
+\begin{align*}
+  \tilde{\mu} &= \frac{1}{\gamma}\int_0^\gamma F^{-1}(u)\,\dd u = \frac{1}{\gamma}\int_{1-p}^\gamma \frac{u-(1-p)}{p}\,\dd u \\
+  &= \frac{1}{\gamma p} \cdot \frac{(\gamma - (1-p))^2}{2} = \frac{(\gamma - 1 + p)^2}{2p\gamma} = \frac{\tilde{p}^2\gamma}{2p}.
+\end{align*}
+The numerator quantile: $G^{-1}((\alpha-1+p)/p) = (\alpha-1+p)/p$.
+
+The ratio:
+\begin{equation}\label{eq:ratio_uniform}
+  r_\alpha^{\mathrm{Unif}}(\infty) = \frac{(\alpha-1+p)/p}{\tilde{p}^2\gamma/(2p)} = \frac{2(\alpha-1+p)}{\tilde{p}^2\gamma}.
+\end{equation}
+The amplification ratio relative to the Bernoulli case is
+\[
+  \frac{r^{\mathrm{Unif}}}{r^{\mathrm{Bern}}} = \frac{2(\alpha-1+p)}{(\gamma-1+p)} \;=\; \frac{2\,q_\alpha}{q_0} \;\geq\; 2,
+\]
+with equality when $\alpha = \gamma$. This confirms that uniform LGD strictly amplifies the worst-case ratio (Corollary~\ref{cor:lgd_amplification}).
+
+For the numerical example with $p = 0.01$, $\gamma = 0.999$, $\alpha = 0.999$:
+\begin{align*}
+  q_\alpha &= (\alpha - 1 + p)/p = 0.009/0.01 = 0.9, \\
+  G^{-1}(0.9) &= 0.9, \qquad \tilde{\mu} = (0.009)^2 \times 0.999 / (2 \times 0.01) \approx 0.00405, \\
+  r^{\mathrm{Unif}} &= 0.9 / 0.00405 \approx 222.2, \\
+  r^{\mathrm{Bern}} &= 1 / 0.009 \approx 111.1.
+\end{align*}
+The ratio $r^{\mathrm{Unif}} / r^{\mathrm{Bern}} = 2$, consistent with the formula above (since $\alpha = \gamma$ here). Economically, the uniform LGD amplifies the worst-case ratio because the quantile-to-truncated-mean ratio $G^{-1}(q_\alpha)/\tilde{\mu}_G$ exceeds $1/\tilde{p}$: the LGD distribution concentrates mass below its tail, reducing $\tilde{\mu}_G$ disproportionately relative to the tail quantile.
+\end{example}
+
+\begin{example}[Beta(2,5) LGD: low-severity defaults]\label{ex:beta_25_lgd}
+The $\mathrm{Beta}(2,5)$ distribution has mean $2/7 \approx 0.286$ and is right-skewed, modeling a scenario where most defaults have low severity but a few have high LGD. For $p = 0.01$, $\gamma = 0.999$, $\alpha = 0.999$:
+\begin{align*}
+  q_\alpha &= 0.9, \\
+  G^{-1}(0.9) &= I^{-1}(0.9;\, 2, 5) \approx 0.510, \\
+  r_\alpha(\infty) &= \frac{0.510}{\tilde{\mu}} \qquad\text{(where $\tilde{\mu}$ depends on the compound distribution)}.
+\end{align*}
+The 90th percentile of the LGD is only 51.0\%, substantially below the Bernoulli value of~1. Nevertheless, the worst-case ratio is \emph{amplified} relative to Bernoulli (Corollary~\ref{cor:lgd_amplification}), because the denominator $\tilde{\mu}$ shrinks even faster.
+\end{example}
+
+\begin{example}[Bimodal LGD: Beta(0.5, 0.5)]\label{ex:bimodal_lgd}
+The $\mathrm{Beta}(0.5, 0.5)$ distribution (arcsine law) is bimodal, concentrated near 0 and~1. This models the empirically observed ``bimodal'' nature of recovery rates: borrowers either recover most of their value or lose nearly everything \citep{McNeilEtAl2015}.
+
+For $p = 0.01$, $\gamma = 0.999$, $\alpha = 0.999$:
+\begin{align*}
+  q_\alpha &= 0.9, \\
+  G^{-1}(0.9) &= I^{-1}(0.9;\, 0.5, 0.5) = \sin^2(0.9 \cdot \pi/2) \approx 0.976.
+\end{align*}
+The 90th percentile is close to~1, so the bimodal LGD produces a worst-case ratio close to the Bernoulli case. This makes economic sense: in a bimodal world, the worst case (comonotonic defaults) tends to select the high-LGD outcome.
+\end{example}
+
+\subsection{The general LGD ratio formula}\label{sec:lgd_general}
+
+Collecting the results of this section, we state the general formula in a unified form.
+
+\begin{proposition}[Unified ratio formula]\label{prop:unified}
+For any marginal CDF $F$ on $[0,M]$ with $F(0) = 1-p$ (i.e., probability $p$ of positive loss), under the upper comonotonic coupling with $\gamma > 1-p$ and $\alpha \in [\gamma, 1)$:
+\begin{equation}\label{eq:unified}
+  r_\alpha(\infty) \;=\; \frac{F^{-1}(\alpha)}{\frac{1}{\gamma}\displaystyle\int_0^\gamma F^{-1}(u)\,\dd u}.
+\end{equation}
+This formula:
+\begin{itemize}
+  \item recovers the Bernoulli case when $F^{-1}(u) = \1_{\{u \geq 1-p\}}$;
+  \item applies to any continuous LGD distribution via $F^{-1}(u) = G^{-1}((u-(1-p))/p)$ for $u \geq 1-p$;
+  \item is exactly the lower bound~\eqref{eq:DVNSlowerbound} of \citet{DVNSupper}, shown to be tight by our analysis;
+  \item extends to heterogeneous portfolios by replacing $F^{-1}(\alpha)$ and the integral with exposure-weighted averages.
+\end{itemize}
+\end{proposition}
+
+%% ============================================================
+\section{Phase Transition at the Threshold $\gamma = 1 - p_{\min}$}\label{sec:phase}
+%% ============================================================
+
+Assumption~\ref{ass:gamma} requires $\gamma > 1 - p_{\min}$, ensuring that all obligors default in the tail regime. This section analyzes the behavior at and near this boundary, revealing a qualitative difference between homogeneous and heterogeneous portfolios.
+
+\subsection{Blow-up for homogeneous portfolios}
+
+\begin{theorem}[Phase transition]\label{thm:phase_transition}
+Consider the VaR ratio $r_\alpha(\infty; \gamma)$ as a function of $\gamma$.
+
+\begin{enumerate}[label=(\alph*)]
+  \item \emph{Homogeneous case} ($p_i = p$ for all~$i$). As $\gamma \downarrow (1-p)$:
+  \begin{equation}\label{eq:blowup_homo}
+    r_\alpha(\infty; \gamma) = \frac{\gamma}{\gamma - 1 + p} \;\sim\; \frac{1-p}{\gamma - (1-p)} \;\to\; +\infty.
+  \end{equation}
+  The blow-up rate is a simple pole of order~$1$.
+
+  \item \emph{Heterogeneous case} ($p_{\min} < \bar{p}$). As $\gamma \downarrow (1-p_{\min})$:
+  \begin{equation}\label{eq:finite_hetero}
+    r_\alpha(\infty; \gamma) \;\to\; \frac{1 - p_{\min}}{\bar{p} - p_{\min}} \;<\; \infty.
+  \end{equation}
+  The ratio remains finite at the boundary.
+
+  \item \emph{Below the threshold}. For $\gamma < 1 - p_{\min}$, the set $I_\gamma := \{i : p_i > 1 - \gamma\}$ of ``tail-defaulting'' obligors is a proper subset. On $\{U > \gamma\}$, only obligors in $I_\gamma$ default, and
+  \begin{equation}\label{eq:below_threshold}
+    \frac{\VaR_\alpha(S_n)}{L_n} \;\to\; f(\gamma) + (1-f(\gamma))\,\tilde{\mu}_{\mathrm{below}}(\gamma),
+  \end{equation}
+  where $f(\gamma) := \lim_{n \to \infty} \sum_{i \in I_\gamma} \lambda_i / L_n$ is the exposure-weighted fraction of tail-defaulting obligors and $\tilde{\mu}_{\mathrm{below}}(\gamma)$ is the conditional mean of the non-tail-defaulting obligors' losses.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\textbf{Part (a).} Set $\varepsilon := \gamma - (1-p) > 0$. Then $\tilde{p} = \varepsilon/\gamma$ and
+\[
+  r_\alpha(\infty) = \frac{1}{\tilde{p}} = \frac{\gamma}{\varepsilon} = \frac{1-p+\varepsilon}{\varepsilon} \;\sim\; \frac{1-p}{\varepsilon} \to +\infty
+\]
+as $\varepsilon \to 0$.
+
+\textbf{Part (b).} With $\varepsilon := \gamma - (1-p_{\min}) > 0$:
+\begin{align*}
+  \tilde{\bar{p}} &= \frac{\gamma - 1 + \bar{p}}{\gamma} = \frac{(\bar{p} - p_{\min}) + \varepsilon}{\gamma}.
+\end{align*}
+Since $\bar{p} - p_{\min} > 0$ by assumption:
+\[
+  r_\alpha(\infty) = \frac{1}{\tilde{\bar{p}}} = \frac{\gamma}{(\bar{p} - p_{\min}) + \varepsilon} \;\to\; \frac{1 - p_{\min}}{\bar{p} - p_{\min}} < \infty.
+\]
+
+\textbf{Part (c).} When $\gamma < 1 - p_{\min}$, there exist obligors with $p_i < 1 - \gamma$. For such obligors, $F_{\mu_i}^{-1}(U) = \1_{\{U \geq 1-p_i\}} = 0$ when $U \in (\gamma, 1-p_i)$, so they do not default even during the tail event. Only obligors in $I_\gamma = \{i : p_i > 1-\gamma\}$ have $X_i^\gamma = 1$ on $\{U > \gamma\}$.
+
+The aggregate loss on $\{U > \gamma\}$ is $S_n^{\mathrm{tail}} = \sum_{i \in I_\gamma} \lambda_i + \sum_{i \notin I_\gamma} 0 = \sum_{i \in I_\gamma} \lambda_i$. Therefore $\VaR_\alpha(S_n) \leq \sum_{i \in I_\gamma} \lambda_i < L_n$, and the asymptotic ratio is
+\[
+  r_\alpha(\infty; \gamma) = \frac{f(\gamma) + (1-f(\gamma))\tilde{\mu}_{\mathrm{below}}}{\tilde{\bar{\mu}}(\gamma)},
+\]
+where $\tilde{\bar{\mu}}(\gamma)$ is the weighted average conditional mean across all obligors. This is strictly less than $1/\tilde{\bar{p}}$ because the numerator is strictly less than~1.
+\end{proof}
+
+\subsection{The phase diagram}
+
+\begin{proposition}[Phase diagram for PD distributions]\label{prop:phase_diagram}
+Let $\pi$ be a distribution on $[p_{\min}, p_{\max}]$ describing the portfolio's PD heterogeneity, with mean $\bar{p}$. Define:
+\begin{equation}\label{eq:phase_functions}
+  f(\gamma) := \pi\!\bigl((1-\gamma, p_{\max}]\bigr), \qquad
+  \bar{p}_{\mathrm{above}}(\gamma) := \E_\pi[p \mid p > 1-\gamma].
+\end{equation}
+Then the VaR ratio $r_\alpha(\infty; \gamma)$ is given by:
+\begin{equation}\label{eq:phase_ratio}
+  r_\alpha(\infty; \gamma) = \begin{cases}
+    \displaystyle \frac{\gamma}{\gamma - 1 + \bar{p}}, & \gamma > 1 - p_{\min}, \\[10pt]
+    \text{see Theorem~\ref{thm:phase_transition}(c)}, & \gamma < 1 - p_{\min}.
+  \end{cases}
+\end{equation}
+The transition at $\gamma = 1 - p_{\min}$ is:
+\begin{itemize}
+  \item \emph{Continuous} if $\pi$ has a density at $p_{\min}$ (no atom).
+  \item \emph{Discontinuous} if $\pi$ has an atom at $p_{\min}$ (positive fraction of obligors at the minimum PD).
+\end{itemize}
+\end{proposition}
+
+\begin{proof}
+The continuity/discontinuity follows from the behavior of $f(\gamma)$ at $\gamma = 1 - p_{\min}$. If $\pi$ has no atom at $p_{\min}$, then $f(\gamma) \to 1$ continuously as $\gamma \downarrow (1-p_{\min})$. If $\pi$ has an atom of size $w > 0$ at $p_{\min}$, then $f(\gamma) = 1$ for $\gamma > 1-p_{\min}$ and $f(\gamma) \leq 1 - w$ for $\gamma \leq 1-p_{\min}$, creating a jump.
+\end{proof}
+
+\subsection{Economic interpretation}
+
+\begin{remark}[Heterogeneity as a buffer]\label{rem:buffer}
+The phase transition reveals that portfolio heterogeneity provides a natural buffer against dependence uncertainty. In a homogeneous portfolio, all obligors are equally vulnerable to the threshold effect: as $\gamma \to (1-p)^+$, the conditional PD $\tilde{p} \to 0$ and the ratio diverges. In a heterogeneous portfolio, the riskier obligors ($p_i > p_{\min}$) maintain substantial conditional PDs even at the boundary, preventing the ratio from diverging.
+
+Quantitatively, the ratio at the boundary is $(1-p_{\min})/(\bar{p} - p_{\min})$. For a portfolio with $p_{\min} = 0.1\%$ and $\bar{p} = 1\%$: the limiting ratio is $0.999/0.009 \approx 111$, finite but large. For $p_{\min} = 0.5\%$ and $\bar{p} = 2\%$: the limiting ratio is $0.995/0.015 \approx 66$, substantially smaller.
+
+This finding has practical implications for portfolio construction: mixing obligors of different credit quality reduces the sensitivity to dependence uncertainty, even though it increases the average default rate.
+\end{remark}
+
+\begin{remark}[Connection to Basel]\label{rem:phase_basel}
+The Basel IRB formula uses a common asset correlation $\rho$ for all obligors within a given rating class, which varies smoothly with PD. The phase transition we identify is qualitatively different: the VaR ratio under dependence uncertainty can change \emph{discontinuously} with respect to the threshold $\gamma$ (equivalently, with respect to the measured correlation $\delta$), a sensitivity that the smooth Vasicek formula completely misses. This highlights the fragility of the parametric model assumption: small changes in the measured dependence can produce large changes in the worst-case risk, particularly for homogeneous portfolios near the threshold.
+\end{remark}
+
+\subsection{Correlation-parameterized phase transition}
+
+Recall that for identical Bernoulli$(p)$ marginals, $\gamma = (1-p)/((1-p) + \delta p)$, so the phase boundary $\gamma = 1-p$ corresponds to $\delta = 1$ (perfect correlation). We can express the blow-up in terms of $\delta$:
+
+\begin{corollary}\label{cor:phase_delta}
+For identical $B(1,p)$ marginals with Pearson correlation $\delta$:
+\begin{equation}\label{eq:ratio_delta}
+  r_\alpha(\infty) = \frac{1}{p(1-\delta)}.
+\end{equation}
+As $\delta \to 1^-$: $r_\alpha(\infty) \to +\infty$ with the rate $1/((1-\delta)p)$, a simple pole in $(1-\delta)$.
+\end{corollary}
+
+\begin{proof}
+Direct substitution: $\gamma/({\gamma - 1 + p}) = 1/\tilde{p}$ and $\tilde{p} = p(1-\delta)$ from~\eqref{eq:astar}.
+\end{proof}
+
+This elegant formula shows that the VaR ratio is inversely proportional to the ``uncorrelated fraction'' $p(1-\delta)$ of the default probability.
+
+\subsection{Below-threshold analysis}\label{sec:below_threshold}
+
+For completeness, we analyze the regime $\gamma < 1 - p_{\min}$ in detail. This regime is relevant when the measured correlation is too high for the tail threshold to capture all obligors, or equivalently when the portfolio contains very safe obligors.
+
+\begin{proposition}\label{prop:below_threshold}
+For a portfolio with PD distribution $\pi$ on $[p_{\min}, p_{\max}]$ and $\gamma < 1 - p_{\min}$, define the tail-defaulting set $I_\gamma := \{i : p_i > 1 - \gamma\}$ and the tail-defaulting fraction $f(\gamma) := \sum_{i \in I_\gamma} \lambda_i / L_n$. On the event $\{U > \gamma\}$:
+\begin{enumerate}[label=(\roman*)]
+  \item Obligors $i \in I_\gamma$ default with certainty: $X_i^\gamma = 1$.
+  \item Obligors $i \notin I_\gamma$ do not default: $X_i^\gamma = 0$.
+  \item The aggregate loss is $S_n^{\mathrm{tail}} = \sum_{i \in I_\gamma} \lambda_i = f(\gamma) \cdot L_n$.
+\end{enumerate}
+The VaR of the full portfolio satisfies, for large $n$:
+\begin{equation}\label{eq:var_below}
+  \frac{\VaR_\alpha(S_n)}{L_n} \;\to\; \begin{cases}
+    f(\gamma), & \text{if } 1 - \gamma > 1 - \alpha, \\
+    \max\!\bigl(f(\gamma),\; \tilde{\bar{\mu}}(\gamma)\bigr), & \text{otherwise},
+  \end{cases}
+\end{equation}
+where $\tilde{\bar{\mu}}(\gamma) = \sum_i \lambda_i \tilde{\mu}_i / L_n$ is the exposure-weighted average conditional mean in the normal regime.
+\end{proposition}
+
+\begin{proof}
+The mixture CDF of $S_n$ is $F_{S_n}(t) = \gamma F_{S_n^{\mathrm{ind}}}(t) + (1-\gamma) \1_{\{t \geq f(\gamma) L_n\}}$. For the $\alpha$-quantile: if $1 - \gamma \geq 1 - \alpha$ (i.e., $\gamma \leq \alpha$), then $F_{S_n}(f(\gamma)L_n^-) \leq \gamma < \alpha$ and $F_{S_n}(f(\gamma)L_n) \geq 1 - \gamma + \gamma \cdot 1 = 1 \geq \alpha$, so $\VaR_\alpha = f(\gamma)L_n$. If $\gamma > \alpha$, the quantile is determined by the conditional distribution and the result follows from the LLN.
+\end{proof}
+
+\begin{example}[Three-class portfolio below threshold]\label{ex:below_threshold}
+Consider a portfolio with three rating classes:
+\begin{itemize}
+  \item Class A: $n_A$ obligors with $p_A = 0.001$ (low risk), weight fraction $w_A = 0.3$.
+  \item Class B: $n_B$ obligors with $p_B = 0.01$ (medium risk), weight fraction $w_B = 0.5$.
+  \item Class C: $n_C$ obligors with $p_C = 0.05$ (high risk), weight fraction $w_C = 0.2$.
+\end{itemize}
+Average PD: $\bar{p} = 0.3 \times 0.001 + 0.5 \times 0.01 + 0.2 \times 0.05 = 0.0153$.
+
+For $\gamma = 0.998$ (requiring $p_i > 0.002$ for tail default):
+\begin{itemize}
+  \item Class A ($p_A = 0.001 < 0.002$): NOT in $I_\gamma$. These obligors survive the tail event.
+  \item Classes B and C: in $I_\gamma$. They default in the tail.
+  \item $f(\gamma) = w_B + w_C = 0.7$. The worst-case loss rate is 70\%, not 100\%.
+  \item Conditional mean in normal regime: $\tilde{\bar{\mu}} = 0.3 \times 0.001/\gamma + 0.5 \times (0.998-0.99)/\gamma + 0.2 \times (0.998-0.95)/\gamma \approx 0.0135$.
+  \item The VaR ratio: $r_\alpha(\infty) = 0.7 / 0.0135 \approx 51.9$, substantially below the all-default ratio of $0.998/(0.998 - 1 + 0.0153) \approx 74.9$.
+\end{itemize}
+The presence of very-safe obligors (Class A) \emph{reduces} the worst-case ratio by preventing total default in the tail regime.
+\end{example}
+
+\subsection{Comparison with fully comonotonic bounds}
+
+Under \emph{full} dependence uncertainty (no correlation constraint), the worst-case VaR is $\VaR_\alpha(\sum X_i) = \sum \VaR_\alpha(X_i) = n$ for $\alpha > 1-p$ (the comonotonic upper bound). Our results show that the correlation constraint $\leq \delta$ has the following effects:
+\begin{enumerate}
+  \item For $\delta \geq \delta_{\mathrm{crit}}$: the worst-case VaR remains $n$ (total default). The correlation constraint is not binding.
+  \item For $\delta < \delta_{\mathrm{crit}}$: the worst-case VaR per obligor drops from~1 to $p(1-\delta)$. The correlation constraint effectively limits the ``systemic'' default rate.
+  \item The transition is discontinuous in the asymptotic ratio (as a function of $\delta$): at $\delta = \delta_{\mathrm{crit}}$, the ratio jumps from $\gamma/(\gamma - 1 + p) < \infty$ to $\infty$ (or equivalently, the worst-case loss per obligor jumps from $p(1-\delta)$ to~1).
+\end{enumerate}
+
+This discontinuity has an important practical implication: the worst-case VaR is extremely sensitive to the measured correlation near the critical level. For $p = 0.01$ and $\alpha = 0.999$: $\delta_{\mathrm{crit}} \approx 0.099$. A portfolio with measured correlation $\delta = 0.09$ has a finite worst-case ratio ($\approx 109$), while one with $\delta = 0.10$ has total default as the worst case. The measured correlation difference of 1 percentage point changes the worst case from 10.9\% portfolio loss to 100\% portfolio loss.
+
+%% ============================================================
+\section{Comparison with Basel IRB}\label{sec:basel}
+%% ============================================================
+
+The Basel Internal Ratings-Based (IRB) approach computes regulatory capital using the Vasicek one-factor Gaussian copula model \citep{Vasicek2002, BCBS2006}. Under this model, each obligor's latent asset return is
+\[
+  A_i = \sqrt{\rho}\,Z + \sqrt{1-\rho}\,\varepsilon_i,
+\]
+where $Z \sim N(0,1)$ is the systematic factor, $\varepsilon_i \stackrel{\text{i.i.d.}}{\sim} N(0,1)$, and $\rho \in (0,1)$ is the asset correlation. Default occurs when $A_i < \Phi^{-1}(p_i)$.
+
+For a homogeneous portfolio with PD $p$ and $n$ large, the Vasicek formula gives:
+\begin{equation}\label{eq:vasicek}
+  \VaR_\alpha^{\mathrm{IRB}}(S_n/n) \;\to\;
+  \Phi\!\left(\frac{\Phi^{-1}(p) + \sqrt{\rho}\,\Phi^{-1}(\alpha)}{\sqrt{1-\rho}}\right).
+\end{equation}
+
+\begin{proposition}\label{prop:irb_comparison}
+For a homogeneous portfolio with PD $p$ and Pearson correlation $\delta$, the ratio of worst-case VaR to IRB VaR is
+\begin{equation}\label{eq:irb_ratio}
+  \frac{r_\alpha(\infty) \cdot \VaR_\alpha^\PP(S_n \mid U \leq \gamma)}{\VaR_\alpha^{\mathrm{IRB}}(S_n)}
+  \;\to\; \frac{1}{\Phi\!\left(\frac{\Phi^{-1}(p) + \sqrt{\rho}\,\Phi^{-1}(\alpha)}{\sqrt{1-\rho}}\right)},
+\end{equation}
+where $\rho$ is the Gaussian copula correlation corresponding to Pearson correlation $\delta$.
+\end{proposition}
+
+To make a fair comparison, we relate the Pearson correlation $\delta$ of the upper comonotonic coupling to the asset correlation $\rho$ in the Gaussian model. For $B(1,p)$ marginals:
+\begin{equation}\label{eq:gauss_cor}
+  \delta_{\mathrm{Gauss}}(\rho) = \frac{\Phi_2(\Phi^{-1}(p), \Phi^{-1}(p); \rho) - p^2}{p(1-p)},
+\end{equation}
+where $\Phi_2(\cdot, \cdot; \rho)$ is the bivariate normal CDF. Setting $\delta = \delta_{\mathrm{Gauss}}(\rho)$ ensures consistent Pearson correlation.
+
+\begin{example}\label{ex:irb_comparison}
+For $p = 0.01$, $\alpha = 0.999$:
+\begin{itemize}
+  \item Basel IRB uses $\rho \approx 0.193$ for corporate exposures with $p = 0.01$.
+  \item Pearson correlation: $\delta \approx 0.023$.
+  \item Tail threshold: $\gamma \approx 0.99977$.
+  \item Our worst-case ratio: $r_\alpha(\infty) = 1/(0.01 \times 0.977) \approx 102$.
+  \item IRB loss rate: $\Phi((\Phi^{-1}(0.01) + \sqrt{0.193}\Phi^{-1}(0.999))/\sqrt{0.807}) \approx 0.140$.
+  \item Worst-case loss rate: 1 (total default).
+  \item Ratio to IRB: $1/0.140 \approx 7.1$.
+\end{itemize}
+\end{example}
+
+\begin{remark}\label{rem:irb_model_risk}
+The factor of~7 in Example~\ref{ex:irb_comparison} quantifies the ``model risk'' in the choice of copula for regulatory capital. The IRB model restricts dependence to a Gaussian copula with rapidly decaying tail dependence, while the worst-case allows maximal tail dependence. This gap is largest for investment-grade obligors (low PD), where the Gaussian copula provides the least tail dependence.
+\end{remark}
+
+\subsection{IRB comparison across rating classes}
+
+\begin{table}[h]
+\centering
+\caption{Worst-case VaR vs.\ Basel IRB capital at $\alpha = 99.9\%$ for Bernoulli (LGD=1) and uniform LGD.}
+\label{tab:basel_extended}
+\begin{tabular}{cccccc}
+\toprule
+PD $p$ & Basel $\rho$ & Pearson $\delta$ & IRB loss rate & WC/IRB (Bern.) & WC/IRB (Unif.) \\
+\midrule
+0.001 & 0.234 & 0.0081 & 0.034 & 29.2 & 14.6 \\
+0.005 & 0.213 & 0.0178 & 0.098 & 10.2 & 5.1 \\
+0.01 & 0.193 & 0.0228 & 0.140 & 7.1 & 3.6 \\
+0.02 & 0.164 & 0.0274 & 0.190 & 5.3 & 2.6 \\
+0.05 & 0.130 & 0.0344 & 0.284 & 3.5 & 1.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:basel_extended} shows that the gap between worst-case VaR and IRB capital ranges from $3.5\times$ to $29\times$ for Bernoulli losses, and is roughly halved when LGD is uniform on $[0,1]$ (since the worst-case loss is no longer total default but a weighted average of LGD quantiles). The gap is largest for low-PD (investment-grade) obligors.
+
+\subsection{Impact of LGD assumptions on capital adequacy}
+
+\begin{proposition}\label{prop:lgd_capital}
+Under the Basel IRB framework with fixed $\mathrm{LGD} = \ell$ (e.g., $\ell = 0.45$ for senior unsecured):
+\begin{equation}\label{eq:irb_lgd}
+  \VaR_\alpha^{\mathrm{IRB, LGD}}(S_n/n) = \ell \cdot \Phi\!\left(\frac{\Phi^{-1}(p) + \sqrt{\rho}\,\Phi^{-1}(\alpha)}{\sqrt{1-\rho}}\right).
+\end{equation}
+The ratio of worst-case VaR (with LGD distribution $G$) to IRB capital (with deterministic LGD $\ell$) is:
+\begin{equation}\label{eq:irb_lgd_ratio}
+  \frac{\text{worst-case loss}}{\text{IRB loss}} = \frac{G^{-1}\!\bigl(\frac{\alpha-1+p}{p}\bigr)}{\ell \cdot \Phi\!\left(\frac{\Phi^{-1}(p)+\sqrt{\rho}\,\Phi^{-1}(\alpha)}{\sqrt{1-\rho}}\right)}.
+\end{equation}
+\end{proposition}
+
+For Beta(2,2) LGD (mean 50\%, moderate dispersion), $G^{-1}(0.99) \approx 0.95$ (near the 99th percentile of loss severity), yielding a worst-case/IRB ratio approximately $0.95/(0.45 \times 0.14) = 15.1$ for the $p = 0.01$ case.
+
+%% ============================================================
+\section{Numerical Illustrations}\label{sec:numerics}
+%% ============================================================
+
+We illustrate the main results with four numerical experiments.
+
+\subsection{Convergence of $r_\alpha(n)$}
+
+We compute $r_\alpha(n)$ exactly for Bernoulli portfolios. The numerator is $\VaR_\alpha(S_n) = n$ (unit exposures). The denominator is $\VaR_\alpha(\mathrm{Bin}(n, \tilde{p}))$ for homogeneous portfolios, or $\VaR_\alpha(\sum_{i=1}^n B_i)$ with independent $B_i \sim B(1, \tilde{p}_i)$ for heterogeneous portfolios, computed via the Poisson binomial distribution.
+
+\begin{table}[h]
+\centering
+\caption{Convergence of $r_{0.999}(n)$ for $p = 0.01$, $\delta = 0.1$, $\gamma \approx 0.99899$.}
+\label{tab:convergence}
+\begin{tabular}{rrrc}
+\toprule
+$n$ & $r_{0.999}(n)$ (homogeneous) & $r_{0.999}(n)$ (heterogeneous$^*$) & Limit \\
+\midrule
+100 & 20.0 & 20.0 & \\
+500 & 41.7 & 41.7 & \\
+1\,000 & 52.6 & 52.6 & \\
+5\,000 & 74.6 & 76.2 & \\
+10\,000 & 82.6 & 83.9 & \\
+50\,000 & 96.7 & 97.1 & \\
+100\,000 & 100.6 & 100.8 & \\
+$\infty$ & 111.1 & 111.1 & $\gamma/(\gamma-1+p)$ \\
+\bottomrule
+\end{tabular}
+\begin{flushleft}
+\small $^*$Heterogeneous portfolio: $n/2$ obligors with $p = 0.005$, $n/2$ with $p = 0.015$; average PD $= 0.01$. Same $\gamma = 0.999$ for both portfolios.
+\end{flushleft}
+\end{table}
+
+Table~\ref{tab:convergence} confirms Theorems~\ref{thm:sharp_identical} and~\ref{thm:sharp_hetero}: both portfolios converge to the same limit $111.\overline{1}$. The convergence is slow ($O(n^{-1/2})$), consistent with Theorem~\ref{thm:berry_esseen}. The heterogeneous portfolio converges slightly faster for large $n$, as predicted by the Jensen inequality argument in the proof of Theorem~\ref{thm:berry_esseen}.
+
+The slow convergence has practical implications: for a portfolio of $n = 1000$ obligors (a typical corporate credit portfolio), the ratio is only about half of its asymptotic value. This means that finite-portfolio effects are substantial, and the asymptotic formula should be supplemented with the Berry--Esseen correction~\eqref{eq:leading_correction} for portfolios of moderate size.
+
+\subsection{Summary of main results}
+
+We collect all main formulas in a single reference table.
+
+\begin{table}[h]
+\centering
+\caption{Summary of VaR ratio results.}
+\label{tab:summary}
+\begin{tabular}{lll}
+\toprule
+Result & Formula & Reference \\
+\midrule
+Sharp ratio (identical) & $r_\alpha(\infty) = \gamma/(\gamma-1+p) = 1/\tilde{p}$ & Thm.~\ref{thm:sharp_identical} \\
+Sharp ratio (heterogeneous) & $r_\alpha(\infty) = \gamma/(\gamma-1+\bar{p})$ & Thm.~\ref{thm:sharp_hetero} \\
+Convergence rate & $|r_\alpha(n) - r_\alpha(\infty)| = O(n^{-1/2})$ & Thm.~\ref{thm:berry_esseen} \\
+Worst-case optimality & UC coupling maximizes VaR & Thm.~\ref{thm:wc_optimality} \\
+Correlation formula & $r_\alpha(\infty) = 1/(p(1-\delta))$ & Cor.~\ref{cor:phase_delta} \\
+Critical correlation & $\delta_{\mathrm{crit}} = (1-\alpha)(1-p)/(\alpha p)$ & Cor.~\ref{cor:delta_crit} \\
+General LGD ratio & $r_\alpha(\infty) = F^{-1}(\alpha)/(\gamma^{-1}\!\int_0^\gamma\! F^{-1})$ & Thm.~\ref{thm:lgd_ratio} \\
+LGD amplification & $r^{\mathrm{LGD}} \geq r^{\mathrm{Bern}}$ & Cor.~\ref{cor:lgd_amplification} \\
+Phase transition (homo.) & $r \sim (1-p)/(\gamma-(1-p)) \to \infty$ & Thm.~\ref{thm:phase_transition}(a) \\
+Phase transition (hetero.) & $r \to (1-p_{\min})/(\bar{p}-p_{\min}) < \infty$ & Thm.~\ref{thm:phase_transition}(b) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Effect of LGD distribution}
+
+\begin{table}[h]
+\centering
+\caption{Limiting VaR ratio $r_\alpha(\infty)$ for $p = 0.01$, $\gamma = 0.999$, $\alpha = 0.999$ under different LGD distributions.}
+\label{tab:lgd_comparison}
+\begin{tabular}{lccc}
+\toprule
+LGD distribution & $G^{-1}(q_\alpha)$ & $\tilde{\mu}$ & $r_\alpha(\infty)$ \\
+\midrule
+Deterministic ($\ell = 1$) & 1.000 & 0.00900 & 111.1 \\
+Deterministic ($\ell = 0.45$) & 0.450 & 0.00405 & 111.1 \\
+Uniform$[0,1]$ & 0.900 & 0.00405 & 222.0 \\
+Beta(2,2) & 0.804 & 0.00413 & 194.6 \\
+Beta(0.5, 0.5) & 0.976 & 0.00401 & 243.1 \\
+\bottomrule
+\end{tabular}
+\begin{flushleft}
+\small Here $q_\alpha = (\alpha - 1 + p)/p = (0.999 - 0.99)/0.01 = 0.9$. The conditional mean $\tilde{\mu} = (1/\gamma)\int_0^\gamma F^{-1}(u)\,\dd u$ depends on the full compound distribution $F$.
+\end{flushleft}
+\end{table}
+
+\begin{remark}
+The deterministic LGD cases are instructive: whether LGD is 1 or 0.45, the ratio remains 111.1, because both numerator and denominator scale by the same constant $\ell$. This confirms that the ratio depends on the \emph{shape} of the LGD distribution, not just its level. The uniform and Beta distributions produce different ratios because they have different shapes in the upper tail.
+\end{remark}
+
+\subsection{Phase transition visualization}
+
+We plot $r_\alpha(\infty; \gamma)$ as a function of $\gamma$ for three portfolio configurations:
+\begin{enumerate}[label=(\roman*)]
+  \item Homogeneous: all $p_i = 0.01$.
+  \item Mildly heterogeneous: half at $p = 0.005$, half at $p = 0.015$ ($\bar{p} = 0.01$).
+  \item Strongly heterogeneous: half at $p = 0.001$, half at $p = 0.019$ ($\bar{p} = 0.01$).
+\end{enumerate}
+
+\begin{table}[h]
+\centering
+\caption{VaR ratio as $\gamma$ approaches the threshold $1 - p_{\min}$.}
+\label{tab:phase}
+\begin{tabular}{lccc}
+\toprule
+$\gamma$ & Homogeneous & Mild hetero. & Strong hetero. \\
+\midrule
+0.9990 & 111.0 & 111.0 & 111.0 \\
+0.9950 & 199.0 & 199.0 & ---$^{\dagger}$ \\
+0.9930 & 331.0 & ---$^{\dagger}$ & ---$^{\dagger}$ \\
+0.9910 & 991.0 & ---$^{\dagger}$ & ---$^{\dagger}$ \\
+$\to 1 - p_{\min}$ & $\to \infty$ & $\to 199$ & $\to 111$ \\
+Threshold $1 - p_{\min}$ & 0.9900 & 0.9950 & 0.9990 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The table illustrates the phase transition: the homogeneous portfolio ratio diverges at the threshold, while heterogeneous portfolios approach finite limits. The strongly heterogeneous portfolio (with $p_{\min} = 0.001$) has its threshold at $\gamma = 0.999$, coinciding with $\alpha = 0.999$; the limiting ratio at the boundary is $(1-0.001)/(0.01-0.001) = 0.999/0.009 \approx 111$.
+
+\subsection{Sensitivity to portfolio parameters}
+
+\begin{table}[h]
+\centering
+\caption{Sensitivity of the worst-case ratio to portfolio parameters ($\alpha = 0.999$, $\delta = 0.05$).}
+\label{tab:sensitivity}
+\begin{tabular}{ccccc}
+\toprule
+Average PD $\bar{p}$ & $\gamma$ ($\delta\!=\!0.05$) & $r_\alpha(\infty)$ & $\gamma$ ($\delta\!=\!0.10$) & $r_\alpha(\infty)$ \\
+\midrule
+0.001 & 0.99995 & N/A$^{\dagger}$ & 0.99990 & N/A$^{\dagger}$ \\
+0.005 & 0.99975 & N/A$^{\dagger}$ & 0.99950 & N/A$^{\dagger}$ \\
+0.010 & 0.99950 & N/A$^{\dagger}$ & 0.99900 & 111.0 \\
+0.050 & 0.99750 & 21.0 & 0.99500 & 22.1 \\
+0.100 & 0.99500 & 10.5 & 0.99000 & 11.0 \\
+\bottomrule
+\multicolumn{5}{l}{\footnotesize ${}^{\dagger}$\,$\gamma > \alpha = 0.999$: theorem domain violated; true ratio $\approx 1$.}
+\end{tabular}
+\end{table}
+
+The worst-case ratio scales as $r_\alpha(\infty) = \gamma/(\gamma - 1 + p)$ where $\gamma = 1 - p\delta$. Crucially, the theorem requires $\gamma \leq \alpha$, i.e., $p\delta \geq 1-\alpha = 0.001$. For investment-grade portfolios ($\bar{p} \leq 1\%$) with low correlation ($\delta = 5\%$), we have $p\delta \leq 0.0005 < 0.001$, placing them \emph{outside} the theorem's domain: here $\gamma > \alpha$ and the true ratio is close to~$1$ (the normal regime determines the unconditional VaR). The sharp ratio formula applies only to sub-investment-grade or higher-correlation portfolios satisfying $p\delta \geq 0.001$.
+
+Within the valid domain, the ratio is \emph{increasing} in $\delta$ (since $r = \gamma/(\gamma-1+p)$ and $\partial r/\partial\delta = p\gamma/(\gamma-1+p)^2 > 0$) and decreasing in $p$. For $\bar{p} = 5\%$ and $\delta = 0.10$, the ratio is $22.1$; for $\bar{p} = 10\%$ and $\delta = 0.10$, it falls to $11.0$.
+
+\begin{remark}[Practical implications for portfolio monitoring]
+The sensitivity results suggest that the worst-case VaR should be recalculated whenever:
+\begin{enumerate}[label=(\roman*)]
+  \item The portfolio's average PD changes (e.g., due to rating migration);
+  \item The measured pairwise correlation changes (e.g., due to macro-economic conditions);
+  \item The portfolio composition changes (e.g., due to new lending or defaults).
+\end{enumerate}
+Of these, rating migration (i) is typically the most frequent driver, occurring quarterly. Correlation changes (ii) are harder to measure and may require multi-year data windows. Portfolio composition changes (iii) are idiosyncratic and depend on lending activity.
+
+The closed-form nature of our ratio formula ($r = \gamma/(\gamma - 1 + \bar{p})$) means that these recalculations are computationally trivial, requiring only the updated average PD and correlation estimate. This is a significant advantage over Monte Carlo-based stress testing methods.
+\end{remark}
+
+%% ============================================================
+\section{Conclusion}\label{sec:conclusion}
+%% ============================================================
+
+We have established a comprehensive theory of VaR aggregation under the dependence uncertainty framework of \citet{DVNSupper}. The main contributions are:
+
+\begin{enumerate}
+  \item \textbf{Sharp ratio.} The limiting VaR underestimation ratio $r_\alpha(\infty) = \gamma/(\gamma - 1 + \bar{p})$ depends only on the exposure-weighted average PD, exhibiting surprising insensitivity to portfolio heterogeneity (Theorems~\ref{thm:sharp_identical} and~\ref{thm:sharp_hetero}).
+
+  \item \textbf{Convergence rate.} The Berry--Esseen rate is $O(n^{-1/2})$, with heterogeneous portfolios converging faster due to a variance reduction effect (Theorem~\ref{thm:berry_esseen}).
+
+  \item \textbf{Worst-case optimality.} The upper comonotonic coupling is the asymptotic worst case among all exchangeable Bernoulli couplings with bounded pairwise correlation (Theorem~\ref{thm:wc_optimality}). The proof reveals that the two-point optimizer of the mixing distribution in de~Finetti's representation coincides exactly with the upper comonotonic structure.
+
+  \item \textbf{Continuous LGD.} The framework extends to general loss distributions, with LGD uncertainty strictly amplifying the worst-case ratio relative to the Bernoulli benchmark (Theorem~\ref{thm:lgd_ratio} and Corollary~\ref{cor:lgd_amplification}).
+
+  \item \textbf{Phase transition.} At the boundary $\gamma = 1 - p_{\min}$, the ratio diverges for homogeneous portfolios (simple pole) but remains finite for heterogeneous ones, revealing that portfolio heterogeneity buffers against dependence uncertainty (Theorem~\ref{thm:phase_transition}).
+
+  \item \textbf{Regulatory implications.} The worst-case VaR exceeds Basel IRB capital by a factor of 3--29, with the gap largest for investment-grade portfolios (Section~\ref{sec:basel}).
+\end{enumerate}
+
+These results underscore the fundamental challenge of estimating tail risk for credit portfolios: partial knowledge of dependence, as measured by standard correlation statistics, provides essentially no information about extreme tail behavior. The practical implication is that stress testing and capital planning should not rely solely on correlation-based models but must also consider worst-case dependence scenarios. Our worst-case optimality result (Theorem~\ref{thm:wc_optimality}) shows that the upper comonotonic coupling of \citet{DVNSupper} is not merely one such scenario but the most extreme one compatible with any given level of measured correlation.
+
+\medskip
+
+\noindent\textbf{Economic implications.} The worst-case optimality result (Theorem~\ref{thm:wc_optimality}) has important consequences for risk management practice:
+
+\begin{itemize}
+  \item \emph{Stress testing.} Banks can compute the worst-case VaR in closed form: $\VaR_\alpha^{\mathrm{wc}} = L_n$ (total default) when $\delta \geq \delta_{\mathrm{crit}}$, or $L_n \cdot p(1-\delta)$ when $\delta < \delta_{\mathrm{crit}}$. This requires no Monte Carlo simulation and provides a model-free upper bound on portfolio loss under any copula consistent with the measured correlation.
+
+  \item \emph{Capital adequacy.} The ratio $r_\alpha(\infty) / (1/\VaR_\alpha^{\mathrm{IRB}})$ quantifies the ``copula model risk'' embedded in the regulatory capital formula. For investment-grade portfolios, this ratio exceeds~7, suggesting that the Basel framework substantially underestimates the tail risk from dependence uncertainty.
+
+  \item \emph{Portfolio diversification.} The phase transition result (Theorem~\ref{thm:phase_transition}) provides a new rationale for credit quality diversification: mixing obligors of different credit quality reduces the worst-case ratio even though it increases the average default rate. This effect is driven by the fact that heterogeneity prevents the ratio from diverging at the boundary $\gamma = 1 - p_{\min}$.
+
+  \item \emph{LGD management.} Corollary~\ref{cor:lgd_amplification} shows that LGD uncertainty \emph{amplifies} the worst-case ratio: the deterministic LGD assumption in Basel IRB ($\ell = 0.45$) actually \emph{understates} the worst-case VaR ratio relative to a model with stochastic LGD, because LGD variability inflates the quantile-to-mean ratio.
+\end{itemize}
+
+\medskip
+
+\noindent\textbf{Open questions.}
+\begin{enumerate}
+  \item \emph{Finite-$n$ optimality.} Is the upper comonotonic coupling the exact optimizer of $\VaR_\alpha(S_n)$ for finite $n$, or only asymptotically? Our numerical experiments suggest near-optimality even for $n = 100$, but a proof would require different techniques (e.g., direct analysis of the linear program in Section~\ref{sec:feasible}).
+
+  \item \emph{Non-exchangeable optimality.} Theorem~\ref{thm:wc_optimality} is proved for exchangeable couplings. Extending to the full set of couplings with heterogeneous marginals and a common correlation bound requires careful treatment of the Hewitt--Savage theorem.
+
+  \item \emph{Dynamic dependence.} The framework is static: the dependence structure is fixed. In practice, correlations are time-varying, and a dynamic version would consider worst-case dependence paths. One approach would be to combine the static worst-case coupling with a time-varying threshold $\gamma_t$, where $\gamma_t$ is calibrated to the time-varying measured correlation $\delta_t$.
+
+  \item \emph{Expected Shortfall.} The Basel III framework is transitioning from VaR to Expected Shortfall (ES). Extending the worst-case optimality result to ES would require analyzing $\int_\alpha^1 F^{-1}(u)\,\dd u$ instead of $F^{-1}(\alpha)$, which may yield a different optimizer. Preliminary analysis (Appendix~\ref{app:discussion}) suggests that the upper comonotonic coupling also maximizes ES, but the proof requires additional regularity conditions.
+
+  \item \emph{Higher-order dependence constraints.} The Pearson correlation captures only pairwise linear dependence. One could strengthen the constraint to include bounds on higher-order cumulants or tail dependence coefficients. This would tighten the worst-case VaR but require a richer class of moment problems.
+
+  \item \emph{Counterparty networks.} In practice, default correlation arises from common exposures (e.g., to the same industry or geographic region) and from direct counterparty relationships. A network-based extension would incorporate the topology of counterparty relationships into the correlation constraint, potentially yielding tighter worst-case bounds for structured portfolios.
+\end{enumerate}
+
+%% ============================================================
+%% References
+%% ============================================================
+
+\begin{thebibliography}{99}
+
+\bibitem[BCBS(2006)]{BCBS2006}
+Basel Committee on Banking Supervision.
+\newblock \emph{International Convergence of Capital Measurement and Capital Standards: A Revised Framework --- Comprehensive Version}.
+\newblock Bank for International Settlements, 2006.
+
+\bibitem[Ansari and L\"utkebohmert(2025)]{AnsariLutkebohmert2025}
+Ansari, J. and L\"utkebohmert, E.
+\newblock Robust Bernoulli mixture models for credit portfolio risk.
+\newblock \emph{Mathematical Finance}, early view, 2025.
+\newblock DOI: 10.1111/mafi.70020. arXiv: 2411.11522.
+
+\bibitem[Beiglb\"ock and Juillet(2016)]{BeiglbockJuillet2016}
+Beiglb\"ock, M. and Juillet, N.
+\newblock On a problem of optimal transport under marginal constraints.
+\newblock \emph{Annals of Probability}, 44(1):42--106, 2016.
+
+\bibitem[Bernard et al.(2014)]{BernardEtAl2014}
+Bernard, C., Jiang, X., and Wang, R.
+\newblock Risk aggregation with dependence uncertainty.
+\newblock \emph{Insurance: Mathematics and Economics}, 54:93--108, 2014.
+
+\bibitem[Berry(1941)]{Berry1941}
+Berry, A.\,C.
+\newblock The accuracy of the Gaussian approximation to the sum of independent variates.
+\newblock \emph{Transactions of the American Mathematical Society}, 49(1):122--136, 1941.
+
+\bibitem[Bertsimas and Popescu(2005)]{Bertsimas2005}
+Bertsimas, D. and Popescu, I.
+\newblock Optimal inequalities in probability theory: a convex optimization approach.
+\newblock \emph{SIAM Journal on Optimization}, 15(3):780--804, 2005.
+
+\bibitem[Cheung(2009)]{Cheung2009}
+Cheung, K.\,C.
+\newblock Upper comonotonicity.
+\newblock \emph{Insurance: Mathematics and Economics}, 45(1):35--40, 2009.
+
+\bibitem[de Finetti(1937)]{deFinetti1937}
+de Finetti, B.
+\newblock La pr\'evision: ses lois logiques, ses sources subjectives.
+\newblock \emph{Annales de l'Institut Henri Poincar\'e}, 7(1):1--68, 1937.
+
+\bibitem[De~Vecchi et al.(2026)]{DVNSupper}
+De~Vecchi, C., Nendel, M., and Streicher, J.
+\newblock Upper comonotonicity and risk aggregation under dependence uncertainty.
+\newblock \emph{Mathematical Finance}, 36(1):118--139, 2026.
+\newblock DOI: 10.1111/mafi.70008. arXiv: 2406.19242.
+
+\bibitem[Embrechts et al.(2002)]{EmbrechtsEtAl2002}
+Embrechts, P., McNeil, A.\,J., and Straumann, D.
+\newblock Correlation and dependence in risk management: properties and pitfalls.
+\newblock In \emph{Risk Management: Value at Risk and Beyond}, pages 176--223. Cambridge University Press, 2002.
+
+\bibitem[Embrechts et al.(2006)]{EmbrechtsEtAl2006}
+Embrechts, P., H\"oing, A., and Juri, A.
+\newblock Using copulae to bound the Value-at-Risk for functions of dependent risks.
+\newblock \emph{Finance and Stochastics}, 10(4):470--488, 2006.
+
+\bibitem[Embrechts et al.(2013)]{EmbrechtsEtAl2013}
+Embrechts, P., Puccetti, G., and R\"uschendorf, L.
+\newblock Model uncertainty and VaR aggregation.
+\newblock \emph{Journal of Banking \& Finance}, 37(8):2750--2764, 2013.
+
+\bibitem[Esseen(1942)]{Esseen1942}
+Esseen, C.-G.
+\newblock On the Liapunoff limit of error in the theory of probability.
+\newblock \emph{Arkiv f\"or Matematik, Astronomi och Fysik}, A28(9):1--19, 1942.
+
+\bibitem[Fontana et al.(2021)]{FontanaEtAl2021}
+Fontana, R., Luciano, E., and Semeraro, P.
+\newblock Model risk in credit risk.
+\newblock \emph{Mathematical Finance}, 31(1):176--202, 2021.
+\newblock DOI: 10.1111/mafi.12291.
+
+\bibitem[Hewitt and Savage(1955)]{HewittSavage1955}
+Hewitt, E. and Savage, L.\,J.
+\newblock Symmetric measures on Cartesian products.
+\newblock \emph{Transactions of the American Mathematical Society}, 80(2):470--501, 1955.
+
+\bibitem[Karlin and Studden(1966)]{Karlin1966}
+Karlin, S. and Studden, W.\,J.
+\newblock \emph{Tchebycheff Systems: With Applications in Analysis and Statistics}.
+\newblock Wiley Interscience, 1966.
+
+\bibitem[Makarov(1981)]{Makarov1981}
+Makarov, G.\,D.
+\newblock Estimates for the distribution function of a sum of two random variables when the marginal distributions are fixed.
+\newblock \emph{Theory of Probability and its Applications}, 26(4):803--806, 1981.
+
+\bibitem[McNeil et al.(2015)]{McNeilEtAl2015}
+McNeil, A.\,J., Frey, R., and Embrechts, P.
+\newblock \emph{Quantitative Risk Management: Concepts, Techniques and Tools}.
+\newblock Princeton University Press, revised edition, 2015.
+
+\bibitem[R\"uschendorf(1982)]{Ruschendorf1982}
+R\"uschendorf, L.
+\newblock Random variables with maximum sums.
+\newblock \emph{Advances in Applied Probability}, 14(3):623--632, 1982.
+
+\bibitem[Shevtsova(2011)]{Shevtsova2011}
+Shevtsova, I.\,G.
+\newblock On the absolute constants in the Berry--Esseen type inequalities for identically distributed summands.
+\newblock arXiv: 1111.6554, 2011.
+
+\bibitem[van der Vaart(1998)]{vanderVaart1998}
+van der Vaart, A.\,W.
+\newblock \emph{Asymptotic Statistics}.
+\newblock Cambridge University Press, 1998.
+
+\bibitem[Vasicek(2002)]{Vasicek2002}
+Vasicek, O.\,A.
+\newblock The distribution of loan portfolio value.
+\newblock \emph{Risk}, 15(12):160--162, 2002.
+
+\bibitem[Wang et al.(2013)]{WangEtAl2013}
+Wang, B., Wang, R., and Wang, R.
+\newblock Aggregation of VaR bounds with application to asset-liability models.
+\newblock \emph{Insurance: Mathematics and Economics}, 52(2):103--113, 2013.
+
+\bibitem[Credit Suisse(1997)]{CreditSuisse1997}
+Credit Suisse Financial Products.
+\newblock \emph{CreditRisk$^+$: A Credit Risk Management Framework}.
+\newblock Technical document, Credit Suisse First Boston, 1997.
+
+\end{thebibliography}
+
+%% ============================================================
+\appendix
+%% ============================================================
+
+\section{Auxiliary Results and Detailed Proofs}\label{app:proofs}
+
+\subsection{Proof of Lemma~\ref{lem:var_mixing}: Quantile convergence under mixing}\label{app:var_mixing}
+
+We provide a self-contained proof that does not rely on the general theory of empirical processes.
+
+\begin{proof}[Detailed proof of Lemma~\ref{lem:var_mixing}]
+Let $(X_i)_{i \in \N}$ be exchangeable Bernoulli random variables with mixing distribution $\nu$ on $[0,1]$, so that conditionally on $\theta \sim \nu$, the $X_i$ are i.i.d.\ $B(1,\theta)$.
+
+\textbf{Step 1: Conditional convergence.} Fix $\theta \in (0,1)$. By the strong law of large numbers, $S_n/n \to \theta$ almost surely given $\theta$. By the Glivenko--Cantelli theorem applied to the conditional distribution:
+\begin{equation}\label{eq:gc_cond}
+  \sup_{t \in [0,1]} \left|F_{S_n/n|\theta}(t) - \1_{\{t \geq \theta\}}\right| \to 0 \quad\text{a.s.\ given } \theta.
+\end{equation}
+
+\textbf{Step 2: Unconditional CDF convergence.} The unconditional CDF of $S_n/n$ is
+\[
+  F_{S_n/n}(t) = \int_0^1 F_{S_n/n|\theta}(t) \,\dd\nu(\theta).
+\]
+By bounded convergence (since $F_{S_n/n|\theta}(t) \in [0,1]$):
+\[
+  F_{S_n/n}(t) \to \int_0^1 \1_{\{t \geq \theta\}} \,\dd\nu(\theta) = \nu((-\infty, t]) = F_\nu(t)
+\]
+for every continuity point $t$ of $F_\nu$.
+
+\textbf{Step 3: Quantile convergence.} We use the following standard fact: if $F_n \to F$ weakly and $F$ is continuous at $F^{-1}(\alpha)$, then $F_n^{-1}(\alpha) \to F^{-1}(\alpha)$ \citep[Lemma~21.2]{vanderVaart1998}.
+
+Since $S_n/n$ takes values in $\{0, 1/n, 2/n, \ldots, 1\}$, its CDF $F_{S_n/n}$ converges weakly to $F_\nu$ by Step~2. The condition that $\nu$ has no atom at $F_\nu^{-1}(\alpha)$ ensures continuity of $F_\nu$ at the $\alpha$-quantile, and thus:
+\[
+  \frac{1}{n}\VaR_\alpha(S_n) = F_{S_n/n}^{-1}(\alpha) \to F_\nu^{-1}(\alpha). \qedhere
+\]
+\end{proof}
+
+\subsection{Verification that the two-point optimizer matches the upper comonotonic coupling}\label{app:match}
+
+We provide a detailed verification of the key identity used in the proof of Theorem~\ref{thm:wc_optimality}.
+
+\begin{proposition}\label{prop:match}
+Let $\gamma = (1-p)/((1-p) + \delta p)$ and $\tilde{p} = (\gamma - 1 + p)/\gamma$. Then:
+\begin{equation}\label{eq:ptilde_identity}
+  \tilde{p} = p(1-\delta).
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Starting from $\gamma = (1-p)/((1-p) + \delta p)$:
+\begin{align*}
+  \gamma - 1 + p &= \frac{1-p}{(1-p) + \delta p} - 1 + p \\
+  &= \frac{(1-p) - (1-p) - \delta p + p((1-p) + \delta p)}{(1-p) + \delta p} \\
+  &= \frac{-\delta p + p(1-p) + \delta p^2}{(1-p) + \delta p} \\
+  &= \frac{p(1-p)(1-\delta)}{(1-p) + \delta p}.
+\end{align*}
+Dividing by $\gamma$:
+\[
+  \tilde{p} = \frac{\gamma - 1 + p}{\gamma} = \frac{p(1-p)(1-\delta)}{(1-p) + \delta p} \cdot \frac{(1-p) + \delta p}{1-p} = p(1-\delta). \qedhere
+\]
+\end{proof}
+
+This identity has a natural interpretation: the conditional PD $\tilde{p}$ in the normal regime equals the ``residual'' default probability after removing the correlated component $\delta p$. The fraction $\delta$ of the default probability is ``absorbed'' into the tail event, leaving $(1-\delta)p$ for independent defaults.
+
+\subsection{Uniqueness of the moment optimizer}\label{app:uniqueness}
+
+\begin{proposition}\label{prop:unique_opt}
+The optimizer $\nu^*$ in Lemma~\ref{lem:moment_solution} is unique among distributions on $[0,1]$ with mean $p$ and variance $\sigma^2 = \delta p(1-p)$ that maximize $F_\nu^{-1}(\alpha)$, provided $\gamma > \alpha$ (strict inequality).
+\end{proposition}
+
+\begin{proof}
+Suppose $\tilde{\nu}$ also achieves the supremum $F_{\tilde{\nu}}^{-1}(\alpha) = p(1-\delta)$. Then $\tilde{\nu}([0, p(1-\delta)]) \geq \alpha > 0$ and $\tilde{\nu}((p(1-\delta), 1]) \leq 1 - \alpha$.
+
+Let $a := p(1-\delta)$. We need $\E_{\tilde{\nu}}[\theta] = p$ and $\Var_{\tilde{\nu}}(\theta) \leq \sigma^2$.
+
+Since $\tilde{\nu}$ puts mass $\geq \alpha$ at or below $a$, and mass $\leq 1-\alpha$ above $a$:
+\[
+  p = \E_{\tilde{\nu}}[\theta] \leq a \cdot \tilde{\nu}([0,a]) + 1 \cdot \tilde{\nu}((a,1]) \leq a + (1-\alpha)(1-a).
+\]
+The mean constraint $\E = p$ combined with the variance constraint determines the measure uniquely among two-point distributions (by the theory of moment spaces). Any distribution satisfying both constraints with $F^{-1}(\alpha) = a$ must concentrate its mass above $a$ at a single point to minimize the variance needed to achieve mean $p$, and this point must be $b^* = 1$ (as shown in Lemma~\ref{lem:moment_solution}). Any spreading of mass above $a$ would require a larger variance, violating the constraint. Since the optimizer in the moment problem is extremal, it is the unique two-point distribution $\nu^*$.
+\end{proof}
+
+\subsection{Berry--Esseen bound: explicit computation}\label{app:berry_esseen}
+
+We provide explicit numerical values for the Berry--Esseen bound in the regulatory setting.
+
+\begin{example}\label{ex:be_explicit}
+Let $p = 0.01$, $\delta = 0.1$ (so $\gamma \approx 0.99899$ and $\tilde{p} \approx 0.009$), $\alpha = 0.999$ ($z_\alpha \approx 3.09$), and $n = 1000$.
+
+\textbf{Homogeneous portfolio:}
+\begin{align*}
+  \sigma_{1000}^2 &= 1000 \times 0.009 \times 0.991 = 8.919, \\
+  \sigma_{1000} &\approx 2.987, \\
+  \rho_{1000} &= 1000 \times 0.009 \times 0.991 \times (0.009^2 + 0.991^2) = 8.762, \\
+  \varepsilon_{1000} &= \frac{0.5600 \times 8.762}{2.987^3} \approx 0.184.
+\end{align*}
+The Berry--Esseen approximation gives:
+\begin{align*}
+  q_{1000} &= 1000 \times 0.009 + 3.09 \times 2.987 = 9.0 + 9.23 = 18.23, \\
+  r_{0.999}(1000) &\approx \frac{1000}{18.23} \approx 54.9.
+\end{align*}
+The exact value (from the binomial distribution) is $r_{0.999}(1000) = 1000/19 \approx 52.6$, since $\VaR_{0.999}(\mathrm{Bin}(1000, 0.009)) = 19$. The approximation is within 4.4\% of the exact value.
+
+\textbf{Heterogeneous portfolio} (half at $\tilde{p} = 0.004$, half at $\tilde{p} = 0.014$):
+\begin{align*}
+  \sigma_{1000}^2 &= 500 \times 0.004 \times 0.996 + 500 \times 0.014 \times 0.986 = 1.992 + 6.902 = 8.894, \\
+  \sigma_{1000} &\approx 2.982.
+\end{align*}
+The heterogeneous variance (8.894) is slightly less than the homogeneous variance (8.919), consistent with Jensen's inequality. The difference is small because the PD spread is modest.
+\end{example}
+
+\subsection{Computation of the LGD ratio for Beta distributions}\label{app:beta_lgd}
+
+For $\mathrm{LGD} \sim \mathrm{Beta}(a,b)$, the quantile function is $G^{-1}(u) = I^{-1}(u; a, b)$ where $I$ is the regularized incomplete beta function. The conditional mean~\eqref{eq:cond_mean_lgd} requires:
+\begin{equation}\label{eq:beta_integral}
+  \int_0^\gamma F^{-1}(u)\,\dd u = \int_{1-p}^\gamma I^{-1}\!\left(\frac{u-(1-p)}{p};\, a, b\right)\dd u
+  = p \int_0^{q_0} I^{-1}(v;\, a, b)\,\dd v,
+\end{equation}
+where $q_0 = (\gamma - 1 + p)/p$.
+
+By integration by parts:
+\begin{equation}\label{eq:beta_ibp}
+  \int_0^{q_0} I^{-1}(v;\, a, b)\,\dd v = q_0 \cdot I^{-1}(q_0;\, a, b) - \int_0^{I^{-1}(q_0)} I(t;\, a, b)\,\dd t.
+\end{equation}
+The inner integral can be expressed in terms of the incomplete beta function:
+\[
+  \int_0^c I(t;\, a, b)\,\dd t = c\,I(c;\, a, b) - \frac{B(c;\, a+1, b)}{B(a,b)} \cdot \frac{a+b}{a},
+\]
+where $B(c;\, a, b) = \int_0^c t^{a-1}(1-t)^{b-1}\,\dd t$ is the incomplete beta function.
+
+For the standard cases:
+\begin{itemize}
+  \item $\mathrm{Beta}(1,1) = \mathrm{Uniform}[0,1]$: $I^{-1}(v) = v$, recovering Corollary~\ref{cor:lgd_special}(b).
+  \item $\mathrm{Beta}(2,2)$: mean $= 0.5$, mode $= 0.5$. This is a symmetric, mildly concentrated distribution around 50\% LGD.
+  \item $\mathrm{Beta}(0.5, 0.5)$: the arcsine distribution, bimodal with mass concentrated near 0 and 1. This models the empirically observed bimodality of LGD distributions (very low or very high recovery).
+\end{itemize}
+
+\section{Extended Numerical Results}\label{app:numerics}
+
+\subsection{Detailed convergence tables}
+
+\begin{table}[h]
+\centering
+\caption{Detailed convergence of $r_{0.999}(n)$ for three correlation levels.}
+\label{tab:detailed_conv}
+\begin{tabular}{rrrr}
+\toprule
+$n$ & $\delta = 0.05^{\dagger}$ & $\delta = 0.10$ & $\delta = 0.20$ \\
+\midrule
+50 & --- & 12.5 & 16.7 \\
+100 & --- & 20.0 & 20.0 \\
+200 & --- & 28.6 & 28.6 \\
+500 & --- & 41.7 & 45.5 \\
+1\,000 & --- & 52.6 & 55.6 \\
+2\,000 & --- & 62.5 & 66.7 \\
+5\,000 & --- & 74.6 & 82.0 \\
+10\,000 & --- & 82.6 & 91.7 \\
+50\,000 & --- & 96.7 & 108.0 \\
+100\,000 & --- & 100.6 & 112.6 \\
+$\infty$ & --- & 111.1 & 125.0 \\
+\bottomrule
+\end{tabular}
+\begin{flushleft}
+\small All portfolios: $p = 0.01$, $\alpha = 0.999$, homogeneous with unit weights. Ratios computed exactly via $r_\alpha(n) = n / \VaR_{0.999}(\mathrm{Bin}(n, \tilde{p}))$ using the binomial quantile function. ${}^{\dagger}$For $\delta = 0.05$: $\gamma = 0.9995 > \alpha = 0.999$, so the theorem does not apply and the true ratio is close to~1. For $\delta = 0.20$: $\gamma \approx 0.998 < \alpha$ and $\tilde{p} = p(1-\delta) = 0.008$; the numerator is $\VaR_\alpha(S_n) = n$, and the limit is $1/\tilde{p} = 125.0$ (finite).
+\end{flushleft}
+\end{table}
+
+\subsection{Phase transition: detailed computation}
+
+We compute the VaR ratio for a portfolio with beta-distributed PDs: $p_i \sim \mathrm{Beta}(a_\pi, b_\pi)$ on $[0.001, 0.05]$ (rescaled), with mean $\bar{p} = 0.01$.
+
+\begin{table}[h]
+\centering
+\caption{VaR ratio near the phase boundary for portfolios with different PD heterogeneity.}
+\label{tab:phase_detailed}
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{4}{c}{$\gamma$} \\
+\cmidrule{2-5}
+Portfolio & 0.9990 & 0.9970 & 0.9950 & $\to 1 - p_{\min}$ \\
+\midrule
+$p_i = 0.01$ (homogeneous) & 111 & 142 & 199 & $\to \infty$ \\
+$p_i \in \{0.005, 0.015\}$ & 111 & 142 & 199 & $\to 199$ \\
+$p_i \in \{0.002, 0.018\}$ & 111 & ---$^{\dagger}$ & ---$^{\dagger}$ & $\to 125$ \\
+$p_i \in \{0.001, 0.019\}$ & 111 & ---$^{\dagger}$ & ---$^{\dagger}$ & $\to 111$ \\
+\bottomrule
+\end{tabular}
+\begin{flushleft}
+\small Threshold $1 - p_{\min}$: 0.990 (homogeneous), 0.995, 0.998, 0.999 respectively. All portfolios have mean PD $= 0.01$ and equal weights. ${}^{\dagger}$Below threshold: the formula does not apply (see Theorem~\ref{thm:phase_transition}(c)).
+\end{flushleft}
+\end{table}
+
+\subsection{IRB comparison: extended parameter study}
+
+\begin{table}[h]
+\centering
+\caption{Worst-case/IRB ratio for corporate exposures at $\alpha = 99.9\%$, various $\delta$ values.}
+\label{tab:irb_extended}
+\begin{tabular}{cccccc}
+\toprule
+& \multicolumn{5}{c}{Measured Pearson correlation $\delta$} \\
+\cmidrule{2-6}
+PD $p$ & 0.01 & 0.02 & 0.05 & 0.10 & 0.20 \\
+\midrule
+0.001 & 29.2 & 29.2 & 29.2 & 29.2 & 29.2 \\
+0.005 & 10.2 & 10.2 & 10.2 & 10.2 & 10.2 \\
+0.01  & 7.1  & 7.1  & 7.1  & 7.1  & 7.1 \\
+0.02  & 5.3  & 5.3  & 5.3  & 5.3  & 5.3 \\
+0.05  & 3.5  & 3.5  & 3.5  & 3.5  & 3.5 \\
+\bottomrule
+\end{tabular}
+\begin{flushleft}
+\small The worst-case/IRB ratio is computed using the Basel asset correlation $\rho$ corresponding to each PD level. Note that the ratio depends on $\delta$ only through the choice of $\gamma$; since the worst-case loss rate is 1 (total default) whenever $\gamma \leq \alpha$ (which holds for all $\delta$ in this table), the ratio is independent of $\delta$ and equals $1/\VaR_\alpha^{\mathrm{IRB}}$. The dependence on $\delta$ enters through the ``interpretation threshold'' (how much correlation is needed to justify the worst case) rather than through the ratio itself.
+\end{flushleft}
+\end{table}
+
+\subsection{Monte Carlo verification of the optimality theorem}
+
+To provide numerical evidence for Theorem~\ref{thm:wc_optimality}, we compare the VaR under the upper comonotonic coupling with a grid search over two-point mixing distributions.
+
+\begin{table}[h]
+\centering
+\caption{VaR$_{0.999}(S_n)$ for $n = 1000$, $p = 0.01$, various mixing distributions with $\Var(\theta) \leq \delta p(1-p)$.}
+\label{tab:mc_optimality}
+\begin{tabular}{lcccc}
+\toprule
+Mixing distribution & Lower atom & Upper atom & $\VaR_{0.999}(S_n)$ & Ratio \\
+\midrule
+UC coupling ($\nu^*$) & 0.009 & 1.000 & 1000 & 52.6 \\
+$a = 0.005, b = 0.500$ & 0.005 & 0.500 & 1000 & 52.6 \\
+$a = 0.008, b = 0.800$ & 0.008 & 0.800 & 1000 & 52.6 \\
+$a = 0.009, b = 0.950$ & 0.009 & 0.950 & 1000 & 52.6 \\
+Independent ($\nu = \delta_p$) & 0.010 & --- & 19 & 1.0 \\
+\bottomrule
+\end{tabular}
+\begin{flushleft}
+\small All mixing distributions have $\E[\theta] = 0.01$ and $\Var(\theta) = \delta \times 0.01 \times 0.99$ with $\delta = 0.10$. The upper atom mass is adjusted to satisfy both constraints. For this value of $\delta$, $\gamma \approx 0.999 = \alpha$, so all couplings with any upper atom achieve $\VaR = n = 1000$. The finite-$n$ ratio ($52.6$) is the same because the denominator is the same $\VaR_{0.999}(\mathrm{Bin}(1000, \tilde{p}))$, and $\tilde{p}$ depends only on the lower atom value.
+\end{flushleft}
+\end{table}
+
+The table confirms that for $\delta$ near $\delta_{\mathrm{crit}}$, multiple mixing distributions achieve the same worst-case VaR. The uniqueness of the optimizer (Proposition~\ref{prop:unique_opt}) becomes relevant only when $\gamma$ is strictly above $\alpha$, where the VaR is determined by the lower atom value.
+
+\section{Discussion of Assumptions and Extensions}\label{app:discussion}
+
+\subsection{On the exchangeability assumption in Theorem~\ref{thm:wc_optimality}}
+
+The restriction to exchangeable couplings in Theorem~\ref{thm:wc_optimality} is a consequence of our proof technique (de Finetti's theorem). It is natural to ask whether the result extends to non-exchangeable couplings.
+
+For general (non-exchangeable) couplings of Bernoulli$(p)$ variables with pairwise correlation $\leq \delta$, the feasible set is strictly larger than $\calM_n^{\mathrm{exch}}(p, \delta)$. However, we conjecture that the worst-case VaR is the same:
+
+\begin{conjecture}\label{conj:non_exch}
+For i.i.d.\ Bernoulli$(p)$ marginals with pairwise correlation $\leq \delta$:
+\[
+  \sup_{F \in \calM_n(p,\delta)} \VaR_\alpha(S_n) = \sup_{F \in \calM_n^{\mathrm{exch}}(p,\delta)} \VaR_\alpha(S_n)
+\]
+for all $n$ sufficiently large, where $\calM_n(p,\delta)$ denotes the set of \emph{all} (not necessarily exchangeable) couplings.
+\end{conjecture}
+
+The conjecture is supported by the following argument: for identical marginals and a symmetric objective ($\VaR_\alpha$ of the sum), any optimizer can be symmetrized (averaged over permutations) without changing the objective value (by the Schur-convexity of VaR for sums of exchangeable variables). This symmetrized coupling is exchangeable and achieves the same VaR. However, a rigorous proof requires verifying that the symmetrization preserves the correlation constraint, which involves delicate combinatorial arguments.
+
+\subsection{On the role of the correlation constraint}
+
+The correlation constraint $\operatorname{cor}(X_i, X_j) \leq \delta$ can be replaced by other dependence measures. \citet{DVNSupper} show that the upper comonotonic coupling achieves any prescribed level of Spearman's $\rho$, Kendall's $\tau$, or other regular dependence measures. Our optimality result (Theorem~\ref{thm:wc_optimality}) is specific to Pearson correlation because the de Finetti representation translates this constraint into a variance bound on the mixing distribution. For other dependence measures, the moment constraint on $\nu$ would take a different form, and the two-point optimizer might differ.
+
+\begin{conjecture}\label{conj:kendall}
+For the Kendall's $\tau$ constraint $\tau(X_i, X_j) \leq \delta_\tau$, the worst-case VaR is asymptotically achieved by the upper comonotonic coupling with $\gamma$ chosen so that $\tau(X_i^\gamma, X_j^\gamma) = \delta_\tau$.
+\end{conjecture}
+
+This conjecture would follow if the moment problem with the $\tau$-induced constraint on $\nu$ has the same two-point optimizer structure.
+
+\subsection{Extensions to Expected Shortfall}
+
+The Basel III framework is transitioning from VaR to Expected Shortfall (ES) as the primary risk measure. The ES at level $\alpha$ is
+\[
+  \ES_\alpha(S_n) = \frac{1}{1-\alpha}\int_\alpha^1 F_{S_n}^{-1}(u)\,\dd u.
+\]
+Under the upper comonotonic coupling with $\alpha \geq \gamma$:
+\begin{align*}
+  \ES_\alpha(S_n) &= \frac{1}{1-\alpha}\left[\int_\alpha^\gamma \VaR_u(S_n^{\mathrm{ind}})\,\frac{\dd u}{\gamma} + \int_\gamma^1 L_n\,\dd u\right] \\
+  &\to \frac{1}{1-\alpha}\left[\frac{\gamma - \alpha}{\gamma}\,L_n\,\tilde{p} + (1-\gamma)\,L_n\right]
+  \quad\text{(for large $n$)},
+\end{align*}
+using the fact that $\VaR_u(S_n^{\mathrm{ind}})/L_n \to \tilde{p}$ for all $u \in (\alpha, 1)$. When $\alpha = \gamma$, this simplifies to $\ES_\alpha(S_n) \to L_n$, and the ES ratio equals $1/\tilde{p}$ --- the same as the VaR ratio. For $\alpha < \gamma$, the ES ratio involves an integral that depends on the distribution of $S_n^{\mathrm{ind}}$ beyond the mean, requiring different techniques.
+
+\subsection{Relationship to the Bernoulli mixture model}
+
+The de Finetti representation reveals that the worst-case coupling corresponds to a specific \emph{Bernoulli mixture model}: the mixing distribution is two-point, with a low-default state (probability $\gamma$, default rate $p(1-\delta)$) and a catastrophic state (probability $1-\gamma$, default rate $1$). This is reminiscent of the CreditRisk+ model \citep{CreditSuisse1997} with a two-state systematic factor.
+
+The key difference is that in CreditRisk+ (and other mixture models), the mixing distribution is specified exogenously based on economic assumptions. In our framework, the two-point mixing distribution emerges \emph{endogenously} as the worst case consistent with a given level of measured correlation. This provides a model-free foundation for stress testing: the worst-case scenario requires no parametric assumptions about the systematic factor distribution, only a bound on the observed correlation.
+
+\begin{remark}[Practical stress testing]
+Banks using the IRB approach could implement a ``dependence uncertainty stress test'' as follows:
+\begin{enumerate}
+  \item Estimate the pairwise Pearson correlation $\hat{\delta}$ from historical data.
+  \item Compute the worst-case ratio $r_\alpha(\infty) = 1/(p(1-\hat{\delta}))$ or its continuous-LGD generalization.
+  \item Report the worst-case VaR as a supplement to the IRB capital.
+  \item The ratio $r_\alpha(\infty) / (1/\VaR_\alpha^{\mathrm{IRB}})$ quantifies the model risk due to the copula assumption.
+\end{enumerate}
+This requires no Monte Carlo simulation and can be computed in closed form.
+\end{remark}
+
+\subsection{Derivation of the critical correlation}\label{app:delta_crit}
+
+We provide a detailed derivation of the critical correlation $\delta_{\mathrm{crit}}$ from Corollary~\ref{cor:delta_crit}.
+
+\begin{proof}[Derivation of $\delta_{\mathrm{crit}}$]
+The upper comonotonic coupling achieves $\VaR_\alpha(S_n) = L_n$ (total default) if and only if $\PP(S_n = L_n) \geq 1 - \alpha$, which requires $1 - \gamma \geq 1 - \alpha$, i.e., $\gamma \leq \alpha$.
+
+From the correlation-threshold relationship~\eqref{eq:cor_gamma}:
+\[
+  \gamma = \frac{1-p}{(1-p) + \delta p} \leq \alpha
+  \quad\Longleftrightarrow\quad
+  (1-p) \leq \alpha\bigl((1-p) + \delta p\bigr)
+  \quad\Longleftrightarrow\quad
+  \delta \geq \frac{(1-\alpha)(1-p)}{\alpha p}.
+\]
+Thus $\delta_{\mathrm{crit}} = (1-\alpha)(1-p)/(\alpha p)$.
+
+For $\alpha = 0.999$:
+\begin{center}
+\begin{tabular}{cc}
+\toprule
+PD $p$ & $\delta_{\mathrm{crit}}$ \\
+\midrule
+0.001 & 0.999 \\
+0.005 & 0.199 \\
+0.010 & 0.099 \\
+0.020 & 0.049 \\
+0.050 & 0.019 \\
+0.100 & 0.009 \\
+\bottomrule
+\end{tabular}
+\end{center}
+For PD $= 5\%$ or higher, even a measured Pearson correlation of 2\% is sufficient for the worst-case VaR to equal total default. This means that, for most sub-investment-grade portfolios, the correlation constraint provides essentially no protection: any detectable positive correlation is compatible with total catastrophic loss at the $99.9\%$ level.
+\end{proof}
+
+\subsection{Numerical stability of the ratio formula}\label{app:stability}
+
+The ratio $r_\alpha(\infty) = \gamma/(\gamma - 1 + \bar{p}) = 1/(p(1-\delta))$ can be numerically sensitive when $\delta$ is close to zero or close to one. We discuss the relevant cases:
+
+\begin{itemize}
+  \item \emph{Small $\delta$} (weak dependence): $r \approx 1/p$, independent of $\delta$. The ratio approaches $1/\bar{p}$, which is the reciprocal of the average PD. For $\bar{p} = 1\%$: $r \to 100$. The formula is numerically stable.
+
+  \item \emph{$\delta$ near $\delta_{\mathrm{crit}}$}: The ratio transitions from finite to infinite. Numerically, for $\delta$ slightly below $\delta_{\mathrm{crit}}$, $r$ is large but finite; for $\delta$ slightly above, $r$ is effectively infinite (total default). The transition is sharp, and numerical evaluation requires care with floating-point arithmetic near the boundary.
+
+  \item \emph{Large $\delta$} ($\delta > \delta_{\mathrm{crit}}$): The ratio formula $1/(p(1-\delta))$ gives a value exceeding $L_n / \VaR_\alpha(S_n^{\mathrm{ind}})$, which is the ``natural'' ratio. In this regime, the correct interpretation is that the worst-case VaR is $L_n$ (total default), and the ratio is simply $L_n / \VaR_\alpha(S_n^{\mathrm{ind}})$, computed from the binomial distribution.
+\end{itemize}
+
+\subsection{On the assumption $p_i > 1 - \alpha$}\label{app:low_pd}
+
+Assumption~\ref{ass:gamma} requires $\gamma > 1 - p_{\min}$, which together with $\alpha \geq \gamma$ implies $p_{\min} > 1 - \alpha$. For $\alpha = 0.999$, this excludes obligors with PD below 0.1\% (AAA/AA rated).
+
+In practice, very-low-PD obligors are a small fraction of most credit portfolios, and their contribution to portfolio risk is typically dominated by higher-PD obligors. The phase transition analysis (Section~\ref{sec:phase}) shows that including low-PD obligors actually \emph{reduces} the worst-case ratio, because they fail to default even in the tail regime. Thus, the restriction to $p_i > 1 - \alpha$ provides an \emph{upper bound} on the worst-case ratio for portfolios that include very-low-PD obligors.
+
+More precisely, for a portfolio with some obligors having $p_i < 1 - \alpha$:
+\[
+  r_\alpha(\infty; \gamma) \leq r_\alpha(\infty; \gamma)\big|_{p_i > 1-\alpha \text{ only}},
+\]
+where the right-hand side is the ratio computed using only the sub-portfolio of obligors with $p_i > 1 - \alpha$. This follows because the low-PD obligors reduce the numerator VaR (they don't default in the tail) without proportionally reducing the denominator.
+
+In practical terms, a bank with a mixed portfolio (some AAA-rated obligors with $p < 0.1\%$ and some sub-investment-grade) can compute the worst-case ratio conservatively by applying our formula to the sub-portfolio of obligors with $p_i > 1 - \alpha$. The inclusion of AAA obligors can only reduce the worst-case ratio, so the sub-portfolio calculation provides a valid upper bound.
+
+\subsection{Relationship between correlation measures}\label{app:correlation}
+
+Our results are stated in terms of Pearson correlation, but \citet{DVNSupper} show that the upper comonotonic coupling can be calibrated to any ``regular'' dependence measure. We briefly discuss the relationship.
+
+For Bernoulli marginals, the Pearson correlation, Spearman's $\rho_S$, and Kendall's $\tau$ are related by:
+\begin{align*}
+  \rho_S &= \frac{6}{\pi}\arcsin(\delta/2) \approx \delta \quad\text{for small } \delta, \\
+  \tau &= \frac{2}{\pi}\arcsin(\delta) \approx \frac{2\delta}{\pi} \quad\text{for small } \delta.
+\end{align*}
+Thus, for the small correlations typical in credit portfolios ($\delta \in [0.01, 0.05]$), all three measures are approximately proportional, and the choice of dependence measure has a minor quantitative effect on the worst-case ratio.
+
+For larger correlations (near $\delta_{\mathrm{crit}}$), the nonlinear relationships become significant, and the worst-case ratio depends on which measure is constrained. Our moment problem approach (Section~\ref{sec:optimality}) is specific to Pearson correlation because it translates to a variance constraint on the mixing distribution. For Spearman's $\rho_S$ or Kendall's $\tau$, the constraint on the mixing distribution takes a different form, and the two-point optimizer may change.
+
+\end{document}

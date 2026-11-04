@@ -1,0 +1,496 @@
+{
+  "slug": "discrete_vs_rough",
+  "source": {
+    "tex_path": "output/discrete_vs_rough/main_v2.tex",
+    "pdf_path": "output/discrete_vs_rough/main_v2.pdf",
+    "source_hash": "sha256:32e0d00b4c85f50961c5ff518cc9752d1e0e9e68ac07ae7dedf46c7fcafd64dc",
+    "ingested_at": "2026-04-16T01:25:33.023296+00:00"
+  },
+  "title": {
+    "en": "Anomalous Scaling of the Discrete Monitoring Correction for Variance Swaps Under Volterra Stochastic Volatility",
+    "zh": "Volterra随机波动率下方差互换离散监测修正的异常标度"
+  },
+  "short_title": {
+    "zh": "粗糙波动率方差互换离散修正",
+    "en": "Anomalous Scaling of Discrete Monitoring for Variance Swaps"
+  },
+  "author": "",
+  "date": "\\today",
+  "status": "draft",
+  "abstract": {
+    "tex": "We derive the asymptotic behavior of the discrete monitoring correction for\nvariance swaps under a general class of Volterra stochastic volatility models\nwith fractional kernel $K(t) = t^{H-1/2}/\\Gamma(H+\\tfrac12)$,\n$H \\in (0,\\tfrac12)$. In classical stochastic volatility models, the fair\nstrike of a discretely monitored variance swap converges to its continuous\ncounterpart at rate $O(n^{-1})$, where $n$ is the number of monitoring dates.\nWe show that under Volterra stochastic volatility, the convergence rate\ndeteriorates to $O(n^{-(H+1/2)})$ when the spot--volatility correlation\n$\\rho$ is nonzero. The leading-order coefficient depends on the model\nonly through the averaged quantity\n$\\bar\\varphi = T^{-1}\\!\\int_0^T\\!\\E[\\sigma_V(V_t)\\sqrt{V_t}]\\,\\dd t$,\nwhere $\\sigma_V$ is the vol-of-vol function: the anomalous scaling is a\n\\emph{universal} property of the fractional kernel singularity.\nRough Heston, rough CIR, and other power-law Volterra models are\nrecovered as special cases.\n\nWe prove that the rate $n^{-(H+1/2)}$ is \\emph{sharp}: the rescaled gap\n$n^{H+1/2}\\delta(n)$ converges to an explicit nonzero limit, establishing\na two-sided bound for all sufficiently large $n$.\nA corrected remainder analysis shows that the Malliavin drift correction\nis $O(n^{-(2H+1)})$---always subdominant to the convexity term\n$O(n^{-1})$---eliminating a spurious phase transition at $H = \\tfrac16$\npresent in earlier analyses.\nWe characterize the boundary behavior: as $H \\to 0^+$,\nthe rate approaches $O(n^{-1/2})$, matching the discrete monitoring bound\nfor jump models; the coefficient is affine in $\\rho$ with no blow-up at\n$\\rho = \\pm 1$.\nNumerical experiments with a lifted Markovian approximation confirm\nthe theoretical predictions across a range of Hurst parameters,\ncorrelations, and monitoring frequencies.",
+    "en": "This paper derives the asymptotic behavior of the discrete monitoring correction for variance swaps under Volterra stochastic volatility with fractional kernel H∈(0,1/2). Unlike the classical O(n^{-1}) rate, the convergence deteriorates to O(n^{-(H+1/2)}) when spot-volatility correlation ρ is nonzero, a universal property of the fractional kernel singularity. The leading coefficient depends on the model only through an averaged vol-of-vol quantity. A corrected remainder analysis eliminates a spurious phase transition at H=1/6 found in earlier work.",
+    "zh": "本文研究Volterra随机波动率模型（分数核H∈(0,1/2)）下方差互换离散监测修正的渐近行为。与经典模型O(n^{-1})的收敛速率不同，当现货-波动率相关性ρ非零时，收敛速率退化为O(n^{-(H+1/2)})。该异常标度率是分数核奇异性的普适性质，前导系数仅通过平均量φ̄依赖于模型。文章还纠正了早期分析中H=1/6处的虚假相变，并通过数值实验验证了理论预测。"
+  },
+  "domain": [
+    "rough_volatility",
+    "variance_options",
+    "derivatives"
+  ],
+  "math_tools": [
+    "malliavin_calculus",
+    "perturbation_expansion",
+    "monte_carlo",
+    "fourier_analysis",
+    "large_deviations"
+  ],
+  "prerequisites": [
+    {
+      "topic_id": "rough_volatility_models",
+      "level": "intermediate",
+      "why": "The paper studies Volterra/rough stochastic volatility models including rough Heston and rough CIR."
+    },
+    {
+      "topic_id": "malliavin_calculus",
+      "level": "advanced",
+      "why": "Malliavin derivatives are used to compute the leverage/drift correction terms."
+    },
+    {
+      "topic_id": "variance_swaps",
+      "level": "intermediate",
+      "why": "The main object of study is the fair strike of discretely monitored variance swaps."
+    },
+    {
+      "topic_id": "fractional_calculus",
+      "level": "intermediate",
+      "why": "The fractional kernel K(t)=t^{H-1/2}/Γ(H+1/2) is central to the analysis."
+    }
+  ],
+  "main_theorems": [
+    {
+      "id": "lem:gap-decomp",
+      "env": "lemma",
+      "statement_tex": "Under Assumption~\\ref{as:A1},\n\\begin{equation}\\label{eq:gap-decomp}\n  \\delta(n)\n  = \\frac{1}{T}\\sum_{i=0}^{n-1}\n  \\Bigl[\\frac{1}{4}\\,\\E\\bigl[I_i^2\\bigr]\n  - \\rho\\,\\E\\bigl[I_i\\, M_i^W\\bigr]\\Bigr].\n\\end{equation}",
+      "section_number": "3.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:convexity",
+      "env": "lemma",
+      "statement_tex": "Under Assumptions~\\ref{as:A1} and~\\ref{as:A5},\n\\begin{equation}\\label{eq:convexity-result}\n  \\frac{1}{4T}\\sum_{i=0}^{n-1} \\E[I_i^2]\n  = \\frac{C_{\\mathrm{conv}}}{n}\n  + O(n^{-(1+2H)}),\n\\end{equation}\nwhere\n$C_{\\mathrm{conv}} = \\frac{1}{4T}\\int_0^T \\E[V_t]^2\\,\\dd t$.",
+      "section_number": "3.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:leverage-rh",
+      "env": "proposition",
+      "statement_tex": "Under Assumptions~\\ref{as:A1}--\\ref{as:A4} with\n$b(v) = \\theta - \\kappa v$ and $\\sigma_V(v) = \\nu\\sqrt{v}$,\n\\begin{equation}\\label{eq:leverage-rh}\n  -\\frac{\\rho}{T}\\sum_{i=0}^{n-1}\\E[I_i\\, M_i^W]\n  = \\frac{C_{\\mathrm{lev}}^{\\mathrm{rH}}(H)}{n^{H+1/2}}\n  + O\\bigl(n^{-(2H+1)}\\bigr),\n\\end{equation}\nwhere\n\\begin{equation}\\label{eq:Clev-rh}\n  C_{\\mathrm{lev}}^{\\mathrm{rH}}(H)\n  = \\frac{-\\rho\\,\\nu\\,\\bar V\\,T^{H+1/2}}\n         {\\Gamma\\bigl(H + \\tfrac52\\bigr)}.\n\\end{equation}",
+      "section_number": "3.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:rough-heston",
+      "env": "theorem",
+      "statement_tex": "Under Assumptions~\\ref{as:A1}--\\ref{as:A4} with rough Heston\ndynamics, the discrete monitoring gap satisfies\n\\begin{equation}\\label{eq:rh-expansion}\n  \\delta(n)\n  = \\frac{C_{\\mathrm{lev}}^{\\mathrm{rH}}(H)}{n^{H+1/2}}\n  + \\frac{C_{\\mathrm{conv}}}{n}\n  + o(n^{-1}),\n\\end{equation}\nwith $C_{\\mathrm{lev}}^{\\mathrm{rH}}$ as in~\\eqref{eq:Clev-rh}\nand $C_{\\mathrm{conv}}$ as in Lemma~\\ref{lem:convexity}.\nIn particular:\n\\begin{enumerate}[label=(\\roman*)]\n\\item For $H < \\tfrac12$ and $\\rho \\neq 0$,\n  the leading term is $O(n^{-(H+1/2)})$ with $H + \\tfrac12 < 1$.\n\\item For $\\rho = 0$, the leverage term vanishes and\n  $\\delta(n) = C_{\\mathrm{conv}}/n + o(n^{-1})$.\n\\item For $H = \\tfrac12$ (classical Heston), both terms are\n  $O(n^{-1})$ and the result is consistent with\n  \\citet{BernardCui2014}.\n\\end{enumerate}",
+      "section_number": "3.3",
+      "label": {
+        "zh": "粗糙Heston情形定理",
+        "en": "Rough Heston Monitoring Gap"
+      },
+      "key_ideas": {
+        "zh": [
+          "粗糙Heston",
+          "杠杆项"
+        ],
+        "en": [
+          "rough Heston",
+          "leverage term"
+        ]
+      }
+    },
+    {
+      "id": "thm:general",
+      "env": "theorem",
+      "statement_tex": "Under Assumptions~\\ref{as:A1}--\\ref{as:A5},\nthe discrete monitoring gap satisfies\n\\begin{equation}\\label{eq:general-expansion}\n  \\delta(n)\n  = \\frac{C_{\\mathrm{lev}}(H)}{n^{H+1/2}}\n  + \\frac{C_{\\mathrm{eff}}}{n}\n  + o(n^{-1}),\n\\end{equation}\nwhere\n\\begin{equation}\\label{eq:Clev-general}\n  C_{\\mathrm{lev}}(H)\n  = \\frac{-\\rho\\,\\bar\\varphi\\, T^{H+1/2}}\n         {\\Gamma(H+\\tfrac52)},\n  \\qquad\n  \\bar\\varphi = \\frac{1}{T}\\int_0^T\n    \\E\\bigl[\\sigma_V(V_t)\\sqrt{V_t}\\bigr]\\dd t,\n\\end{equation}\nand\n\\begin{equation}\\label{eq:Ceff}\n  C_{\\mathrm{eff}} = C_{\\mathrm{conv}} + C_{\\mathrm{drift}},\n\\end{equation}\nwith $C_{\\mathrm{conv}} = (4T)^{-1}\\!\\int_0^T\\!\\E[V_t]^2\\,\\dd t$\nand $C_{\\mathrm{drift}}$ given explicitly in~\\eqref{eq:Cdrift-explicit}.\nIn particular:\n\\begin{enumerate}[label=(\\roman*)]\n\\item For $H < \\tfrac12$ and $\\rho \\neq 0$ and $\\bar\\varphi \\neq 0$,\n  the leading term is $O(n^{-(H+1/2)})$.\n\\item For $\\rho = 0$ or $\\bar\\varphi = 0$,\n  $\\delta(n) = C_{\\mathrm{eff}}/n + o(n^{-1})$.\n\\end{enumerate}",
+      "section_number": "4.3",
+      "label": {
+        "zh": "一般Volterra模型主定理",
+        "en": "General Volterra Monitoring Gap Expansion"
+      },
+      "key_ideas": {
+        "zh": [
+          "异常标度",
+          "普适前导系数"
+        ],
+        "en": [
+          "anomalous scaling",
+          "universal leading coefficient"
+        ]
+      }
+    },
+    {
+      "id": "cor:special-cases",
+      "env": "corollary",
+      "statement_tex": "\\leavevmode\n\\begin{enumerate}[label=(\\alph*)]\n\\item \\textbf{Rough Heston:}\n  $\\sigma_V(v) = \\nu\\sqrt{v}$, so\n  $\\bar\\varphi = \\nu\\bar V$ and\n  $C_{\\mathrm{lev}} = -\\rho\\nu\\bar V\\,T^{H+1/2}/\\Gamma(H+\\tfrac52)$,\n  recovering Theorem~\\ref{thm:rough-heston}.\n\n\\item \\textbf{Rough CIR ($\\gamma$-power):}\n  $\\sigma_V(v) = \\nu v^\\gamma$, $\\gamma\\in[\\tfrac12,1]$, so\n  $\\bar\\varphi = \\nu\\cdot T^{-1}\\!\\int_0^T\\!\\E[V_t^{\\gamma+1/2}]\\,\\dd t$.\n  The anomalous scaling rate $n^{-(H+1/2)}$ is the same for all $\\gamma$.\n\n\\item \\textbf{Classical Heston ($H = \\tfrac12$):}\n  $K(t) = 1$, $C_{\\mathrm{lev}} = -\\rho\\nu\\bar V\\,T/\\Gamma(3)\n  = -\\rho\\nu\\bar V\\,T/2$, and\n  $\\delta(n) = (-\\rho\\nu\\bar V\\,T/2 + C_{\\mathrm{conv}})/n + o(n^{-1})$,\n  recovering the $O(n^{-1})$ result of \\citet{BernardCui2014}.\n\\end{enumerate}",
+      "section_number": "4.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "cor:sharpness",
+      "env": "corollary",
+      "statement_tex": "Under the assumptions of Theorem~\\ref{thm:general},\nif $\\rho \\neq 0$ and $\\bar\\varphi \\neq 0$, then\n\\begin{equation}\\label{eq:sharpness}\n  \\lim_{n\\to\\infty} n^{H+1/2}\\,\\delta(n) = C_{\\mathrm{lev}}(H)\n  \\neq 0.\n\\end{equation}",
+      "section_number": "5",
+      "label": {
+        "zh": "收敛速率精确性推论",
+        "en": "Sharpness of Convergence Rate"
+      },
+      "key_ideas": {
+        "zh": [
+          "精确界",
+          "非零极限"
+        ],
+        "en": [
+          "sharp bound",
+          "nonzero limit"
+        ]
+      }
+    },
+    {
+      "id": "cor:two-sided",
+      "env": "corollary",
+      "statement_tex": "Under the same assumptions, there exist constants\n$0 < c \\le C < \\infty$ and $n_0 \\in \\N$ such that for all\n$n \\ge n_0$:\n\\begin{equation}\\label{eq:two-sided}\n  \\frac{c}{n^{H+1/2}}\n  \\le |\\delta(n)|\n  \\le \\frac{C}{n^{H+1/2}}.\n\\end{equation}\nExplicitly, one may take $c = |C_{\\mathrm{lev}}|/2$ and\n$C = 2|C_{\\mathrm{lev}}|$, with\n\\begin{equation}\\label{eq:n0-explicit}\n  n_0 = \\max\\!\\Bigl(1,\\;\n  \\Bigl(\\frac{2(|C_{\\mathrm{eff}}| + C_R')}\n  {|C_{\\mathrm{lev}}|}\\Bigr)^{1/(1/2-H)}\\Bigr),\n\\end{equation}\nwhere $C_R'$ bounds the remainder in~\\eqref{eq:general-expansion}.",
+      "section_number": "5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:tight-remainder",
+      "env": "proposition",
+      "statement_tex": "The Malliavin drift correction to $\\delta(n)$ is\n\\begin{equation}\\label{eq:drift-correction-tight}\n  \\frac{\\rho\\,L_b\\,\\bar\\varphi\\,T^{2H+1}}\n  {(2H{+}1)(2H{+}2)\\,\\Gamma(2H{+}1)\\,n^{2H+1}}\n  + o(n^{-(2H+1)}).\n\\end{equation}\nSince $2H + 1 > 1$ for all $H > 0$, this is always\n$O(n^{-1})$ or faster.",
+      "section_number": "6.2",
+      "label": {
+        "zh": "Malliavin漂移修正",
+        "en": "Tight Malliavin Drift Correction"
+      },
+      "key_ideas": {
+        "zh": [
+          "Malliavin漂移",
+          "无相变"
+        ],
+        "en": [
+          "Malliavin drift",
+          "no phase transition"
+        ]
+      }
+    },
+    {
+      "id": "prop:H-to-0",
+      "env": "proposition",
+      "statement_tex": "The leverage coefficient satisfies\n\\begin{equation}\\label{eq:H-to-0-Clev}\n  \\lim_{H\\to 0^+} C_{\\mathrm{lev}}(H)\n  = \\frac{-4\\rho\\,\\bar\\varphi_0\\,\\sqrt{T}}{3\\sqrt{\\pi}},\n\\end{equation}\nwhere $\\bar\\varphi_0 = \\lim_{H\\to 0^+}\\bar\\varphi$ (assuming\nthis limit exists). The convergence rate approaches\n$O(n^{-1/2})$, matching the upper bound of\n\\citet{JarrowKchiaProtte2013} for jump models.",
+      "section_number": "7.1",
+      "label": {
+        "zh": "H趋零边界行为",
+        "en": "Boundary Behavior as H to 0"
+      },
+      "key_ideas": {
+        "zh": [
+          "跳模型界",
+          "边界极限"
+        ],
+        "en": [
+          "jump model bound",
+          "boundary limit"
+        ]
+      }
+    },
+    {
+      "id": "prop:rho-boundary",
+      "env": "proposition",
+      "statement_tex": "The leverage coefficient $C_{\\mathrm{lev}}(H)$ is affine in $\\rho$:\n\\[\n  C_{\\mathrm{lev}}(H;\\rho)\n  = -\\frac{\\bar\\varphi\\,T^{H+1/2}}{\\Gamma(H+\\tfrac52)}\\cdot\\rho.\n\\]\nAt $\\rho = \\pm 1$, the coefficient is finite and the model reduces\nto a one-factor system\n$\\dd X_t = -V_t/2\\,\\dd t + \\sqrt{V_t}\\,\\mathrm{sgn}(\\rho)\\,\\dd W_t$\n(since $\\bar\\rho = 0$).\nThe expansion remains valid.",
+      "section_number": "7.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    }
+  ],
+  "sections": [
+    {
+      "number": "1",
+      "title_tex": "Introduction"
+    },
+    {
+      "number": "2",
+      "title_tex": "Setup"
+    },
+    {
+      "number": "2.1",
+      "title_tex": "Volterra stochastic volatility models"
+    },
+    {
+      "number": "2.2",
+      "title_tex": "Special cases"
+    },
+    {
+      "number": "2.3",
+      "title_tex": "Variance swap fair strikes"
+    },
+    {
+      "number": "3",
+      "title_tex": "Main result: the rough Heston case"
+    },
+    {
+      "number": "3.1",
+      "title_tex": "Decomposition of the gap"
+    },
+    {
+      "number": "3.2",
+      "title_tex": "The convexity term"
+    },
+    {
+      "number": "3.3",
+      "title_tex": "The leverage term"
+    },
+    {
+      "number": "4",
+      "title_tex": "Extension to general Volterra stochastic volatility"
+    },
+    {
+      "number": "4.1",
+      "title_tex": "The model-dependent quantity $\\bar\\varphi$"
+    },
+    {
+      "number": "4.2",
+      "title_tex": "Step-by-step proof audit"
+    },
+    {
+      "number": "4.3",
+      "title_tex": "The general theorem"
+    },
+    {
+      "number": "5",
+      "title_tex": "Sharpness of the convergence rate"
+    },
+    {
+      "number": "6",
+      "title_tex": "Corrected remainder analysis"
+    },
+    {
+      "number": "6.1",
+      "title_tex": "The loose bound and its consequences"
+    },
+    {
+      "number": "6.2",
+      "title_tex": "The tight bound"
+    },
+    {
+      "number": "7",
+      "title_tex": "Boundary analysis"
+    },
+    {
+      "number": "7.1",
+      "title_tex": "The limit $H \\to 0^+$: connection to jump models"
+    },
+    {
+      "number": "7.2",
+      "title_tex": "Extreme leverage: $\\rho \\to \\pm 1$"
+    },
+    {
+      "number": "7.3",
+      "title_tex": "Transition threshold for the leverage regime"
+    },
+    {
+      "number": "8",
+      "title_tex": "Numerical validation"
+    },
+    {
+      "number": "8.1",
+      "title_tex": "Simulation methodology"
+    },
+    {
+      "number": "8.2",
+      "title_tex": "Experiment 1: Scaling exponent"
+    },
+    {
+      "number": "8.3",
+      "title_tex": "Experiment 2: Convergence to $C_{\\mathrm{lev}}$"
+    },
+    {
+      "number": "8.4",
+      "title_tex": "Experiment 3: Control experiment $\\rho = 0$"
+    },
+    {
+      "number": "8.5",
+      "title_tex": "Experiment 4: Sensitivity to $\\rho$ and the transition\nthreshold"
+    },
+    {
+      "number": "8.6",
+      "title_tex": "Experiment 5: Multi-parameter sensitivity"
+    },
+    {
+      "number": "8.7",
+      "title_tex": "Experiment 6: Boundary behavior---$H$ dependence\nof $C_{\\mathrm{lev}}$"
+    },
+    {
+      "number": "8.8",
+      "title_tex": "Experiment 7: Absence of phase transition at\n$H = \\tfrac16$"
+    },
+    {
+      "number": "9",
+      "title_tex": "Practical implications"
+    },
+    {
+      "number": "9.1",
+      "title_tex": "Magnitude of the discrete monitoring penalty"
+    },
+    {
+      "number": "9.2",
+      "title_tex": "Optimal monitoring frequency"
+    },
+    {
+      "number": "9.3",
+      "title_tex": "Model-invariance of the scaling rate"
+    },
+    {
+      "number": "9.4",
+      "title_tex": "Connection to the jump-model literature"
+    },
+    {
+      "number": "10",
+      "title_tex": "Extensions and open problems"
+    },
+    {
+      "number": "10.1",
+      "title_tex": "Rough Bergomi and Gaussian Volterra models"
+    },
+    {
+      "number": "10.2",
+      "title_tex": "Gamma swaps and weighted variance"
+    },
+    {
+      "number": "10.3",
+      "title_tex": "Corridor variance swaps and $H$-estimation"
+    },
+    {
+      "number": "10.4",
+      "title_tex": "Multivariate extension"
+    },
+    {
+      "number": "10.5",
+      "title_tex": "Non-power-law kernels"
+    },
+    {
+      "number": "11",
+      "title_tex": "Conclusion"
+    },
+    {
+      "number": "12",
+      "title_tex": "Malliavin derivative equation for Volterra SDE"
+    },
+    {
+      "number": "13",
+      "title_tex": "Bound on the drift correction"
+    },
+    {
+      "number": "14",
+      "title_tex": "The stochastic correction vanishes in expectation"
+    },
+    {
+      "number": "15",
+      "title_tex": "Propagation of the remainder to $\\delta(n)$"
+    },
+    {
+      "number": "16",
+      "title_tex": "Malliavin differentiability"
+    },
+    {
+      "number": "16.1",
+      "title_tex": "Rough Heston: localization argument"
+    },
+    {
+      "number": "16.2",
+      "title_tex": "General Volterra SDE: sufficient conditions"
+    },
+    {
+      "number": "16.3",
+      "title_tex": "Lifted Markovian route"
+    },
+    {
+      "number": "17",
+      "title_tex": "Proof of the Beta convolution identity"
+    },
+    {
+      "number": "18",
+      "title_tex": "Convergence of the second Picard iterate"
+    }
+  ],
+  "related_papers": [
+    {
+      "slug": "discrete_vs_rough",
+      "relation": "shared_domain",
+      "note": "Both study discrete monitoring corrections under rough/Volterra volatility models."
+    },
+    {
+      "slug": "variance_options",
+      "relation": "shared_domain",
+      "note": "Variance options and variance swaps share the same underlying variance process framework."
+    },
+    {
+      "slug": "var_ratio",
+      "relation": "shared_tool",
+      "note": "Asymptotic analysis of discrete vs continuous monitoring is a shared methodological theme."
+    }
+  ],
+  "figures": [],
+  "generation": {
+    "model": "claude-sonnet-4-6",
+    "generated_at": "2026-04-16T01:29:17.324737+00:00",
+    "prompt_version": "v1",
+    "langs": []
+  },
+  "repo": "realresearch",
+  "repo_root": "E:/Anaconda/Realresearch",
+  "project_id": null,
+  "quality": {
+    "tier": "B",
+    "significance_score": 13,
+    "significance_max": 16,
+    "critic_verdict": "PASS_WITH_MAJOR",
+    "dimensions": {
+      "correctness": "acceptable",
+      "rigor": "acceptable",
+      "novelty": "strong",
+      "framing": "strong",
+      "coherence": "strong"
+    },
+    "assessed_by": "unified_critic"
+  }
+}

@@ -1,0 +1,277 @@
+{
+  "slug": "sr_p001",
+  "source": {
+    "tex_path": "projects/p001/output/main.tex",
+    "pdf_path": "projects/p001/output/main.pdf",
+    "source_hash": "sha256:1ed52a11eb5ab5534d8e7c2d88755dd8aa425937fc1e09806a5d72ccc366849b",
+    "ingested_at": "2026-04-16T01:25:48.714429+00:00"
+  },
+  "title": {
+    "en": "The Gaussian Schr\\\"odinger--Bass Bridge: Explicit Optimizers and the Solvability Boundary",
+    "zh": "高斯薛定谔-巴斯桥：显式最优解与可解性边界"
+  },
+  "short_title": {
+    "zh": "高斯SBB显式解",
+    "en": "Gaussian Schrödinger-Bass Bridge Optimizers"
+  },
+  "author": "",
+  "date": "",
+  "status": "draft",
+  "abstract": {
+    "tex": "We provide a self-contained derivation, via Pontryagin's maximum principle,\nof the explicit Gaussian solution of the Schr\\\"odinger--Bass Bridge (SBB)\nproblem introduced by Henry-Labord\\`ere, Loeper, Mazhar, Pham, and\nTouzi~\\cite{HLMPT26} and studied independently in~\\cite{PDE26,LSBB26}.\nThe SBB interpolates between the classical Schr\\\"odinger bridge\n($\\beta\\to\\infty$) and the Bass martingale transport ($\\beta\\to 0$) via\na parameter $\\beta>0$.\nOur Pontryagin approach yields the adjoint equation $\\dot p = 2p^2$\nin closed form, reducing the boundary value problem to a quadratic equation.\nWe identify the \\emph{solvability boundary}: the critical target variance\n$\\gamma_T^* = (\\gamma_0 + \\beta T^2)/(1+2\\beta T)^2$\nbelow which the Gaussian SBB admits no finite-cost solution.\nGoing beyond the Gaussian setting, we prove that $\\gamma_T^*$ is\na \\emph{second-moment lower bound} for solvability of the SBB with\narbitrary (non-Gaussian) centered marginals.\nWe characterize the degenerate boundary regime, where the optimal\ndiffusion vanishes terminally and the value function has a jump\ndiscontinuity.\nA numerical example with non-commuting covariance matrices demonstrates\nanisotropic costate coupling in dimensions $d \\ge 2$.",
+    "en": "This paper derives, via Pontryagin's maximum principle, the explicit Gaussian solution of the Schrödinger-Bass Bridge problem, which interpolates between the classical Schrödinger bridge and Bass martingale transport. A critical solvability boundary for the target variance is identified, below which no finite-cost solution exists. The Gaussian solvability boundary is shown to serve as a universal second-moment lower bound for arbitrary centered marginals.",
+    "zh": "本文通过庞特里亚金最大值原理，推导了薛定谔-巴斯桥（SBB）问题的显式高斯解，并识别了可解性边界——目标方差的临界值。低于该临界值时，有限代价解不存在。进一步证明该临界值对任意中心化边际分布均构成二阶矩下界，并分析了退化边界情形。"
+  },
+  "domain": [
+    "derivatives",
+    "portfolio_games"
+  ],
+  "math_tools": [
+    "bsde",
+    "fixed_point_theory",
+    "perturbation_expansion",
+    "monte_carlo"
+  ],
+  "prerequisites": [
+    {
+      "topic_id": "optimal_control_pontryagin",
+      "level": "advanced",
+      "why": "The main derivation relies on Pontryagin's maximum principle to obtain adjoint equations."
+    },
+    {
+      "topic_id": "stochastic_calculus",
+      "level": "intermediate",
+      "why": "Semimartingale dynamics and Itô calculus underpin the SBB formulation."
+    },
+    {
+      "topic_id": "optimal_transport",
+      "level": "intermediate",
+      "why": "The Schrödinger bridge and Bass martingale transport are the limiting cases studied."
+    },
+    {
+      "topic_id": "gaussian_processes",
+      "level": "basic",
+      "why": "Gaussian reduction reduces the problem to deterministic mean-covariance ODEs."
+    }
+  ],
+  "main_theorems": [
+    {
+      "id": "prop:gaussian",
+      "env": "proposition",
+      "statement_tex": "Among all semimartingales satisfying~\\eqref{eq:dynamics} with Gaussian\nmarginals, it suffices to consider processes with deterministic drift\nand diffusion coefficients of the form $\\alpha_t = A_t X_t + b_t$ and\n$\\sigma_t = \\Sigma_t$ (deterministic).\nThe mean $m_t = \\E[X_t]$ and covariance\n$\\Gamma_t = \\E[(X_t - m_t)(X_t - m_t)^\\top]$ then satisfy\n\\begin{equation}\\label{eq:mean-cov}\n\\dot m = A_t m_t + b_t, \\qquad\n\\dot\\Gamma = A_t \\Gamma_t + \\Gamma_t A_t^\\top + \\Sigma_t \\Sigma_t^\\top.\n\\end{equation}\nThe cost~\\eqref{eq:sbb} separates into a mean component and a covariance\ncomponent; the mean component is minimized by standard Schr\\\"odinger bridge\narguments, and the covariance component becomes\n\\begin{equation}\\label{eq:cov-cost}\nJ = \\int_0^T \\left[\\frac{1}{2}\\tr(A_t^2 \\Gamma_t) +\n  \\frac{\\beta}{2}\\|\\Sigma_t \\Sigma_t^\\top - I_d\\|_F^2\\right] dt.\n\\end{equation}",
+      "section_number": "2.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:1d",
+      "env": "theorem",
+      "statement_tex": "Let $\\gamma_0, \\gamma_T > 0$, $\\beta > 0$, and $T > 0$.\nDefine\n\\begin{equation}\\label{eq:quadratic}\nv = \\frac{T + \\sqrt{T^2 + 4\\bigl(\\gamma_T + \\tfrac{1}{4\\beta}\\bigr)\n  \\bigl(\\gamma_0 + \\tfrac{1}{4\\beta}\\bigr)}}{2\\bigl(\\gamma_T +\n  \\tfrac{1}{4\\beta}\\bigr)},\n\\end{equation}\nand set $p_0 = (v-1)/(2vT)$.\nThen the unique optimal controls are\n\\begin{equation}\\label{eq:opt-controls}\n\\alpha^*(t) = \\frac{-2p_0}{1 - 2p_0 t}, \\qquad\n\\sigma^{*2}(t) = 1 - \\frac{p_0}{\\beta(1 - 2p_0 t)}.\n\\end{equation}\nThe optimal costate is $p(t) = p_0/(1 - 2p_0 t)$, and the\noptimal variance trajectory is determined by $\\dot\\gamma =\n2\\alpha^* \\gamma + \\sigma^{*2}$ with $\\gamma(0) = \\gamma_0$.\nThe conserved Hamiltonian along the optimal trajectory is\n\\begin{equation}\\label{eq:hamiltonian-value}\nH^* = -2p_0^2 \\gamma_0 + p_0 - \\frac{p_0^2}{2\\beta}.\n\\end{equation}",
+      "section_number": "3",
+      "label": {
+        "zh": "一维最优控制定理",
+        "en": "1D Optimal Controls Theorem"
+      },
+      "key_ideas": {
+        "zh": [
+          "显式最优漂移",
+          "显式最优波动率"
+        ],
+        "en": [
+          "explicit optimal drift",
+          "explicit optimal diffusion"
+        ]
+      }
+    },
+    {
+      "id": "thm:solvability",
+      "env": "theorem",
+      "statement_tex": "Let $\\beta > 0$, $T > 0$, and $\\gamma_0 > 0$.\nDefine the critical target variance\n\\begin{equation}\\label{eq:critical}\n\\gamma_T^* = \\frac{\\gamma_0 + \\beta T^2}{(1 + 2\\beta T)^2}.\n\\end{equation}\nThen:\n\\begin{enumerate}[label=(\\alph*)]\n\\item The Gaussian SBB with data $(\\gamma_0, \\gamma_T, \\beta, T)$\n  is solvable if and only if $\\gamma_T \\ge \\gamma_T^*$.\n\n\\item At $\\gamma_T = \\gamma_T^*$, the optimal terminal volatility\n  degenerates: $\\sigma^*(T) = 0$.\n\n\\item $\\gamma_T^* > 0$ for all $\\beta, T > 0$.\n\n\\item As $\\beta \\to \\infty$: $\\gamma_T^* \\to 0$.\n\n\\item As $\\beta \\to 0$: $\\gamma_T^* \\to \\gamma_0$.\n\\end{enumerate}",
+      "section_number": "4",
+      "label": {
+        "zh": "可解性边界定理",
+        "en": "Solvability Boundary Theorem"
+      },
+      "key_ideas": {
+        "zh": [
+          "临界目标方差",
+          "有限代价条件"
+        ],
+        "en": [
+          "critical target variance",
+          "finite-cost solvability"
+        ]
+      }
+    },
+    {
+      "id": "thm:multid",
+      "env": "theorem",
+      "statement_tex": "Let $\\Gamma_0, \\Gamma_T \\in \\Spp$, $\\beta > 0$, and $T > 0$.\nThe Pontryagin system for the $d$-dimensional Gaussian SBB yields:\n\\begin{enumerate}[label=(\\alph*)]\n\\item The optimal controls are\n\\begin{equation}\\label{eq:opt-multid}\nA^*(t) = -2P_0(I - 2P_0 t)^{-1}, \\qquad\n\\Sigma^{*2}(t) = I - \\frac{P_0}{\\beta}(I - 2P_0 t)^{-1},\n\\end{equation}\nwhere $P_0 \\in S_d$ is the initial costate.\n\n\\item The matrix adjoint equation is\n\\begin{equation}\\label{eq:riccati}\n\\dot P = 2P^2,\n\\end{equation}\nwith the explicit solution\n\\begin{equation}\\label{eq:riccati-sol}\nP(t) = P_0(I - 2P_0 t)^{-1}.\n\\end{equation}\n\n\\item When $\\Gamma_0$ and $\\Gamma_T$ commute (i.e., $\\Gamma_0 \\Gamma_T =\n\\Gamma_T \\Gamma_0$), they are simultaneously diagonalizable:\n$\\Gamma_0 = Q \\operatorname{diag}(\\gamma_0^{(1)}, \\ldots, \\gamma_0^{(d)}) Q^\\top$\nand\n$\\Gamma_T = Q \\operatorname{diag}(\\gamma_T^{(1)}, \\ldots, \\gamma_T^{(d)}) Q^\\top$\nfor some orthogonal $Q$.\nThe $d$-dimensional problem decomposes into $d$ independent scalar problems,\neach of the form solved in Theorem~\\ref{thm:1d}, with data\n$(\\gamma_0^{(k)}, \\gamma_T^{(k)}, \\beta, T)$ for $k = 1, \\ldots, d$.\n\\end{enumerate}",
+      "section_number": "5",
+      "label": {
+        "zh": "多维最优控制定理",
+        "en": "Multi-dimensional Optimal Controls Theorem"
+      },
+      "key_ideas": {
+        "zh": [
+          "矩阵Riccati方程",
+          "协态矩阵"
+        ],
+        "en": [
+          "matrix Riccati equation",
+          "costate matrix"
+        ]
+      }
+    },
+    {
+      "id": "prop:limits",
+      "env": "proposition",
+      "statement_tex": "Let $\\gamma_0, \\gamma_T > 0$ and $T > 0$.\n\n\\medskip\\noindent\n\\textbf{(a) Schr\\\"odinger limit ($\\beta \\to \\infty$).}\nAs $\\beta \\to \\infty$, the optimal controls converge to\n\\[\n\\sigma^{*2} \\to 1, \\qquad\n\\alpha^*(t) \\to \\frac{-2p_0^{\\mathrm{SB}}}{1 - 2p_0^{\\mathrm{SB}} t},\n\\]\nwhere $p_0^{\\mathrm{SB}}$ is determined by\n\\begin{equation}\\label{eq:v-sb}\nv^{\\mathrm{SB}} = \\frac{T + \\sqrt{T^2 + 4\\gamma_0 \\gamma_T}}{2\\gamma_T},\n\\qquad p_0^{\\mathrm{SB}} = \\frac{v^{\\mathrm{SB}} - 1}{2v^{\\mathrm{SB}} T}.\n\\end{equation}\nThis recovers the classical Schr\\\"odinger bridge for Gaussians, where\nonly the drift is optimized with unit diffusion.\n\n\\medskip\\noindent\n\\textbf{(b) Bass limit ($\\beta \\to 0$).}\nAs $\\beta \\to 0$, the optimal controls converge to\n\\[\n\\alpha^* \\to 0, \\qquad\n\\sigma^{*2} \\to \\frac{\\gamma_T - \\gamma_0}{T} \\quad (\\text{constant}).\n\\]\nThis requires $\\gamma_T > \\gamma_0$ (consistent with\n$\\gamma_T^* \\to \\gamma_0$).\nThe limit is a martingale with constant Bass volatility: $X_t$ is a\ndriftless process with $dX_t = \\sigma \\, dW_t$ where\n$\\sigma^2 = (\\gamma_T - \\gamma_0)/T$.",
+      "section_number": "6",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:nongaussian",
+      "env": "theorem",
+      "statement_tex": "Let $\\mu_0, \\mu_T \\in \\mathcal{P}_2(\\R)$ with $m_0 = m_T = 0$\n(centered marginals).\nDefine $\\gamma_0 = \\int x^2\\,d\\mu_0(x)$ and\n$\\gamma_T = \\int x^2\\,d\\mu_T(x)$.\nIf\n\\begin{equation}\\label{eq:nongaussian-bound}\n\\gamma_T < \\frac{\\gamma_0 + \\beta T^2}{(1 + 2\\beta T)^2},\n\\end{equation}\nthen $\\mathrm{SBB}(\\mu_0, \\mu_T) = +\\infty$.\nThat is, the Gaussian solvability boundary $\\gamma_T^*$ is a\n\\emph{universal lower bound} on the reachable second moment for\nany centered marginal pair.",
+      "section_number": "8",
+      "label": {
+        "zh": "非高斯下界定理",
+        "en": "Non-Gaussian Lower Bound Theorem"
+      },
+      "key_ideas": {
+        "zh": [
+          "二阶矩下界",
+          "通用可达性"
+        ],
+        "en": [
+          "second-moment lower bound",
+          "universal solvability bound"
+        ]
+      }
+    },
+    {
+      "id": "prop:boundary",
+      "env": "proposition",
+      "statement_tex": "At $\\gamma_T = \\gamma_T^*$, the optimal Gaussian SBB has the following\nproperties:\n\\begin{enumerate}[label=(\\alph*)]\n\\item The optimal cost is \\emph{finite}:\n\\[\nJ^* = -2p_0^2\\gamma_0 + p_0 - \\frac{p_0^2}{2\\beta},\n\\quad p_0 = \\frac{\\beta}{1 + 2\\beta T},\n\\]\nmultiplied by~$T$.\n\\item The optimal volatility satisfies\n$\\sigma^{*2}(t) > 0$ for $t \\in [0, T)$ and $\\sigma^{*2}(T) = 0$.\n\\item The optimal drift at the terminal time is\n$\\alpha^*(T) = -2\\beta$, producing maximal mean-reversion.\n\\item The variance trajectory satisfies\n$\\dot\\gamma(T) = -4\\beta\\gamma_T^*$ at the boundary.\n\\end{enumerate}",
+      "section_number": "9",
+      "label": {
+        "zh": "退化边界分析",
+        "en": "Degenerate Boundary Proposition"
+      },
+      "key_ideas": {
+        "zh": [
+          "终端波动率退化",
+          "跳跃不连续性"
+        ],
+        "en": [
+          "terminal volatility degeneracy",
+          "value function discontinuity"
+        ]
+      }
+    }
+  ],
+  "sections": [
+    {
+      "number": "1",
+      "title_tex": "Introduction"
+    },
+    {
+      "number": "2",
+      "title_tex": "Setup and Gaussian Reduction"
+    },
+    {
+      "number": "2.1",
+      "title_tex": "The Schr\\\"odinger--Bass Bridge Problem"
+    },
+    {
+      "number": "2.2",
+      "title_tex": "Gaussian Reduction"
+    },
+    {
+      "number": "3",
+      "title_tex": "One-Dimensional Gaussian SBB"
+    },
+    {
+      "number": "4",
+      "title_tex": "Solvability Boundary"
+    },
+    {
+      "number": "5",
+      "title_tex": "Multi-Dimensional Case"
+    },
+    {
+      "number": "6",
+      "title_tex": "Limiting Regimes"
+    },
+    {
+      "number": "7",
+      "title_tex": "Examples"
+    },
+    {
+      "number": "8",
+      "title_tex": "Beyond Gaussians: A Second-Moment Lower Bound"
+    },
+    {
+      "number": "9",
+      "title_tex": "Boundary Analysis: The Degenerate Regime"
+    },
+    {
+      "number": "10",
+      "title_tex": "Non-Commuting Multi-Dimensional Example"
+    },
+    {
+      "number": "11",
+      "title_tex": "Conclusion"
+    }
+  ],
+  "related_papers": [
+    {
+      "slug": "variance_options",
+      "relation": "shared_domain",
+      "note": "Both involve variance/volatility control and boundary analysis in continuous-time settings."
+    }
+  ],
+  "figures": [],
+  "generation": {
+    "model": "claude-sonnet-4-6",
+    "generated_at": "2026-04-16T01:30:03.008204+00:00",
+    "prompt_version": "v1",
+    "langs": [
+      "en",
+      "zh"
+    ]
+  },
+  "repo": "structural",
+  "repo_root": "E:/Anaconda/structural_research",
+  "project_id": "p001",
+  "quality": {
+    "phase": 4,
+    "project_status": "active",
+    "significance_max": 16,
+    "tier": "B",
+    "significance_score": 9,
+    "critic_verdict": "PASS_WITH_MAJOR",
+    "dimensions": {
+      "correctness": "acceptable",
+      "rigor": "acceptable",
+      "novelty": "acceptable",
+      "framing": "strong",
+      "coherence": "strong"
+    },
+    "assessed_by": "unified_critic"
+  }
+}

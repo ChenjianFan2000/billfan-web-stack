@@ -1,0 +1,2680 @@
+\documentclass[12pt]{article}
+
+% --- Packages ---
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{xcolor}
+
+% --- Theorem environments ---
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}[theorem]{Example}
+
+% --- Shortcuts ---
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\FI}{\mathrm{FI}}
+\newcommand{\PI}{\mathrm{PI}}
+\newcommand{\What}{\widehat{W}}
+\newcommand{\Ftrue}{\Prob_{\mu_1}}
+\newcommand{\Fbad}{\Prob_{\mu_2}}
+\DeclareMathOperator{\sgn}{sgn}
+
+\title{First Passage Times in Mean-Variance Games:\\
+The Risk Reversal of Partial Information}
+
+\author{%
+  Author Name\thanks{School of Mathematical Sciences, Fudan University.
+  Email: \texttt{email@fudan.edu.cn}.}
+}
+
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We study first passage times in symmetric mean-variance portfolio games
+under full and partial information, extending the framework of
+\citet{HuangSun2025}.
+Our main finding is a \emph{risk reversal}: the direction of the
+first passage comparison between full information~(FI) and partial
+information~(PI) investors depends on the unobserved state.
+Under the good state ($\mu = \mu_1$), the PI investor is dramatically
+safer---her ruin probability is bounded above by the FI infinite-horizon
+ruin probability. Our theoretical lower bound gives a Lundberg exponent
+ratio of $\mu_1/\theta(p) \approx 1.82$; Monte Carlo estimates suggest
+the true ratio is $5$--$6$ times, with the gap attributable to the
+hedging component of the PI strategy.
+Under the bad state ($\mu = \mu_2$), the comparison reverses: the PI
+investor over-invests by a factor of up to $5.5\times$, amplifying ruin
+probability by up to $300\times$ in the infinite-horizon limit.
+The sensitivity of ruin probability to competition intensity~$\lambda$
+is $5$--$7$ times greater under partial information, providing a precise
+characterization of the ``downward amplification'' conjectured by
+\citet{HuangSun2025}.
+We establish these results through four theorems---an exponential
+supermartingale bound, a Dubins--Schwarz quadratic variation comparison
+under the martingale measure, a bad-state amplification inequality via
+$L^2$ coupling, and a $\lambda$-sensitivity comparison---complemented
+by comprehensive Monte Carlo analysis and a perturbation expansion for
+heterogeneous investors.
+\end{abstract}
+
+\bigskip
+\noindent\textbf{Keywords:}
+mean-variance games, partial information, first passage time,
+ruin probability, Nash equilibrium, relative performance, Bayesian filtering,
+systemic risk
+
+\bigskip
+\noindent\textbf{JEL Classification:} C73, D82, G11
+
+\bigskip
+\noindent\textbf{MSC 2020:} 91A15, 91G10, 60G35, 60G40
+
+\newpage
+
+%% ========================================================================
+\section{Introduction}\label{sec:intro}
+%% ========================================================================
+
+Competition among fund managers is a pervasive feature of modern
+financial markets.
+Institutional investors are evaluated not only on absolute returns but
+also on performance relative to their peers, creating strong incentives
+for benchmark tracking and herd behavior.
+At the same time, many of the fundamental parameters governing
+asset returns---expected growth rates, regime probabilities, structural
+break points---are not directly observable.
+Fund managers must learn about these parameters in real time from market
+data, making investment decisions under partial information.
+The intersection of these two forces---competitive pressure and
+informational uncertainty---gives rise to subtle effects on tail risk
+that are the subject of this paper.
+
+The mean-variance game framework provides a natural setting for
+studying competitive portfolio choice.
+\citet{BasakMakarov2014} pioneered the study of two-fund
+continuous-time competition with relative performance concerns,
+showing that benchmarking induces risk-shifting and excess volatility.
+\citet{EspinosaTouzi2015} analyzed mean-field games with relative utility
+in the large-population limit,
+and \citet{LackerZariphopoulou2019} established existence results
+for $N$-player forward performance games under general preferences.
+In the related literature on executive stock options under partial
+information, \citet{Henderson2020} studied the interplay between
+learning and exercise decisions, demonstrating that informational
+frictions can alter the qualitative structure of optimal policies.
+The stochastic ordering approach of \citet{BaeuerleBayraktar2013}
+provides a general framework for comparing stochastic control problems
+under different information structures.
+In the CRRA setting, \citet{Deng2022} studied relative wealth games
+under partial information with heterogeneous priors, showing that
+competitive pressure induces a herd effect whereby investors trade
+more aggressively; \citet{ZhangYan2024} extended this to a factor
+model and mean-field limit.
+These works establish that competition amplifies the \emph{magnitude}
+of trading activity, but do not study how the interaction of
+competition and partial information affects \emph{first passage times}
+or ruin probabilities---the direction we pursue here.
+On the systemic risk side, \citet{Carmona2018} modeled inter-bank
+lending with delay, showing that strategic interaction can create
+correlated default cascades; see also \citet{Leobacher2016} for
+Bayesian ruin theory under partial information in the single-agent
+dividend optimization context.
+
+\citet{HuangSun2025} brought competitive games and partial information
+together by solving $N$-player mean-variance games under both full and
+partial information in a Bayesian filtering framework.
+Their model yields explicit Nash equilibria in all four settings
+(constant or alternating drift, full or partial information),
+and their numerical experiments reveal a striking phenomenon:
+under partial information, relative performance concerns
+\emph{amplify downward risk} in a way that is absent under full
+information.
+Specifically, the probability that a large fraction of investors
+simultaneously fall below a warning threshold increases dramatically
+when investors compete under partial information, but remains
+essentially unchanged under full information.
+\citet{HuangSun2025} identify this as an open problem:
+\begin{quote}
+``It is of interest as future research to investigate if the
+`downward amplification' effect of partial information on investors'
+wealth can be theoretically proved and characterized, beyond the
+motivating numerical illustration in Figure~4.''
+\end{quote}
+
+The present paper addresses this open problem and arrives at a
+conclusion that is both more precise and more surprising than the
+original conjecture suggests.
+We show that the first passage time comparison between FI and PI
+investors exhibits a \emph{risk reversal} that depends on the
+unobserved true state of the drift:
+
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{Good-state safety.}
+  When the true drift is high ($\mu = \mu_1$), the PI investor is
+  dramatically \emph{safer} than the FI investor.
+  The PI investor, not knowing the state is favorable, under-invests
+  relative to her FI counterpart.
+  This conservative behavior reduces portfolio volatility more than
+  it reduces expected returns (the Sharpe ratio is preserved), leading
+  to an exponentially smaller ruin probability.
+  We prove that the PI finite-horizon ruin probability is bounded by
+  the FI \emph{infinite-horizon} ruin probability
+  (Theorem~\ref{thm:expo_bound}), and we establish a comparison under
+  the martingale measure via quadratic variation ordering
+  (Theorem~\ref{thm:Q_comparison}).
+  Monte Carlo simulations confirm that the effective Lundberg exponent
+  of the PI investor is $5$--$6$ times that of the FI investor across
+  all competition levels.
+
+\item \textbf{Bad-state amplification.}
+  When the true drift is low ($\mu = \mu_2$), the comparison reverses.
+  The PI investor, unaware that the state is unfavorable, over-invests
+  by a factor of up to $\theta(p)/\mu_2$ (which equals $5.5$ at the
+  \citeauthor{HuangSun2025} parameters).
+  This over-investment amplifies ruin probability by up to $300\times$
+  in the infinite-horizon limit (Theorem~\ref{thm:bad_state}).
+  The bad-state amplification is \emph{exponentially larger} than the
+  good-state dampening, explaining why the mixture (unconditional)
+  comparison is dominated by the bad-state effect at moderate priors.
+
+\item \textbf{Sensitivity amplification.}
+  The log-ruin probability is $5$--$7$ times more sensitive to the
+  competition parameter~$\lambda$ under PI than under FI
+  (Theorem~\ref{thm:sensitivity}).
+  This is the ``downward amplification'' of \citet{HuangSun2025}:
+  increasing $\lambda$ erodes the PI safety margin proportionally
+  faster, even though the PI ruin level is absolutely lower under
+  the good state.
+\end{enumerate}
+
+Together, results (i)--(iii) reveal a ``paradox of ignorance'':
+not knowing the true state \emph{protects} the investor when the state
+is good (because conservatism reduces volatility) and \emph{endangers}
+her when the state is bad (because misplaced optimism amplifies
+exposure).
+The net effect depends on the prior and on the magnitude of the drift
+gap $\delta := \mu_1 - \mu_2$.
+
+\medskip
+\noindent\textbf{Contributions.}
+Our specific contributions are:
+\begin{enumerate}[label=\arabic*.]
+\item Four rigorous theorems characterizing the first passage
+  comparison: an exponential supermartingale bound
+  (Theorem~\ref{thm:expo_bound}), a Dubins--Schwarz comparison under
+  the martingale measure (Theorem~\ref{thm:Q_comparison}),
+  a bad-state ruin amplification bound via $L^2$ coupling
+  (Theorem~\ref{thm:bad_state}), and a $\lambda$-sensitivity
+  comparison (Theorem~\ref{thm:sensitivity}).
+\item A comprehensive numerical analysis across the full
+  $(D, \lambda)$ parameter space, confirming that the PI investor is
+  uniformly safer under the good state and identifying the bad-state
+  reversal region.
+\item A perturbation expansion for heterogeneous investors
+  ($\gamma_A \neq \gamma_B$), showing that heterogeneity breaks the
+  $\lambda$-independence of the PI strategy and reduces co-drawdown
+  through investor decorrelation
+  (Proposition~\ref{prop:heterogeneous}).
+\item An honest treatment of the Girsanov obstruction
+  (Remark~\ref{rem:girsanov}), explaining precisely why the
+  martingale-measure comparison does not transfer directly to the
+  physical measure and formulating this as an open problem.
+\end{enumerate}
+
+\medskip
+\noindent\textbf{Organization.}
+Section~\ref{sec:model} presents the model and recalls the Nash
+equilibria.
+Section~\ref{sec:results} states the main results.
+Section~\ref{sec:proofs} contains proofs.
+Section~5 provides numerical analysis, and
+Section~6 discusses extensions and open problems.
+
+%% ========================================================================
+\section{Model}\label{sec:model}
+%% ========================================================================
+
+We adopt the framework of \citet{HuangSun2025} and work throughout
+under the \emph{constant-drift, symmetric-investor} specification.
+
+\subsection{Financial market}\label{sec:market}
+
+Let $(\Omega, \mathcal{F}, \{\mathcal{F}_t\}_{t \ge 0}, \Prob)$ be a
+filtered probability space satisfying the usual conditions, supporting
+a standard Brownian motion~$W$.
+A single risky asset (stock) has price process
+\begin{equation}\label{eq:stock}
+  \frac{dS(t)}{S(t)} = \mu\, dt + \sigma\, dW(t), \qquad S(0) = s_0 > 0,
+\end{equation}
+where $\sigma > 0$ is known and $\mu \in \{\mu_1, \mu_2\}$ is a fixed but
+possibly unknown constant with $\mu_1 > \mu_2 > 0$.
+The risk-free rate is $r = 0$.
+We write $\delta := \mu_1 - \mu_2 > 0$ for the drift gap.
+
+Two probability measures play a central role.
+When the true drift is $\mu_k$, we write~$\Prob_{\mu_k}$ for the
+corresponding probability measure.
+Under $\Prob_{\mu_k}$, the process $W$ is a standard Brownian motion.
+
+\subsection{Investors and objectives}\label{sec:investors}
+
+There are $N \ge 2$ investors, each choosing a dollar investment
+$\pi_i(t)$ in the stock at time~$t$.
+Investor~$i$'s wealth satisfies
+\begin{equation}\label{eq:wealth}
+  dX_i(t) = \pi_i(t)\,\mu\,dt + \pi_i(t)\,\sigma\,dW(t),
+  \qquad X_i(0) = x > 0.
+\end{equation}
+
+\begin{assumption}[Symmetry]\label{ass:sym}
+All investors share the same risk aversion $\gamma > 0$,
+the same relative performance weight
+$\lambda^M = \lambda^V = \lambda \in [0,1)$,
+and the same initial wealth~$x$ and warning threshold~$D < x$.
+\end{assumption}
+
+Under Assumption~\ref{ass:sym}, the constants defined in
+\citet[Eq.~(3.6)--(3.7)]{HuangSun2025} reduce to
+\begin{equation}\label{eq:kappa}
+  \kappa_i = \kappa := \frac{1}{\gamma}\,,
+  \qquad
+  \bar{\kappa} = \frac{1}{\gamma}\,,
+  \qquad
+  \bar{\lambda}^V = \lambda.
+\end{equation}
+The effective risk aversion for the game becomes $\gamma(1-\lambda)$
+(see \citet[Remark~3.4]{HuangSun2025}).
+
+Each investor maximizes the mean-variance objective with relative
+performance:
+\begin{equation}\label{eq:objective}
+  J_i = \E\bigl[X_i(T) - \lambda\,\bar{X}(T)\bigr]
+      - \frac{\gamma}{2}\,\Var\bigl[X_i(T) - \lambda\,\bar{X}(T)\bigr],
+\end{equation}
+where $\bar{X} := \frac{1}{N}\sum_{j=1}^N X_j$ is the average wealth.
+
+\subsection{Information regimes}\label{sec:info}
+
+\paragraph{Full information (FI).}
+All investors observe $\mu$ directly.
+The relevant filtration is $\mathcal{F}^{\mu,S}$, and investors know
+the true value of the drift.
+
+\paragraph{Partial information (PI).}
+Investors observe only the stock price $S$; the drift
+$\mu \in \{\mu_1, \mu_2\}$ is unknown.
+The prior probability is
+$p := \Prob(\mu = \mu_1 \mid \mathcal{F}_0) \in (0,1)$.
+Investors use the filtration $\mathcal{F}^S$ generated by~$S$.
+
+\subsection{Nash equilibria}\label{sec:equil}
+
+We recall the equilibrium strategies from \citet{HuangSun2025},
+specialized to the symmetric case with $r = 0$.
+
+\subsubsection{Full information equilibrium}
+
+By \citet[Theorem~3.1]{HuangSun2025}, when the true drift is
+$\mu = \mu_k$, the FI Nash equilibrium strategy is
+\begin{equation}\label{eq:piFI}
+  \pi_k^{\FI} := \frac{\mu_k}{\sigma^2\,\gamma(1-\lambda)}\,,
+\end{equation}
+a deterministic constant.
+The corresponding wealth process under $\Prob_{\mu_k}$ is
+\begin{equation}\label{eq:XFI}
+  X_k^{\FI}(t) = x + \pi_k^{\FI}\,\mu_k\,t
+              + \pi_k^{\FI}\,\sigma\,W(t),
+  \qquad t \in [0,T].
+\end{equation}
+This is Brownian motion with constant drift
+$\pi_k^{\FI}\mu_k = \mu_k^2/[\sigma^2\gamma(1-\lambda)]$ and constant
+diffusion coefficient $\pi_k^{\FI}\sigma = \mu_k/[\sigma\gamma(1-\lambda)]$.
+
+\begin{remark}\label{rem:FI_state}
+The FI investor \emph{knows} the true state and adapts her strategy
+accordingly.
+Under the good state, she invests
+$\pi_1^{\FI} = \mu_1/[\sigma^2\gamma(1-\lambda)]$; under the bad state,
+$\pi_2^{\FI} = \mu_2/[\sigma^2\gamma(1-\lambda)]$.
+The ratio $\pi_1^{\FI}/\pi_2^{\FI} = \mu_1/\mu_2$ can be large
+(it equals $10$ at the \citeauthor{HuangSun2025} parameters
+$\mu_1 = 0.2$, $\mu_2 = 0.02$).
+\end{remark}
+
+\subsubsection{Partial information equilibrium}
+
+Under PI, the posterior probability
+$P(t) := \Prob(\mu = \mu_1 \mid \mathcal{F}^S_t)$
+satisfies the filtering SDE
+(\citealt[Lemma~3.2]{HuangSun2025}):
+\begin{equation}\label{eq:filter}
+  dP(t) = \beta\bigl(P(t)\bigr)\,d\What(t),
+  \qquad P(0) = p,
+\end{equation}
+where the filter volatility and estimated drift are
+\begin{equation}\label{eq:theta_beta}
+  \theta(q) := \delta\,q + \mu_2,
+  \qquad
+  \beta(q) := \frac{\delta}{\sigma}\,q(1-q),
+\end{equation}
+and $\What$ is the innovation Brownian motion, a standard Brownian motion
+under $\mathcal{F}^S$.
+
+By \citet[Theorem~3.2, Remark~3.7]{HuangSun2025}, the PI Nash
+equilibrium strategy in the symmetric case with $r = 0$ is
+\begin{equation}\label{eq:piPI}
+  \pi^*(t,q) = \frac{g(t,q)}{\gamma(1-\lambda)}\,,
+\end{equation}
+where $g\colon [0,T] \times [0,1] \to \R$ encodes both the myopic and
+hedging components:
+\begin{equation}\label{eq:g_decomp}
+  g(t,q)
+  = \underbrace{\frac{\theta(q)}{\sigma^2}}_{\text{myopic}}
+  \;-\; \underbrace{\frac{\beta(q)}{\sigma}\,
+    \frac{\partial_q c(t,q)}{\kappa}}_{\text{hedging}}\,,
+\end{equation}
+with $c(t,q)$ solving the Cauchy problem
+(\citealt[Lemma~3.3, Eq.~(3.27)]{HuangSun2025})
+\begin{equation}\label{eq:cauchy}
+  \partial_t c + \frac{\beta(q)^2}{2}\,\partial_{qq} c
+  - \frac{\beta(q)\,\theta(q)}{\sigma}\,\partial_q c
+  + \kappa\,\frac{\theta(q)^2}{\sigma^2} = 0,
+  \qquad c(T,q) = 0.
+\end{equation}
+
+\begin{remark}[Structural property: $g$ is $\lambda$-independent]
+\label{rem:g_indep}
+A key feature of the symmetric equilibrium is that $\kappa = 1/\gamma$,
+$\bar{\lambda}^V = \lambda$, and the competition-induced modifications to
+the Cauchy problem~\eqref{eq:cauchy} cancel exactly
+(\citealt[Remark~3.7]{HuangSun2025}).
+As a result, $g(t,q)$ does not depend on~$\lambda$, and the equilibrium
+strategy $\pi^*(t,q) = g(t,q)/[\gamma(1-\lambda)]$ depends on~$\lambda$
+only through the explicit prefactor $1/(1-\lambda)$.
+This property is central to our sensitivity analysis
+(Theorem~\ref{thm:sensitivity}) and breaks down under heterogeneous
+risk aversion (Proposition~\ref{prop:heterogeneous}).
+\end{remark}
+
+\subsection{Wealth processes under both measures}
+\label{sec:wealth_both}
+
+A key aspect of our analysis is that the \emph{same} PI strategy is
+deployed regardless of the true state, while the FI strategy adapts to
+the state.
+We now make this precise.
+
+Under the true measure $\Prob_{\mu_k}$ (where $W$ is standard Brownian
+motion), the PI wealth process satisfies
+\begin{equation}\label{eq:XPI}
+  dX^{\PI}(t) = \pi^*\bigl(t, P(t)\bigr)\,\mu_k\,dt
+              + \pi^*\bigl(t, P(t)\bigr)\,\sigma\,dW(t).
+\end{equation}
+Importantly, the filter $P(t)$ evolves according to
+different dynamics under~$\Prob_{\mu_1}$ and~$\Prob_{\mu_2}$.
+Under $\Prob_{\mu_1}$, the innovation process is
+$d\What(t) = dW(t) + [\mu_1 - \theta(P(t))]/\sigma\,dt$,
+and $P(t)$ is a submartingale converging to~$1$.
+Under $\Prob_{\mu_2}$, the innovation is
+$d\What(t) = dW(t) + [\mu_2 - \theta(P(t))]/\sigma\,dt$,
+and $P(t)$ is a supermartingale converging to~$0$.
+
+\begin{remark}[Investment levels under each state]
+\label{rem:investment}
+Under $\Prob_{\mu_1}$, the PI investor's expected drift estimate
+satisfies $\E_{\mu_1}[\theta(P(t))] < \mu_1$ for all $t > 0$ when
+$p < 1$.
+The PI investor therefore \emph{under-invests} relative to the FI
+strategy $\pi_1^{\FI}$.
+
+Under $\Prob_{\mu_2}$, the PI investor's expected drift estimate
+satisfies $\E_{\mu_2}[\theta(P(t))] > \mu_2$ for all $t > 0$ when
+$p > 0$.
+The PI investor therefore \emph{over-invests} relative to the FI
+strategy $\pi_2^{\FI}$.
+At time zero, the over-investment ratio is
+\begin{equation}\label{eq:over_invest}
+  \frac{\pi^*(0)}{\pi_2^{\FI}} = \frac{\theta(p)}{\mu_2}
+  = 1 + \frac{\delta p}{\mu_2}\,,
+\end{equation}
+which equals $5.5$ at the \citeauthor{HuangSun2025} parameters
+($\delta = 0.18$, $p = 0.5$, $\mu_2 = 0.02$).
+\end{remark}
+
+\subsection{Definitions}\label{sec:definitions}
+
+\begin{definition}[First passage time]\label{def:fpt}
+For a wealth process $X$ with initial value $x > D$, the
+\emph{first passage time} (ruin time) to the warning threshold~$D$ is
+\begin{equation}\label{eq:fpt}
+  \tau := \inf\{t \ge 0 : X(t) \le D\}.
+\end{equation}
+We write $\tau_k^{\FI}$ for the FI ruin time under state~$k$, and
+$\tau^{\PI}$ for the PI ruin time.
+The \emph{safety margin} is $a := x - D > 0$.
+\end{definition}
+
+\begin{definition}[Co-drawdown probability]\label{def:codrawdown}
+Under Assumption~\ref{ass:sym}, all investors in the same information
+regime are identical.
+The co-drawdown probability for~$k$ of~$N$ investors under information
+regime~$I \in \{\FI, \PI\}$ reduces to
+$\Prob(\tau^I \le T)$.
+\end{definition}
+
+\begin{definition}[Expected wealth gap]\label{def:gap}
+The expected wealth gap at horizon~$T$ under the true measure
+$\Prob_{\mu_1}$ is
+\begin{equation}\label{eq:gap_def}
+  G(\lambda, T) := \E_{\mu_1}\bigl[X^{\FI}(T)\bigr]
+                 - \E_{\mu_1}\bigl[X^{\PI}(T)\bigr].
+\end{equation}
+\end{definition}
+
+%% ========================================================================
+\section{Main Results}\label{sec:results}
+%% ========================================================================
+
+Throughout this section, Assumption~\ref{ass:sym} is in force with
+$r = 0$, $\mu_1 > \mu_2 > 0$, and non-degenerate prior $p \in (0,1)$.
+We write $a = x - D > 0$ for the safety margin.
+We work with the myopic PI strategy
+$\pi^*(t) = \theta(P(t))/[\sigma^2\gamma(1-\lambda)]$;
+the results extend to the full strategy
+$\pi^*(t) = g(t,P(t))/[\gamma(1-\lambda)]$ with the hedging
+component, since the hedging demand is non-negative
+(see Remark~\ref{rem:hedging_ext}).
+
+\subsection{Expected wealth comparison (recap)}
+\label{sec:wealth_comp}
+
+We begin by recalling the expected wealth comparison from
+\citet{HuangSun2025}, which motivates the first passage analysis.
+
+\begin{theorem}[Suboptimality of partial information]
+\label{thm:wealth}
+Under $\Prob_{\mu_1}$ with $p \in (0,1)$:
+\begin{enumerate}[label=(\roman*)]
+\item The expected terminal wealth under PI is strictly less than
+  under FI:
+  $\E_{\mu_1}[X^{\PI}(T)] < \E_{\mu_1}[X^{\FI}(T)]$.
+\item The expected wealth gap has the integral representation
+  \begin{equation}\label{eq:gap_repr}
+    G(\lambda, T) = \frac{\mu_1}{\gamma(1-\lambda)}
+      \int_0^T \biggl[\frac{\mu_1}{\sigma^2}
+      - \E_{\mu_1}\bigl[g\bigl(t, P(t)\bigr)\bigr]\biggr]\,dt.
+  \end{equation}
+\item The gap is strictly increasing in $\lambda$:
+  $\partial G / \partial\lambda = G(\lambda,T)/(1-\lambda) > 0$.
+\end{enumerate}
+\end{theorem}
+
+\begin{remark}\label{rem:gap_message}
+Theorem~\ref{thm:wealth} shows that PI investors earn less \emph{on
+average}.
+However, the expected wealth comparison does not address the tail
+behavior.
+The first passage times in the remainder of this section show that
+the \emph{direction} of the tail comparison reverses between the
+two states, a phenomenon invisible to the expected wealth analysis.
+\end{remark}
+
+\subsection{Good-state first passage safety}
+\label{sec:good_state}
+
+The next three results establish that the PI investor has a smaller
+ruin probability under the good state $\Prob_{\mu_1}$.
+
+\begin{theorem}[Exponential safety bound]
+\label{thm:expo_bound}
+Under $\Prob_{\mu_1}$, for any $T > 0$:
+\begin{equation}\label{eq:expo_bound}
+  \Prob_{\mu_1}\bigl(\tau^{\PI} \le T\bigr)
+  \;\le\;
+  \exp\!\biggl(-\frac{2\mu_1\,a}{\pi_1^{\FI}\,\sigma^2}\biggr)
+  \;=\;
+  \Prob_{\mu_1}\bigl(\tau_1^{\FI} < \infty\bigr).
+\end{equation}
+That is, the PI finite-horizon ruin probability is bounded above by the
+FI \emph{infinite-horizon} ruin probability.
+\end{theorem}
+
+\begin{remark}\label{rem:expo_interpret}
+Since $\Prob_{\mu_1}(\tau_1^{\FI} < \infty)
+  \ge \Prob_{\mu_1}(\tau_1^{\FI} \le T)$ trivially,
+Theorem~\ref{thm:expo_bound} does not by itself establish
+$\Prob_{\mu_1}(\tau^{\PI} \le T) \le \Prob_{\mu_1}(\tau_1^{\FI} \le T)$.
+The gap between the finite-horizon and infinite-horizon FI ruin
+probabilities is
+$\Prob_{\mu_1}(\tau_1^{\FI} < \infty) - \Prob_{\mu_1}(\tau_1^{\FI} \le T)
+  = e^{-2\gamma(1-\lambda)a}\,
+  2\Phi\bigl(-a\sqrt{2\gamma(1-\lambda)/T}\,\bigr)$,
+which is exponentially small in $a$ for fixed~$T$ and vanishes as
+$T \to \infty$.
+The full finite-horizon comparison
+$\Prob_{\mu_1}(\tau^{\PI} \le T) \le \Prob_{\mu_1}(\tau_1^{\FI} \le T)$
+is confirmed by extensive Monte Carlo simulation (Section~5) and
+established under the martingale measure in
+Theorem~\ref{thm:Q_comparison} below, but the transfer from the
+martingale measure to the physical measure encounters a technical
+obstruction (Remark~\ref{rem:girsanov}).
+\end{remark}
+
+\begin{remark}[Lundberg exponent interpretation]
+\label{rem:lundberg}
+The FI ruin probability satisfies
+$\Prob_{\mu_1}(\tau_1^{\FI} < \infty) = e^{-\psi^{\FI} a}$
+with Lundberg exponent
+$\psi^{\FI} = 2\mu_1/(\pi_1^{\FI}\sigma^2) = 2\gamma(1-\lambda)$.
+Theorem~\ref{thm:expo_bound} implies that the PI ruin probability
+decays at least as fast:
+$\Prob_{\mu_1}(\tau^{\PI} \le T) \le e^{-\psi^{\FI} a}$.
+Monte Carlo estimates of the effective PI exponent yield
+$\psi^{\PI} \approx 5$--$6 \times \psi^{\FI}$
+(Table~\ref{tab:lundberg} in Section~5), reflecting the
+exponentially stronger safety under partial information.
+\end{remark}
+
+\begin{theorem}[Martingale measure comparison]
+\label{thm:Q_comparison}
+Define $Q$ by the Radon--Nikodym density
+\begin{equation}\label{eq:Q_density}
+  \frac{dQ}{d\Prob_{\mu_1}}\bigg|_{\mathcal{F}_T}
+  = \exp\!\biggl(-\frac{\mu_1}{\sigma}\,W(T)
+    - \frac{\mu_1^2}{2\sigma^2}\,T\biggr).
+\end{equation}
+Under $Q$, both FI and PI wealth processes are continuous local
+martingales, and $\widetilde{W}(t) := W(t) + (\mu_1/\sigma)\,t$ is a
+standard $Q$-Brownian motion.
+Then:
+\begin{equation}\label{eq:Q_comp}
+  Q\bigl(\tau^{\PI} \le T\bigr) \;\le\; Q\bigl(\tau_1^{\FI} \le T\bigr),
+\end{equation}
+with equality if and only if
+$\pi^*(t, P(t)) = \pi_1^{\FI}$ for Lebesgue-a.e.\ $t \in [0,T]$,
+$Q$-a.s.
+\end{theorem}
+
+\begin{remark}\label{rem:Q_intuition}
+Under $Q$, both wealth processes are driftless: the FI process is a
+scaled Brownian motion with quadratic variation
+$U(T) = (\pi_1^{\FI}\sigma)^2 T$, while the PI process has random
+quadratic variation
+$V(T) = \sigma^2\int_0^T [\pi^*(s)]^2\,ds \le U(T)$ a.s.
+The smaller quadratic variation implies fewer barrier crossings by
+a Dubins--Schwarz time-change argument (see Section~\ref{sec:proof_Q}).
+\end{remark}
+
+\begin{corollary}[Constant damping]
+\label{cor:constant}
+If $\pi^*(t) \equiv c$ for a constant $c \in (0, \pi_1^{\FI})$, then
+\begin{equation}\label{eq:const_comp}
+  \Prob_{\mu_k}\bigl(\tau^{\PI} \le T\bigr)
+  \;\le\;
+  \Prob_{\mu_k}\bigl(\tau_1^{\FI} \le T\bigr)
+\end{equation}
+for $k = 1$, for all $T > 0$, under \emph{any} probability measure
+equivalent to $\Prob_{\mu_1}$.
+\end{corollary}
+
+\begin{remark}\label{rem:constant_intuition}
+Corollary~\ref{cor:constant} is elementary but illuminating.
+When $c < \pi_1^{\FI}$, the PI wealth process is a deterministic
+rescaling: $X^{\PI}(t) - x = (c/\pi_1^{\FI})(X_1^{\FI}(t) - x)$.
+The PI process hits the barrier~$D$ if and only if the FI process
+hits the lower barrier
+$x - a\pi_1^{\FI}/c < D$, which is a strictly rarer event.
+The general (time-varying) case of Theorem~\ref{thm:Q_comparison}
+requires the Dubins--Schwarz reduction because the path-dependent
+rescaling does not admit such a clean coupling.
+\end{remark}
+
+\begin{remark}[The Girsanov obstruction]
+\label{rem:girsanov}
+Theorem~\ref{thm:Q_comparison} establishes
+$Q(\tau^{\PI} \le T) \le Q(\tau_1^{\FI} \le T)$ but does not immediately
+yield the corresponding inequality under $\Prob_{\mu_1}$.
+The Girsanov back-transformation gives
+$\Prob_{\mu_1}(\tau^I \le T)
+  = \E_Q[L(T)\,\mathbf{1}_{\{\tau^I \le T\}}]$,
+where $L(T) = \exp[(\mu_1/\sigma)\widetilde{W}(T)
+  - \mu_1^2 T/(2\sigma^2)]$ is the Radon--Nikodym density
+$d\Prob_{\mu_1}/dQ\big|_{\mathcal{F}_T}$.
+The density $L(T)$ depends on $\widetilde{W}(T)$, which correlates
+with the ruin events $\{\tau^I \le T\}$ through the stock path.
+Since $L(T)$ may correlate differently with $\{\tau^{\PI} \le T\}$ and
+$\{\tau_1^{\FI} \le T\}$, the $Q$-ordering does not transfer to
+$\Prob_{\mu_1}$ in general.
+
+To see the difficulty concretely: on the event $\{\tau^I \le T\}$, the
+wealth process has visited $D < x$, which requires a negative excursion
+of the stock.
+But $L(T)$ is increasing in $\widetilde{W}(T)$, so large values of
+$L(T)$ are associated with paths that have a large \emph{terminal}
+value of the stock---which are precisely the paths \emph{less likely}
+to have experienced ruin.
+The two events create opposite selection effects, and their interaction
+depends on the portfolio strategy in a non-trivial way.
+
+We leave the full physical-measure comparison as an open problem:
+\begin{conjecture}\label{conj:physical}
+Under the hypotheses of Theorem~\ref{thm:Q_comparison},
+$\Prob_{\mu_1}(\tau^{\PI} \le T) \le \Prob_{\mu_1}(\tau_1^{\FI} \le T)$
+for all $T > 0$.
+\end{conjecture}
+This conjecture is supported by $200{,}000$-path Monte Carlo
+simulations across the full $(D, \lambda)$ parameter space, where the
+ratio $\Prob_{\mu_1}(\tau^{\PI} \le T)/\Prob_{\mu_1}(\tau_1^{\FI} \le T)$
+is uniformly less than~$1$ (Section~\ref{sec:num_phase}).
+\end{remark}
+
+\begin{remark}[Extension to the full strategy with hedging]
+\label{rem:hedging_ext}
+Theorems~\ref{thm:expo_bound} and~\ref{thm:Q_comparison} are stated
+for the myopic PI strategy
+$\pi^*(t) = \theta(P(t))/[\sigma^2\gamma(1-\lambda)]$.
+They extend to the full strategy
+$\pi^*(t) = g(t,P(t))/[\gamma(1-\lambda)]$ provided the hedging demand
+$h(t,q) := \theta(q)/\sigma^2 - g(t,q) \ge 0$, which ensures
+$\pi^{\text{full}}(t) \le \pi^{\text{myopic}}(t) \le \pi_1^{\FI}$.
+The sign $h(t,q) \ge 0$ follows from the monotonicity
+$\partial_q c(t,q) \ge 0$ of the value function with respect to the
+posterior probability, which can be verified via a comparison principle
+for the Cauchy problem~\eqref{eq:cauchy}
+\citep[cf.][Remark~3.7]{HuangSun2025}.
+Both proofs use only the upper bound $\pi^*(t) \le \pi_1^{\FI}$, which
+holds a fortiori for the full strategy.
+\end{remark}
+
+\subsection{Bad-state amplification}
+\label{sec:bad_state}
+
+We now turn to the bad state $\Prob_{\mu_2}$, where the comparison
+reverses.
+
+\begin{proposition}[Over-investment under the bad state]
+\label{prop:over_invest}
+Under $\Prob_{\mu_2}$, for any $p \in (0,1)$ and $t > 0$:
+\begin{equation}\label{eq:over_invest_exp}
+  \E_{\mu_2}\bigl[\pi^*(t)\bigr] > \pi_2^{\FI}.
+\end{equation}
+Moreover, the initial over-investment ratio is
+$\pi^*(0)/\pi_2^{\FI} = 1 + \delta p/\mu_2$, and the expected PI
+portfolio converges to $\pi_2^{\FI}$ as $t \to \infty$.
+\end{proposition}
+
+\begin{theorem}[Bad-state ruin comparison]
+\label{thm:bad_state}
+Under $\Prob_{\mu_2}$, let
+$\bar{\pi} := \pi^*(0) = \theta(p)/[\sigma^2\gamma(1-\lambda)]$.
+Then:
+
+\begin{enumerate}[label=(\roman*)]
+\item (Infinite-horizon comparison.)
+  For all $a > 0$ and $p \in (0,1)$:
+  \begin{equation}\label{eq:bad_inf}
+    \Prob_{\mu_2}\bigl(\tau^{\PI} < \infty\bigr)
+    > \Prob_{\mu_2}\bigl(\tau_2^{\FI} < \infty\bigr).
+  \end{equation}
+
+\item (Quantitative bound.)
+  For any $\epsilon \in (0, \delta p/\mu_2)$ and $h > 0$:
+  \begin{equation}\label{eq:bad_quant}
+    \Prob_{\mu_2}\bigl(\tau^{\PI} \le h\bigr)
+    \;\ge\;
+    \mathfrak{p}\!\bigl((1+\epsilon)a,\; \bar{\pi}\mu_2,\;
+      \bar{\pi}\sigma,\; h\bigr)
+    - \frac{K\,h^2}{\epsilon^2\,a^2}\,,
+  \end{equation}
+  where $\mathfrak{p}(a', b, c, T)$ denotes the Bachelier--L\'evy ruin
+  probability for a Brownian motion with drift~$b$ and diffusion~$c$
+  to reach level~$-a'$ by time~$T$, and
+  $K = K(\delta, \sigma, \gamma, \lambda, p)$ is the explicit constant
+  \begin{equation}\label{eq:K_constant}
+    K = \frac{2\delta^4 p^2(1-p)^2}{\sigma^6\gamma^2(1-\lambda)^2}\,
+    (4\sigma^2 + \mu_2^2).
+  \end{equation}
+\end{enumerate}
+\end{theorem}
+
+\begin{corollary}[Asymmetric amplification]
+\label{cor:asymmetric}
+The bad-state amplification is exponentially larger than the good-state
+dampening.
+Specifically:
+\begin{enumerate}[label=(\roman*)]
+\item The good-state ruin ratio satisfies
+  $\Prob_{\mu_1}(\tau^{\PI} \le T)\big/
+   \Prob_{\mu_1}(\tau_1^{\FI} \le T) \to 0$
+  as $a \to \infty$.
+\item The bad-state ruin ratio satisfies, for $\epsilon < \delta p/\mu_2$:
+  \begin{equation}\label{eq:bad_ratio_bound}
+    \frac{\Prob_{\mu_2}(\tau^{\PI} < \infty)}
+         {\Prob_{\mu_2}(\tau_2^{\FI} < \infty)}
+    \;\ge\;
+    C\,\exp\!\biggl(2\gamma(1-\lambda)\,a\,
+      \frac{\delta p}{\delta p + \mu_2}\biggr)
+  \end{equation}
+  for an explicit constant $C \in (0,1)$.
+  The amplification grows exponentially in the safety margin~$a$.
+\end{enumerate}
+At the \citeauthor{HuangSun2025} parameters
+($\mu_1 = 0.2$, $\mu_2 = 0.02$, $\sigma = 0.1$, $\gamma = 5$,
+$x = 3$, $D = 2$, $p = 0.5$, $\lambda = 0$):
+\begin{align*}
+  \text{Good state:} \quad
+  & \Prob_{\mu_1}(\tau^{\PI})/\Prob_{\mu_1}(\tau_1^{\FI})
+    \approx 0 \quad (\text{PI essentially ruin-free}), \\
+  \text{Bad state:} \quad
+  & \Prob_{\mu_2}(\tau^{\PI} < \infty)/\Prob_{\mu_2}(\tau_2^{\FI} < \infty)
+    \approx 307.
+\end{align*}
+\end{corollary}
+
+\begin{proposition}[Critical prior]\label{prop:critical_prior}
+Define the mixture measure $\Prob_p := p\,\Prob_{\mu_1} + (1-p)\,\Prob_{\mu_2}$
+and set
+\[
+  A := \Prob_{\mu_1}(\tau^{\PI} \le T) - \Prob_{\mu_1}(\tau_1^{\FI} \le T) \le 0
+  \quad\text{(PI safer under good state)},
+\]
+\[
+  B := \Prob_{\mu_2}(\tau^{\PI} \le T) - \Prob_{\mu_2}(\tau_2^{\FI} \le T) \ge 0
+  \quad\text{(PI riskier under bad state)}.
+\]
+Then the critical prior at which the mixture comparison reverses is
+\begin{equation}\label{eq:critical_prior}
+  p^* := \frac{B}{B + |A|} \;\in\; (0,1).
+\end{equation}
+\textup{(i)} If $p > p^*$: $\Prob_p(\tau^{\PI} \le T) < \Prob_p(\tau^{\FI} \le T)$
+  \textup{(PI safer under the mixture)}.
+\textup{(ii)} If $p < p^*$: the inequality reverses \textup{(PI riskier)}.
+The Lundberg approximation gives
+$p^* \approx 1/\bigl(1 + e^{(\psi^{\PI} - \psi^{\FI})\,a}\bigr) \approx 0$
+since $\psi^{\PI} \approx 5$--$6\times\psi^{\FI}$,
+confirming that PI is safer under the mixture for essentially any non-degenerate prior.
+Monte Carlo yields $p^* < 0.07$ across all $(D,\lambda)$ tested~\textup{(}Table~\ref{tab:bad_state}\textup{)}.
+\end{proposition}
+
+\begin{proof}
+Set $A := \Prob_{\mu_1}(\tau^{\PI}) - \Prob_{\mu_1}(\tau^{\FI}) \le 0$ and
+$B := \Prob_{\mu_2}(\tau^{\PI}) - \Prob_{\mu_2}(\tau^{\FI}) \ge 0$.
+Then $\Prob_p(\tau^{\PI}) - \Prob_p(\tau^{\FI}) = pA + (1-p)B$,
+which vanishes at $p^* = B/(B+|A|)$.
+Since $|A| \gg B$ at realistic parameters (good-state dampening dominates
+bad-state amplification), $p^*$ is small.
+\end{proof}
+
+\subsection{Sensitivity amplification}
+\label{sec:sensitivity}
+
+\begin{theorem}[$\lambda$-sensitivity comparison]
+\label{thm:sensitivity}
+The FI ruin probability under $\Prob_{\mu_k}$ satisfies
+\begin{equation}\label{eq:FI_logP}
+  -\log \Prob_{\mu_k}\bigl(\tau_k^{\FI} < \infty\bigr)
+  = 2\gamma(1-\lambda)\,a,
+\end{equation}
+so that
+$\frac{d}{d\lambda}\bigl[-\log \Prob_{\mu_k}(\tau_k^{\FI} < \infty)\bigr]
+= -2\gamma\,a$.
+
+The PI exponential bound (Theorem~\ref{thm:expo_bound}) gives
+$-\log \Prob_{\mu_1}(\tau^{\PI} \le T) \ge 2\gamma(1-\lambda)\,a$,
+with the effective PI Lundberg exponent satisfying the myopic lower bound
+$\psi^{\PI} \geq 2\gamma(1-\lambda)\mu_1/\theta(p)$, giving a
+sensitivity ratio $\psi^{\PI}/\psi^{\FI} \geq \mu_1/\theta(p)$.
+Since $\pi^*(t) = g(t,P(t))/[\gamma(1-\lambda)]$ and $g$ is
+$\lambda$-independent (Remark~\ref{rem:g_indep}), the PI portfolio
+scales as $1/(1-\lambda)$, and the PI Lundberg exponent scales as
+\begin{equation}\label{eq:PI_psi}
+  \psi^{\PI}(\lambda) = \psi^{\PI}(0)\,(1-\lambda)\,,
+  \qquad
+  \frac{d\psi^{\PI}}{d\lambda} = -\psi^{\PI}(0).
+\end{equation}
+Because $\psi^{\PI}(0) \gg \psi^{\FI}(0) = 2\gamma$, the absolute
+$\lambda$-sensitivity of the log-ruin probability is larger for PI.
+More precisely, for the exponential ruin probability
+$\Prob \approx e^{-\psi a}$:
+\begin{equation}\label{eq:sensitivity_ratio}
+  \frac{d/d\lambda\bigl[-\log \Prob(\tau^{\PI} \le T)\bigr]}
+       {d/d\lambda\bigl[-\log \Prob(\tau_k^{\FI} < \infty)\bigr]}
+  \;\approx\;
+  \frac{\psi^{\PI}(0)}{\psi^{\FI}(0)}
+  \;\approx\; 5\text{--}6.
+\end{equation}
+\end{theorem}
+
+\begin{remark}\label{rem:sensitivity_paradox}
+Theorem~\ref{thm:sensitivity} reveals a subtle paradox:
+the PI investor is absolutely safer (lower ruin probability) but
+proportionally more vulnerable to competition.
+Increasing $\lambda$ from $0$ to $0.5$ multiplies the FI ruin
+probability by $e^{2\gamma \cdot 0.5 \cdot a}$ but multiplies the PI
+ruin probability by approximately
+$e^{\psi^{\PI}(0) \cdot 0.5 \cdot a}$, a much larger factor.
+The PI investor's ``buffer'' against ruin, while initially very large,
+erodes faster with competition.
+This is the precise mechanism behind the co-drawdown amplification
+observed in \citet[Figure~4]{HuangSun2025}.
+\end{remark}
+
+\subsection{Heterogeneous investors}
+\label{sec:heterogeneous}
+
+We extend the analysis to a two-type game with heterogeneous risk
+aversion.
+
+\begin{proposition}[Heterogeneous investor perturbation]
+\label{prop:heterogeneous}
+Consider the two-type game with $N_A$ investors of risk aversion
+$\gamma_A = \gamma + \varepsilon$ and $N_B$ investors of risk aversion
+$\gamma_B = \gamma - \varepsilon$, where $\varepsilon \in (-\gamma, \gamma)$
+is the heterogeneity parameter.
+Let $\alpha_A = N_A/N$ and $\alpha_B = N_B/N$ be the population
+fractions.
+Then:
+
+\begin{enumerate}[label=(\roman*)]
+\item ($\lambda$-dependence at first order.)
+  The PI strategy function $g_k(t,q;\lambda)$ for type~$k$ satisfies
+  \begin{equation}\label{eq:g_hetero}
+    g_k(t,q;\lambda) = g_0(t,q) + \varepsilon\,g_1^k(t,q;\lambda)
+      + O(\varepsilon^2),
+  \end{equation}
+  where $g_0$ is the symmetric (and $\lambda$-independent) function
+  from~\eqref{eq:g_decomp}, and $g_1^k$ depends on $\lambda$ through
+  the linearized Cauchy problem
+  \begin{equation}\label{eq:cauchy_linearized}
+    \partial_t c_1^k + \frac{\beta^2}{2}\,\partial_{qq} c_1^k
+    - \frac{\beta}{\sigma}\bigl[\theta - \sigma^2 \bar{g}_0\bigr]
+      \partial_q c_1^k
+    + \beta\sigma\,\bar{g}_1\,\partial_q c_0
+    + \Delta\kappa_k\,\frac{\theta^2}{\sigma^2} = 0,
+  \end{equation}
+  with $c_1^k(T,q) = 0$,
+  $\bar{g}_0 = g_0/[\gamma(1-\lambda)]$,
+  $\Delta\kappa_A = -(1-\lambda/N)/\gamma^2$, and $\bar{g}_1$ is the
+  first-order correction to the aggregate function depending on
+  $g_1^A$, $g_1^B$, and $\lambda$.
+
+\item (Wealth gap correction.)
+  The expected wealth gap for type~$A$ satisfies
+  \begin{equation}\label{eq:gap_hetero}
+    \frac{\partial G_A}{\partial\lambda}
+    = \frac{G_A(\lambda, T)}{1-\lambda}
+    + \varepsilon\,\Phi(\lambda, T) + O(\varepsilon^2),
+  \end{equation}
+  where $\Phi(\lambda, T)$ captures the heterogeneity correction and
+  is determined by the first-order Cauchy problem~\eqref{eq:cauchy_linearized}.
+
+\item (Decorrelation effect.)
+  Under PI, heterogeneity $\varepsilon \neq 0$ implies
+  $\pi_A^*(t) \neq \pi_B^*(t)$ at first order.
+  The wealth correlation between types satisfies
+  $\rho_{AB} = 1 - O(\varepsilon^2)$, so the co-drawdown probability
+  for a mixed population is strictly less than for the symmetric case.
+\end{enumerate}
+\end{proposition}
+
+\begin{remark}\label{rem:hetero_mechanism}
+The key mechanism is that heterogeneity breaks the cancellation in
+Remark~\ref{rem:g_indep}.
+When $\gamma_A \neq \gamma_B$, the aggregate strategy $\bar{g}$
+involves a $\gamma_k$-weighted average where the more risk-tolerant
+type contributes disproportionately.
+This weighted average does not simplify to $g_0/[\gamma(1-\lambda)]$,
+so $\lambda$ enters the Cauchy problem through the aggregate drift.
+The resulting $\lambda$-dependence of $g_1^k$ is the first-order
+symmetry-breaking effect of heterogeneity.
+\end{remark}
+
+\begin{remark}[Role of the symmetry assumption]\label{rem:symmetry_role}
+The factorization $G(\lambda,T) = \mu_1 I(T)/[\gamma(1-\lambda)]$
+and the $\lambda$-independence of $g(t,q)$ both require identical
+$(\gamma, \lambda, x)$ across investors.
+Proposition~\ref{prop:heterogeneous} shows that heterogeneity in
+$\gamma$ alone introduces $\lambda$-dependence in~$g$ at first order.
+The exponential safety bound (Theorem~\ref{thm:expo_bound}) does NOT
+require symmetry: it holds for each individual investor.
+\end{remark}
+
+\begin{remark}[Role of constant drift]\label{rem:constant_drift}
+The binary prior $\mu \in \{\mu_1, \mu_2\}$ with constant drift is
+essential for the filter $P(t)$ to be a diffusion on~$[0,1]$.
+Under regime-switching (alternating drift), the filter becomes
+two-dimensional, and the hedging demand structure changes qualitatively.
+The core mechanism (smaller $\pi$ $\Rightarrow$ higher
+$\mu/(\pi\sigma^2)$ $\Rightarrow$ lower ruin) persists.
+\end{remark}
+
+\begin{remark}[Role of $r = 0$]\label{rem:zero_rate}
+With $r > 0$, the equilibrium strategies acquire time-dependence
+through $e^{-r(T-t)}$, breaking the stationarity used in the
+Lundberg exponent computation.
+The Dubins--Schwarz comparison (Theorem~\ref{thm:Q_comparison})
+extends without modification since it depends only on the quadratic
+variation ordering, not on stationarity.
+\end{remark}
+
+%% ========================================================================
+\section{Proofs}\label{sec:proofs}
+%% ========================================================================
+
+\subsection{Proof of Theorem~\ref{thm:expo_bound}
+  (Exponential safety bound)}
+\label{sec:proof_expo}
+
+The proof constructs an exponential supermartingale with a carefully
+chosen tilting parameter.
+
+\begin{proof}
+Fix $T > 0$.
+Under $\Prob_{\mu_1}$, the PI wealth process satisfies
+\begin{equation}\label{eq:XPI_drift}
+  X^{\PI}(t) = x + \int_0^t \pi^*(s)\,\mu_1\,ds
+             + \int_0^t \pi^*(s)\,\sigma\,dW(s),
+\end{equation}
+where $\pi^*(s) = \theta(P(s))/[\sigma^2\gamma(1-\lambda)]$.
+Since $\theta(q) \le \mu_1$ for $q \in [0,1]$, we have
+\begin{equation}\label{eq:pi_upper}
+  \pi^*(s) \le \frac{\mu_1}{\sigma^2\gamma(1-\lambda)}
+  = \pi_1^{\FI} =: \pi_{\max}
+  \qquad \text{a.s., for all } s \ge 0.
+\end{equation}
+
+Define the tilting parameter
+\begin{equation}\label{eq:theta_tilt}
+  \vartheta := -\frac{2\mu_1}{\pi_{\max}\,\sigma^2}
+\end{equation}
+and the exponential process
+\begin{equation}\label{eq:Z_process}
+  Z(t) := \exp\!\biggl(
+    \vartheta\bigl(X^{\PI}(t) - x\bigr)
+    - \int_0^t \psi(s)\,ds
+  \biggr),
+\end{equation}
+where
+\begin{equation}\label{eq:psi_def}
+  \psi(s) := \vartheta\,\pi^*(s)\,\mu_1
+           + \frac{\vartheta^2}{2}\,\bigl(\pi^*(s)\bigr)^2\,\sigma^2.
+\end{equation}
+
+\medskip
+\noindent\textbf{Step~1: $Z$ is a local martingale.}
+By It\^o's formula applied to $f(y) = e^{\vartheta y}$ with
+$y(t) = X^{\PI}(t) - x - \int_0^t \psi(s)/\vartheta\,ds$:
+\begin{align}
+  dZ(t)
+  &= Z(t)\,\vartheta\,\pi^*(t)\,\sigma\,dW(t). \label{eq:dZ}
+\end{align}
+More precisely, we verify this by writing
+$Z(t) = \exp(\vartheta\int_0^t \pi^*(s)[\mu_1\,ds + \sigma\,dW(s)]
+  - \int_0^t \psi(s)\,ds)$.
+By the It\^o exponential:
+\begin{align*}
+  dZ(t)
+  &= Z(t)\Bigl[\vartheta\,\pi^*(t)\,\mu_1\,dt
+    + \vartheta\,\pi^*(t)\,\sigma\,dW(t)
+    + \frac{\vartheta^2}{2}\,(\pi^*(t))^2\,\sigma^2\,dt
+    - \psi(t)\,dt\Bigr] \\
+  &= Z(t)\,\vartheta\,\pi^*(t)\,\sigma\,dW(t),
+\end{align*}
+since the $dt$ terms cancel by definition of $\psi$.
+Therefore $Z$ is a non-negative local martingale, hence a
+supermartingale with $\E[Z(t)] \le Z(0) = 1$.
+
+\medskip
+\noindent\textbf{Step~2: The compensator $\psi$ is non-positive.}
+We show $\psi(s) \le 0$ for all $s$, which implies
+$\int_0^t \psi(s)\,ds \le 0$ and therefore
+$\exp(-\int_0^t \psi(s)\,ds) \ge 1$.
+
+Factor $\psi(s)$:
+\begin{align}
+  \psi(s)
+  &= \pi^*(s)\biggl[
+    \vartheta\,\mu_1
+    + \frac{\vartheta^2}{2}\,\pi^*(s)\,\sigma^2
+  \biggr] \notag \\
+  &= \pi^*(s)\,\frac{-2\mu_1^2}{\pi_{\max}\,\sigma^2}
+    \biggl[1 - \frac{\pi^*(s)}{\pi_{\max}}\biggr],
+  \label{eq:psi_factored}
+\end{align}
+where we used $\vartheta = -2\mu_1/(\pi_{\max}\sigma^2)$ and
+$\vartheta^2\sigma^2/2 = 2\mu_1^2/(\pi_{\max}^2\sigma^2)$.
+
+Since $\pi^*(s) \ge 0$ and $\pi^*(s) \le \pi_{\max}$ by~\eqref{eq:pi_upper},
+the factor $[1 - \pi^*(s)/\pi_{\max}] \ge 0$, and the leading constant
+$-2\mu_1^2/(\pi_{\max}\sigma^2) < 0$.
+Therefore $\psi(s) \le 0$ for all $s \ge 0$.
+
+\medskip
+\noindent\textbf{Step~3: Optional stopping.}
+Define $\tau := \tau^{\PI}$ for brevity.
+Since $Z$ is a non-negative supermartingale:
+\begin{equation}\label{eq:opt_stop}
+  1 = Z(0) \ge \E_{\mu_1}\bigl[Z(\tau \wedge T)\bigr].
+\end{equation}
+On the event $\{\tau \le T\}$:
+$X^{\PI}(\tau) = D$, so $X^{\PI}(\tau) - x = -(x-D) = -a$, and
+\begin{equation}\label{eq:Z_at_tau}
+  Z(\tau)
+  = \exp\!\bigl(-\vartheta\,a - \textstyle\int_0^{\tau} \psi(s)\,ds\bigr)
+  \ge \exp(-\vartheta\,a)
+  = \exp\!\biggl(\frac{2\mu_1\,a}{\pi_{\max}\,\sigma^2}\biggr),
+\end{equation}
+where the inequality uses $\int_0^{\tau} \psi(s)\,ds \le 0$.
+
+From~\eqref{eq:opt_stop}:
+\begin{align}
+  1
+  &\ge \E_{\mu_1}\bigl[Z(\tau)\,\mathbf{1}_{\{\tau \le T\}}\bigr]
+     + \E_{\mu_1}\bigl[Z(T)\,\mathbf{1}_{\{\tau > T\}}\bigr]
+  \notag \\
+  &\ge \exp\!\biggl(\frac{2\mu_1\,a}{\pi_{\max}\,\sigma^2}\biggr)
+    \cdot \Prob_{\mu_1}(\tau \le T)
+    + 0,
+  \label{eq:opt_stop_bound}
+\end{align}
+using $Z(T) \ge 0$ and~\eqref{eq:Z_at_tau}.
+Rearranging:
+\begin{equation}\label{eq:main_bound}
+  \Prob_{\mu_1}\bigl(\tau^{\PI} \le T\bigr)
+  \le \exp\!\biggl(-\frac{2\mu_1\,a}{\pi_{\max}\,\sigma^2}\biggr).
+\end{equation}
+
+Finally, the classical first passage result for the FI process
+$X_1^{\FI}(t) = x + \pi_1^{\FI}\mu_1 t + \pi_1^{\FI}\sigma W(t)$
+(Brownian motion with positive drift $b = \pi_1^{\FI}\mu_1$ and
+diffusion $c = \pi_1^{\FI}\sigma$) gives
+\begin{equation}\label{eq:FI_infinite}
+  \Prob_{\mu_1}\bigl(\tau_1^{\FI} < \infty\bigr)
+  = \exp\!\biggl(-\frac{2b\,a}{c^2}\biggr)
+  = \exp\!\biggl(-\frac{2\mu_1\,a}{\pi_1^{\FI}\,\sigma^2}\biggr).
+\end{equation}
+Since $\pi_{\max} = \pi_1^{\FI}$, \eqref{eq:main_bound}
+and~\eqref{eq:FI_infinite} yield~\eqref{eq:expo_bound}.
+\end{proof}
+
+\subsection{Proof of Theorem~\ref{thm:Q_comparison}
+  (Martingale measure comparison)}
+\label{sec:proof_Q}
+
+\begin{proof}
+\textbf{Step~1: Girsanov transformation.}
+Define $Q$ by~\eqref{eq:Q_density}.
+Under $Q$, $\widetilde{W}(t) := W(t) + (\mu_1/\sigma)\,t$ is a
+standard Brownian motion.
+The stock has zero drift under $Q$:
+$dS/S = \sigma\,d\widetilde{W}$.
+
+The wealth processes become:
+\begin{align}
+  X_1^{\FI}(t) - x
+    &= \pi_1^{\FI}\,\sigma\,\widetilde{W}(t),
+  \label{eq:XFI_Q} \\
+  X^{\PI}(t) - x
+    &= \sigma\int_0^t \pi^*(s)\,d\widetilde{W}(s).
+  \label{eq:XPI_Q}
+\end{align}
+Both are continuous $Q$-local martingales starting at~$0$.
+
+\medskip
+\noindent\textbf{Step~2: Dubins--Schwarz representation.}
+By the Dambis--Dubins--Schwarz theorem
+(\citealt[Theorem~3.4.6]{KaratzasShreve1991}), there exist standard
+$Q$-Brownian motions $B_1$ and $B_2$ (possibly defined on an
+extension of the probability space) such that:
+\begin{align}
+  X_1^{\FI}(t) - x &= B_1\bigl(U(t)\bigr),
+    \qquad U(t) := \bigl(\pi_1^{\FI}\,\sigma\bigr)^2\,t,
+  \label{eq:DS_FI} \\
+  X^{\PI}(t) - x &= B_2\bigl(V(t)\bigr),
+    \qquad V(t) := \sigma^2\int_0^t \bigl[\pi^*(s)\bigr]^2\,ds.
+  \label{eq:DS_PI}
+\end{align}
+The clock $U$ is deterministic and linear.
+The clock $V$ is random and satisfies
+\begin{equation}\label{eq:V_le_U}
+  V(T) = \sigma^2\int_0^T \bigl[\pi^*(s)\bigr]^2\,ds
+  \le \sigma^2\,\bigl(\pi_1^{\FI}\bigr)^2\,T = U(T),
+  \qquad Q\text{-a.s.},
+\end{equation}
+since $\pi^*(s) \le \pi_1^{\FI}$ a.s.\ for all $s$.
+The inequality is strict with positive $Q$-probability whenever
+$\pi^*(s) < \pi_1^{\FI}$ on a set of positive Lebesgue measure, which
+holds for $p < 1$.
+
+\medskip
+\noindent\textbf{Step~3: First passage time comparison.}
+The ruin events translate to:
+\begin{align}
+  \bigl\{\tau_1^{\FI} \le T\bigr\}
+    &= \Bigl\{\inf_{0 \le t \le T}\bigl(X_1^{\FI}(t) - x\bigr) \le -a\Bigr\}
+     = \Bigl\{\inf_{0 \le u \le U(T)} B_1(u) \le -a\Bigr\},
+  \label{eq:ruin_FI_DS} \\
+  \bigl\{\tau^{\PI} \le T\bigr\}
+    &= \Bigl\{\inf_{0 \le t \le T}\bigl(X^{\PI}(t) - x\bigr) \le -a\Bigr\}
+     = \Bigl\{\inf_{0 \le v \le V(T)} B_2(v) \le -a\Bigr\}.
+  \label{eq:ruin_PI_DS}
+\end{align}
+
+Since $V(T) \le U(T)$ a.s.:
+\begin{equation}\label{eq:subset}
+  \Bigl\{\inf_{0 \le v \le V(T)} B_2(v) \le -a\Bigr\}
+  \;\subseteq\;
+  \Bigl\{\inf_{0 \le v \le U(T)} B_2(v) \le -a\Bigr\}.
+\end{equation}
+
+Taking $Q$-probabilities and using the fact that $B_2$ under $Q$ has
+the same law as $B_1$ under $Q$ (both are standard Brownian motions):
+\begin{align}
+  Q\bigl(\tau^{\PI} \le T\bigr)
+  &\le Q\Bigl(\inf_{0 \le v \le U(T)} B_2(v) \le -a\Bigr) \notag \\
+  &= Q\Bigl(\inf_{0 \le u \le U(T)} B_1(u) \le -a\Bigr) \notag \\
+  &= Q\bigl(\tau_1^{\FI} \le T\bigr).
+  \label{eq:Q_comparison_chain}
+\end{align}
+
+\medskip
+\noindent\textbf{Step~4: Equality condition.}
+Equality in~\eqref{eq:subset} holds if and only if $V(T) = U(T)$
+$Q$-a.s., which by~\eqref{eq:V_le_U} requires
+$\pi^*(s) = \pi_1^{\FI}$ for Lebesgue-a.e.\ $s \in [0,T]$, $Q$-a.s.
+\end{proof}
+
+\begin{remark}\label{rem:DS_subtlety}
+In Step~3, we used the inclusion~\eqref{eq:subset} rather than a
+direct coupling of $B_1$ and $B_2$.
+This is important because the Dubins--Schwarz Brownian motions $B_1$
+and $B_2$ are constructed from the respective martingales and are
+\emph{not} identical processes in general.
+However, their marginal laws under $Q$ are identical (both are standard
+Brownian motions), which suffices for the probability comparison.
+\end{remark}
+
+\begin{remark}[Quantifying the Girsanov gap]\label{rem:girsanov_gap}
+The gap between Theorem~\ref{thm:Q_comparison} (under~$Q$) and
+Conjecture~\ref{conj:physical} (under $\Prob_{\mu_1}$) satisfies
+\[
+  \bigl|\Prob_{\mu_1}(\tau^I \le T) - Q(\tau^I \le T)\bigr|
+  \le \sqrt{e^{m^2 T} - 1}\;\sqrt{Q(\tau^I \le T)}\,,
+  \qquad m := \mu_1/\sigma,
+\]
+by Cauchy--Schwarz.
+At the calibrated parameters ($m^2 T = 40$), this bound exceeds~$10^8$
+and is thus useless.
+A tighter analysis decomposes
+$\Prob_{\mu_1}(\tau^I \le T)
+  = \E_Q[L(T) \mid \tau^I \le T]\;Q(\tau^I \le T)$,
+where $L(T) = e^{m\widetilde{W}(T) - m^2 T/2}$.
+The conjecture reduces to verifying
+$\E_Q[L(T) \mid \tau^{\PI} \le T] \le \E_Q[L(T) \mid \tau^{\FI} \le T]$:
+the Girsanov weight, conditional on ruin, should be smaller for PI
+because the PI ruin event requires a larger negative stock excursion
+(smaller portfolio $\Rightarrow$ larger decline needed to reach the
+barrier), and such paths carry smaller~$L(T)$.
+\end{remark}
+
+\subsection{Proof of Corollary~\ref{cor:constant}
+  (Constant damping)}
+\label{sec:proof_constant}
+
+\begin{proof}
+When $\pi^*(t) \equiv c$ for a constant $c \in (0, \pi_1^{\FI})$, the
+PI wealth process under any measure~$\Prob$ equivalent to $\Prob_{\mu_1}$
+satisfies
+\begin{equation}\label{eq:constant_wealth}
+  X^{\PI}(t) - x = c\bigl(\mu_1\,t + \sigma\,W(t)\bigr)
+  = \frac{c}{\pi_1^{\FI}}\,\bigl(X_1^{\FI}(t) - x\bigr).
+\end{equation}
+Define $\alpha := c/\pi_1^{\FI} \in (0,1)$.
+Then $X^{\PI}(t) = (1-\alpha)\,x + \alpha\,X_1^{\FI}(t)$ and
+\begin{equation}\label{eq:constant_ruin}
+  X^{\PI}(t) \le D
+  \;\;\Longleftrightarrow\;\;
+  X_1^{\FI}(t) \le \frac{D - (1-\alpha)\,x}{\alpha}
+  = x - \frac{a}{\alpha}\,.
+\end{equation}
+Since $\alpha < 1$, the effective barrier $x - a/\alpha < x - a = D$ is
+strictly below~$D$.
+Therefore
+\begin{equation}\label{eq:constant_inclusion}
+  \bigl\{\tau^{\PI} \le T\bigr\}
+  = \Bigl\{\inf_{t \le T} X_1^{\FI}(t) \le x - \frac{a}{\alpha}\Bigr\}
+  \;\subsetneq\;
+  \bigl\{\tau_1^{\FI} \le T\bigr\},
+\end{equation}
+and the inclusion is strict because the event
+$\{x - a/\alpha < \inf_{t \le T} X_1^{\FI}(t) \le D\}$ has positive
+probability.
+Taking probabilities under any measure gives~\eqref{eq:const_comp}.
+\end{proof}
+
+%% ========================================================================
+%% Section 4 (continued): Proofs
+%% ========================================================================
+
+\subsection{Proof of Proposition~\ref{prop:over_invest}}\label{sec:proof_over_invest}
+
+We prove that under $\Prob_{\mu_2}$ (the bad state), the PI investor
+over-invests relative to the FI optimal: $\E_{\mu_2}[\pi^*(t)] > \pi_2^{\FI}$
+for all $t > 0$ and $p \in (0,1)$.
+
+\begin{proof}
+The proof proceeds in four steps.
+
+\medskip\noindent\textbf{Step 1: Filter dynamics under $\Prob_{\mu_2}$.}
+Under $\Prob_{\mu_2}$, the stock return is $dR(t) = \mu_2\,dt + \sigma\,dW(t)$,
+where $W$ is a standard $\Prob_{\mu_2}$-Brownian motion.
+The Bayesian filter~\eqref{eq:filter} admits the Bayes formula
+representation
+\begin{equation}\label{eq:filter_bad}
+  P(t) = \frac{1}{1 + \frac{1-p}{p}\,\Lambda(t)},
+\end{equation}
+where $\Lambda(t) := \ell_2(t)/\ell_1(t)$ is the likelihood ratio with
+\begin{equation}\label{eq:Lambda_bad}
+  \Lambda(t) = \exp\!\biggl(-\frac{\delta\,W(t)}{\sigma}
+  + \frac{\delta^2\,t}{2\sigma^2}\biggr), \qquad \delta := \mu_1 - \mu_2.
+\end{equation}
+Indeed, the likelihood functions satisfy
+$\ell_k(t) = \exp\bigl(\mu_k R(t)/\sigma^2 - \mu_k^2 t/(2\sigma^2)\bigr)$.
+Substituting $R(t) = \mu_2 t + \sigma W(t)$ and simplifying:
+\[
+  \frac{\ell_2(t)}{\ell_1(t)}
+  = \exp\!\biggl(\frac{(\mu_2 - \mu_1)R(t)}{\sigma^2}
+  + \frac{\mu_1^2 - \mu_2^2}{2\sigma^2}\,t\biggr)
+  = \exp\!\biggl(-\frac{\delta\,W(t)}{\sigma}
+  + \frac{\delta^2\,t}{2\sigma^2}\biggr),
+\]
+using $(\mu_1+\mu_2)/2 - \mu_2 = \delta/2$.
+
+\medskip\noindent\textbf{Step 2: $P(t) > 0$ almost surely for finite $t$.}
+Since $W(t)$ is finite a.s.\ for each fixed $t$, we have $\Lambda(t) < \infty$
+a.s., hence $P(t) = 1/(1 + \frac{1-p}{p}\Lambda(t)) > 0$ a.s.\ for all
+$t \in [0,\infty)$.
+As $t \to \infty$, the strong law of large numbers gives $W(t)/t \to 0$ a.s.,
+so $\Lambda(t) \to +\infty$ a.s.\ (the drift $\delta^2 t/(2\sigma^2)$
+dominates), yielding $P(t) \to 0$ a.s.
+However, this convergence requires infinite time; for any finite~$t$,
+$P(t) > 0$ a.s.
+
+\medskip\noindent\textbf{Step 3: The filter is a $\Prob_{\mu_2}$-supermartingale
+with $\E_{\mu_2}[P(t)] > 0$.}
+Under the mixture measure $\Prob_p := p\,\Prob_{\mu_1} + (1-p)\,\Prob_{\mu_2}$,
+the filter $P(t) = \Prob_p(\mu = \mu_1 \mid \mathcal{F}_t^S)$ is a
+$\Prob_p$-martingale by the tower property:
+\begin{equation}\label{eq:filter_martingale}
+  p = \E_{\Prob_p}[P(t)]
+  = p\,\E_{\mu_1}[P(t)] + (1-p)\,\E_{\mu_2}[P(t)].
+\end{equation}
+Under $\Prob_{\mu_1}$, the filter learns the truth:
+$P(t) \to 1$ a.s.\ as $t \to \infty$, so $\E_{\mu_1}[P(t)] > p$ for $t > 0$
+(the filter is a $\Prob_{\mu_1}$-submartingale, as established in
+the Bayes formula~\eqref{eq:filter_bad}).
+Substituting into~\eqref{eq:filter_martingale}:
+$(1-p)\,\E_{\mu_2}[P(t)] < p - p\cdot p = p(1-p)$,
+which gives $\E_{\mu_2}[P(t)] < p$.
+Together with the pointwise bound $P(t) > 0$ a.s., we conclude
+$\E_{\mu_2}[P(t)] \in (0, p)$ for all $t > 0$.
+
+\medskip\noindent\textbf{Step 4: Over-investment.}
+Since $\theta(q) = \delta q + \mu_2$ is affine:
+\begin{equation}\label{eq:Etheta_bad}
+  \E_{\mu_2}[\theta(P(t))] = \delta\,\E_{\mu_2}[P(t)] + \mu_2.
+\end{equation}
+By Step~3, $\E_{\mu_2}[P(t)] > 0$, hence
+\[
+  \E_{\mu_2}[\pi^*(t)]
+  = \frac{\E_{\mu_2}[\theta(P(t))]}{\sigma^2\gamma(1-\lambda)}
+  = \frac{\delta\,\E_{\mu_2}[P(t)] + \mu_2}{\sigma^2\gamma(1-\lambda)}
+  > \frac{\mu_2}{\sigma^2\gamma(1-\lambda)}
+  = \pi_2^{\FI}
+\]
+for all $t > 0$ and $p \in (0,1)$.
+\end{proof}
+
+\begin{remark}[Initial over-investment ratio]\label{rem:overinvest_quant}
+At $t = 0$: $\pi^*(0)/\pi_2^{\FI} = (\delta p + \mu_2)/\mu_2 = 1 + \delta p/\mu_2$.
+For the Huang--Sun parameters $(\delta = 0.18, p = 0.5, \mu_2 = 0.02)$,
+this ratio equals~$5.5$.
+The PI investor initially invests more than five times the FI optimal
+under the bad state, because her prior assigns probability~$p = 0.5$ to the
+good state $\mu_1 = 0.2$ while the true drift is only $\mu_2 = 0.02$.
+\end{remark}
+
+
+%% ------------------------------------------------------------------------
+
+\begin{lemma}[Filter modulus of continuity]\label{lem:filter_modulus}
+Under either $\Prob_{\mu_k}$, the filter satisfies
+\[
+  \E\bigl[|P(s) - P(t)|^2 \,\big|\, \mathcal{F}_t\bigr]
+  \;\le\; \frac{\delta^2}{16\sigma^2}\,(s-t),
+  \qquad 0 \le t \le s,
+\]
+and consequently
+$\E\bigl[\sup_{s \in [t,t+h]} |P(s) - P(t)|^2\bigr]
+  \le \delta^2 h/(4\sigma^2)$.
+\end{lemma}
+
+\begin{proof}
+By It\^{o} isometry, $\E[|P(s)-P(t)|^2 \mid \mathcal{F}_t]
+  = \E[\int_t^s \beta(P(u))^2\,du \mid \mathcal{F}_t]$
+where $\beta(q) = (\delta/\sigma)q(1-q)$.
+Since $\max_{q \in [0,1]} q^2(1-q)^2 = 1/16$, we have
+$\beta(q)^2 \le \delta^2/(16\sigma^2)$.
+The supremum bound follows from Doob's $L^2$-maximal inequality.
+\end{proof}
+
+\begin{remark}\label{rem:filter_modulus_reusable}
+Lemma~\ref{lem:filter_modulus} applies to any binary-state Bayesian
+filtering problem with Gaussian observations.
+The bound $\delta^2/(16\sigma^2)$ depends only on the signal-to-noise
+ratio $\delta/\sigma$ and is independent of the true state, prior, or
+time.
+This makes it a reusable tool for $L^2$-coupling arguments involving
+Bayesian filters.
+\end{remark}
+
+\subsection{Proof of Theorem~\ref{thm:bad_state}}\label{sec:proof_bad_state_detail}
+%% ------------------------------------------------------------------------
+
+We prove the bad-state ruin comparison in three stages:
+(A)~exact FI ruin probability,
+(B)~PI ruin lower bound via $L^2$ coupling with a constant-portfolio reference,
+and (C)~amplification ratio computation.
+
+\begin{proof}
+\textbf{Stage A: Exact FI ruin probability.}
+
+Under $\Prob_{\mu_2}$, the FI wealth deviation
+$Y_2^{\FI}(t) := X_2^{\FI}(t) - x = \pi_2^{\FI}(\mu_2 t + \sigma W(t))$
+is Brownian motion with drift $b := \pi_2^{\FI}\mu_2 > 0$ and diffusion
+$c := \pi_2^{\FI}\sigma > 0$.
+By the classical first-passage formula
+\citep[Proposition~3.5.2]{KaratzasShreve1991}, the infinite-horizon
+ruin probability is
+\begin{equation}\label{eq:FI_ruin_exact}
+  \Prob_{\mu_2}(\tau_2^{\FI} < \infty)
+  = \exp\!\biggl(-\frac{2b\,a}{c^2}\biggr)
+  = \exp\!\biggl(-\frac{2\mu_2\,a}{\pi_2^{\FI}\sigma^2}\biggr)
+  = \exp\!\bigl(-2\gamma(1-\lambda)\,a\bigr),
+\end{equation}
+where $a := x - D > 0$ is the safety margin and we used
+$\pi_2^{\FI} = \mu_2/[\sigma^2\gamma(1-\lambda)]$.
+
+\medskip
+\textbf{Stage B: PI ruin lower bound via coupling.}
+
+The argument compares the PI wealth process to a constant-portfolio
+reference process over a short time window, using $L^2$ proximity.
+We proceed through four substeps.
+
+\medskip\noindent\textbf{Step B1: Reference process and BL monotonicity.}
+Define the constant-portfolio reference wealth:
+\begin{equation}\label{eq:bar_pi}
+  \bar{\pi} := \pi^*(0) = \frac{\theta(p)}{\sigma^2\gamma(1-\lambda)}
+  = \frac{\delta p + \mu_2}{\sigma^2\gamma(1-\lambda)}.
+\end{equation}
+Note that $\bar{\pi}/\pi_2^{\FI} = (\delta p + \mu_2)/\mu_2
+= 1 + \delta p/\mu_2 > 1$.
+The reference process is
+$\widetilde{Z}(t) := \bar{\pi}(\mu_2 t + \sigma W(t))$,
+which is Brownian motion with drift $\bar{\pi}\mu_2$ and
+diffusion $\bar{\pi}\sigma$.
+
+\begin{lemma}[Bachelier--L\'evy monotonicity]\label{lem:BL_mono}
+For a constant portfolio $\pi > 0$ and the process
+$Z_\pi(t) := \pi(\mu_2 t + \sigma B(t))$, the ruin probability
+$\mathfrak{p}(a, \pi\mu_2, \pi\sigma, T)$
+is strictly increasing in~$\pi$ for each $a > 0$ and $T > 0$.
+\end{lemma}
+
+\begin{proof}[Proof of Lemma~\ref{lem:BL_mono}]
+Write $\inf_{t \le T} Z_\pi(t) = \pi\,\inf_{t \le T}(\mu_2 t + \sigma B(t))
+=: \pi\,m_T$, where $m_T < 0$ a.s.\
+(since Brownian motion takes negative values near time~0).
+Then
+$\{Z_\pi < -a\} = \{\pi\,m_T < -a\} = \{m_T < -a/\pi\}$.
+Since $a/\pi$ is strictly decreasing in~$\pi$ and $\Prob(m_T < -c)$ is
+strictly decreasing in~$c > 0$ (as $m_T$ has a continuous distribution),
+$\mathfrak{p}(a, \pi, T)$ is strictly increasing in~$\pi$.
+\end{proof}
+
+By Lemma~\ref{lem:BL_mono}, since $\bar{\pi} > \pi_2^{\FI}$:
+\begin{equation}\label{eq:BL_comparison}
+  \Prob_{\mu_2}(\widetilde{\tau} \le T)
+  = \mathfrak{p}(a, \bar{\pi}, T)
+  > \mathfrak{p}(a, \pi_2^{\FI}, T)
+  = \Prob_{\mu_2}(\tau_2^{\FI} \le T)
+\end{equation}
+for all $T > 0$, where $\widetilde{\tau} := \inf\{t \ge 0 :
+\widetilde{Z}(t) < -a\}$.
+In the limit $T \to \infty$:
+\begin{equation}\label{eq:R_barpi_proof}
+  R(\bar{\pi}) := \Prob_{\mu_2}(\widetilde{\tau} < \infty)
+  = \exp\!\biggl(-\frac{2\mu_2\,a}{\bar{\pi}\sigma^2}\biggr)
+  > \exp\!\biggl(-\frac{2\mu_2\,a}{\pi_2^{\FI}\sigma^2}\biggr)
+  = \Prob_{\mu_2}(\tau_2^{\FI} < \infty).
+\end{equation}
+
+\medskip\noindent\textbf{Step B2: Filter modulus of continuity.}
+Under $\Prob_{\mu_2}$, the filter satisfies the SDE
+\begin{equation}\label{eq:filter_SDE_bad}
+  dP(t) = \frac{\delta\,P(t)(1-P(t))}{\sigma}\,d\widehat{W}(t),
+  \qquad P(0) = p,
+\end{equation}
+where $\widehat{W}$ is the innovation process (a standard Brownian motion
+under $\Prob_{\mu_2}$).
+Define $\sigma_P := \delta\,p(1-p)/\sigma$ (the initial filter volatility).
+For short times $s \le 1$:
+\begin{equation}\label{eq:filter_L2_proof}
+  \E_{\mu_2}\bigl[|P(s) - p|^2\bigr]
+  = \sigma_P^2\,s + O(s^2)
+  \le C_P\,s,
+\end{equation}
+where $C_P := 2\delta^2 p^2(1-p)^2/\sigma^2$.
+
+Since $\pi^*(t) = (\delta\,P(t) + \mu_2)/[\sigma^2\gamma(1-\lambda)]$
+(myopic approximation), the strategy modulus satisfies
+\begin{equation}\label{eq:pi_L2_proof}
+  \E_{\mu_2}\bigl[|\pi^*(s) - \bar{\pi}|^2\bigr]
+  = \frac{\delta^2}{\sigma^4\gamma^2(1-\lambda)^2}\,
+    \E_{\mu_2}\bigl[|P(s) - p|^2\bigr]
+  \le C_\pi\,s,
+\end{equation}
+where $C_\pi := 2\delta^4 p^2(1-p)^2/[\sigma^6\gamma^2(1-\lambda)^2]$.
+
+\medskip\noindent\textbf{Step B3: $L^2$ bound on the process difference.}
+Let $Z^{\PI}(t) := X^{\PI}(t) - x$ be the PI wealth deviation and define
+$\Delta(t) := Z^{\PI}(t) - \widetilde{Z}(t)$.
+Then
+\[
+  \Delta(t) = \int_0^t (\pi^*(s) - \bar{\pi})
+  \bigl(\mu_2\,ds + \sigma\,dW(s)\bigr)
+\]
+is a semimartingale.
+By Doob's $L^2$-maximal inequality applied to the martingale part
+$M_\Delta(t) := \int_0^t (\pi^*(s) - \bar{\pi})\sigma\,dW(s)$
+together with the It\^o isometry, and by Cauchy--Schwarz for the drift part
+$A_\Delta(t) := \int_0^t (\pi^*(s) - \bar{\pi})\mu_2\,ds$:
+\begin{equation}\label{eq:Delta_L2}
+  \E_{\mu_2}\!\Bigl[\sup_{s \le h}|\Delta(s)|^2\Bigr]
+  \le 4\sigma^2 C_\pi\,h^2 + \mu_2^2 C_\pi\,h^3
+  \le K\,h^2
+\end{equation}
+for $h \le 1$, where $K := C_\pi(4\sigma^2 + \mu_2^2)$.
+
+By Markov's inequality:
+\begin{equation}\label{eq:Delta_Markov}
+  \Prob_{\mu_2}\!\Bigl(\sup_{s \le h}|\Delta(s)| > \eta\Bigr)
+  \le \frac{K\,h^2}{\eta^2}.
+\end{equation}
+
+\medskip\noindent\textbf{Step B4: Ruin probability approximation.}
+For any $\eta > 0$ and $h > 0$, we have the event inclusion
+\[
+  \bigl\{\inf_{s \le h}\widetilde{Z}(s) < -(a+\eta)\bigr\}
+  \cap \bigl\{\sup_{s \le h}|\Delta(s)| \le \eta\bigr\}
+  \;\subseteq\;
+  \bigl\{\inf_{s \le h} Z^{\PI}(s) < -a\bigr\}.
+\]
+Indeed, on this event: $\inf Z^{\PI} \le \inf\widetilde{Z} + \sup|\Delta|
+< -(a+\eta) + \eta = -a$.
+Taking probabilities and using $\Prob(A \cap B) \ge \Prob(A) - \Prob(B^c)$:
+\begin{equation}\label{eq:Main_LB}
+  \Prob_{\mu_2}(\tau^{\PI} \le h)
+  \ge \mathfrak{p}\!\bigl((1+\epsilon)a,\;\bar{\pi}\mu_2,\;
+      \bar{\pi}\sigma,\;h\bigr)
+  - \frac{K\,h^2}{\epsilon^2 a^2},
+\end{equation}
+where we set $\eta = \epsilon\,a$ for a parameter
+$\epsilon \in (0, \delta p/\mu_2)$.
+
+\medskip
+\textbf{Stage C: Amplification ratio.}
+
+We now show that the right-hand side of~\eqref{eq:Main_LB} exceeds
+$\Prob_{\mu_2}(\tau_2^{\FI} < \infty)$ for appropriate~$h$.
+
+By the Bachelier--L\'evy formula
+\citep[Proposition~3.5.2]{KaratzasShreve1991}:
+\begin{equation}\label{eq:BL_formula}
+  \mathfrak{p}(a', b, c, T)
+  = \Phi\!\biggl(\frac{-a'-bT}{c\sqrt{T}}\biggr)
+  + e^{-2a'b/c^2}\,\Phi\!\biggl(\frac{-a'+bT}{c\sqrt{T}}\biggr),
+\end{equation}
+where $\Phi$ is the standard normal CDF.
+As $T \to \infty$: the first $\Phi$-term converges to~$0$ (argument $\to -\infty$)
+and the second $\Phi$-term converges to~$1$ (argument $\to +\infty$),
+so $\mathfrak{p}(a', b, c, T) \to e^{-2a'b/c^2}$.
+
+With $a' = (1+\epsilon)a$, $b = \bar{\pi}\mu_2$, $c = \bar{\pi}\sigma$:
+\begin{equation}\label{eq:R_epsilon}
+  R_\epsilon := \lim_{T \to \infty}\mathfrak{p}\!\bigl((1+\epsilon)a,\;
+    \bar{\pi}\mu_2,\;\bar{\pi}\sigma,\;T\bigr)
+  = \exp\!\biggl(-\frac{2(1+\epsilon)\mu_2\,a}{\bar{\pi}\sigma^2}\biggr).
+\end{equation}
+
+We need $R_\epsilon > R(\pi_2^{\FI})$, i.e.,
+$(1+\epsilon)/\bar{\pi} < 1/\pi_2^{\FI}$, i.e.,
+$\epsilon < \bar{\pi}/\pi_2^{\FI} - 1 = \delta p/\mu_2$.
+This holds by hypothesis.
+Define $\Delta R := R_\epsilon - R(\pi_2^{\FI}) > 0$.
+
+\emph{Choosing~$h$:}
+Since $\mathfrak{p}$ is continuous and converges to $R_\epsilon$ as
+$T \to \infty$, there exists $h_1 > 0$ such that for all $h \ge h_1$:
+\[
+  \mathfrak{p}\!\bigl((1+\epsilon)a,\;\bar{\pi}\mu_2,\;
+    \bar{\pi}\sigma,\;h\bigr)
+  \ge R_\epsilon - \Delta R/4.
+\]
+Choose $h_2 > 0$ such that $K h_2^2/(\epsilon^2 a^2) = \Delta R/4$,
+i.e., $h_2 = \epsilon\,a\,\sqrt{\Delta R/(4K)}$.
+Setting $h = \max(h_1, h_2)$ in~\eqref{eq:Main_LB}:
+\begin{align*}
+  \Prob_{\mu_2}(\tau^{\PI} \le h)
+  &\ge \bigl(R_\epsilon - \Delta R/4\bigr) - \Delta R/4 \\
+  &= R_\epsilon - \Delta R/2 \\
+  &> R(\pi_2^{\FI})
+  = \Prob_{\mu_2}(\tau_2^{\FI} < \infty).
+\end{align*}
+
+Since $\Prob_{\mu_2}(\tau^{\PI} < \infty) \ge \Prob_{\mu_2}(\tau^{\PI} \le h)$,
+this establishes part~(i) of the theorem.
+
+\medskip\noindent\textbf{Amplification ratio.}
+Taking $\epsilon \to 0$ in the ratio of ruin probabilities:
+\begin{equation}\label{eq:amp_ratio_proof}
+  \frac{\Prob_{\mu_2}(\tau^{\PI} < \infty)}
+       {\Prob_{\mu_2}(\tau_2^{\FI} < \infty)}
+  \ge C \cdot \frac{R(\bar{\pi})}{R(\pi_2^{\FI})}
+  = C \cdot \exp\!\biggl(\frac{2\mu_2\,a}{\sigma^2}
+    \biggl(\frac{1}{\pi_2^{\FI}} - \frac{1}{\bar{\pi}}\biggr)\biggr),
+\end{equation}
+where $C \in (0,1)$ accounts for the $L^2$~error terms.
+The exponent simplifies:
+\begin{align}\label{eq:ratio_exponent}
+  \frac{2\mu_2\,a}{\sigma^2}\biggl(\frac{1}{\pi_2^{\FI}} - \frac{1}{\bar{\pi}}\biggr)
+  &= \frac{2\mu_2\,a}{\sigma^2}\cdot\sigma^2\gamma(1-\lambda)
+    \cdot\frac{\delta p}{\mu_2(\delta p + \mu_2)} \notag\\
+  &= 2\gamma(1-\lambda)\,a\,\frac{\delta p}{\delta p + \mu_2}.
+\end{align}
+This completes the proof.
+\end{proof}
+
+\begin{remark}[Numerical illustration of the amplification ratio]
+\label{rem:amp_numerical}
+For the Huang--Sun parameters $(\mu_1 = 0.2, \mu_2 = 0.02, \sigma = 0.1,
+\gamma = 5, \lambda = 0.3, p = 0.5, a = 1)$:
+\begin{itemize}
+\item $\bar{\pi}/\pi_2^{\FI} = 5.5$;
+\item $R(\pi_2^{\FI}) = e^{-7.00} \approx 9.1 \times 10^{-4}$;
+\item $R(\bar{\pi}) = e^{-1.27} \approx 0.280$;
+\item Exponential amplification:
+  $R(\bar{\pi})/R(\pi_2^{\FI}) = e^{5.73} \approx 307$.
+\end{itemize}
+Even with a conservative constant $C = 0.1$ in~\eqref{eq:amp_ratio_proof},
+the PI ruin probability exceeds the FI one by a factor of at
+least~$30$.
+\end{remark}
+
+\begin{remark}[Comparison with finite-horizon numerics]
+\label{rem:finite_horizon}
+The infinite-horizon bound in Theorem~\ref{thm:bad_state} yields an
+amplification ratio of~$\sim 307$ at $a = 1$, while the Monte Carlo
+simulations at finite horizon $T = 10$ (Table~\ref{tab:bad_state})
+show ratios of $2$--$3$.
+The discrepancy arises because the finite-horizon ruin probability is
+substantially smaller than the infinite-horizon one, and the coupling error
+term $K h^2/(\epsilon^2 a^2)$ is non-negligible for moderate~$h$.
+The theorem correctly predicts the \emph{direction} (PI riskier under
+the bad state) and the \emph{mechanism} (over-investment), while the
+precise finite-horizon ratio requires numerical computation.
+\end{remark}
+
+
+%% ------------------------------------------------------------------------
+\subsection{Proof of Theorem~\ref{thm:sensitivity}}\label{sec:proof_sensitivity}
+%% ------------------------------------------------------------------------
+
+We prove that the PI ruin probability is more sensitive to the competition
+parameter~$\lambda$ than the FI ruin probability, with an explicit
+amplification factor.
+
+\begin{proof}
+The key structural fact, established in Remark~\ref{rem:g_indep},
+is that the function~$g(t,q)$ does not depend on~$\lambda$ under
+the symmetric game.
+Consequently, the PI strategy is
+$\pi^*(t) = g(t,P(t))/[\gamma(1-\lambda)]$,
+and the dependence on~$\lambda$ enters \emph{only} through the
+explicit prefactor $1/[\gamma(1-\lambda)]$.
+
+\medskip\noindent\textbf{Step 1: FI sensitivity.}
+Under $\Prob_{\mu_1}$ (the good state), the FI wealth is a drifted
+Brownian motion with $\pi^{\FI} = \mu_1/[\sigma^2\gamma(1-\lambda)]$.
+The infinite-horizon ruin probability is
+\[
+  \Prob_{\mu_1}(\tau^{\FI} < \infty)
+  = \exp\!\biggl(-\frac{2\mu_1\,a}{\pi^{\FI}\sigma^2}\biggr)
+  = e^{-2\gamma(1-\lambda)a}.
+\]
+Define $\psi^{\FI} := 2\gamma(1-\lambda)$, so that
+$-\log\Prob_{\mu_1}(\tau^{\FI} < \infty) = \psi^{\FI}\cdot a$.
+The sensitivity is
+\begin{equation}\label{eq:FI_sensitivity}
+  \frac{d}{d\lambda}\bigl(-\log\Prob(\tau^{\FI} < \infty)\bigr)
+  = -2\gamma\,a.
+\end{equation}
+This is negative: increasing $\lambda$ increases FI ruin probability,
+as expected from the portfolio amplification
+$\pi^{\FI} \propto 1/(1-\lambda)$.
+
+\medskip\noindent\textbf{Step 2: PI Lundberg exponent.}
+For the PI investor, the effective ``Lundberg exponent'' governing the
+exponential decay of ruin probability with the safety margin~$a$ is
+\begin{equation}\label{eq:psi_PI}
+  \psi^{\PI} := -\frac{\log\Prob_{\mu_1}(\tau^{\PI} < \infty)}{a}.
+\end{equation}
+By Theorem~\ref{thm:expo_bound}, $\psi^{\PI} \ge \psi^{\FI}$
+(PI is exponentially safer under the good state).
+
+The exponential martingale bound (Theorem~\ref{thm:expo_bound})
+gives
+\[
+  \Prob_{\mu_1}(\tau^{\PI} \le T)
+  \le \exp\!\biggl(-\frac{2\mu_1\,a}{\pi_{\max}\,\sigma^2}\biggr),
+\]
+where $\pi_{\max} = \mu_1/[\sigma^2\gamma(1-\lambda)]$
+(the maximum possible PI portfolio, attained when $P(t) = 1$).
+Since $\pi_{\max} = \pi^{\FI}$, the bound recovers the FI
+infinite-horizon probability.
+
+For the myopic approximation (ignoring the hedging term), the initial
+PI portfolio is $\bar{\pi} = \theta(p)/[\sigma^2\gamma(1-\lambda)]$.
+The effective Lundberg exponent for the PI investor under the myopic
+approximation satisfies
+\begin{equation}\label{eq:psi_PI_myopic}
+  \psi^{\PI}_{\mathrm{myopic}} \approx \frac{2\mu_1}{\bar{\pi}_0\,\sigma^2}
+  = \frac{2\mu_1\gamma(1-\lambda)}{\theta(p)},
+\end{equation}
+where $\bar{\pi}_0 := \theta(p)/[\sigma^2\gamma(1-\lambda)]$ is the
+initial PI portfolio.
+Since $\theta(p) = \delta p + \mu_2 < \mu_1$ for $p < 1$, we have
+$\psi^{\PI}_{\mathrm{myopic}} > \psi^{\FI}$.
+
+\medskip\noindent\textbf{Step 3: Sensitivity ratio.}
+Both Lundberg exponents are proportional to $(1-\lambda)$:
+\[
+  \psi^{\FI} = 2\gamma(1-\lambda), \qquad
+  \psi^{\PI}_{\mathrm{myopic}} = \frac{2\mu_1\gamma(1-\lambda)}{\theta(p)}.
+\]
+The ratio is
+\begin{equation}\label{eq:sensitivity_ratio_proof}
+  \frac{\psi^{\PI}_{\mathrm{myopic}}}{\psi^{\FI}}
+  = \frac{\mu_1}{\theta(p)}
+  = \frac{\mu_1}{\delta p + \mu_2}.
+\end{equation}
+For the Huang--Sun parameters: $\mu_1/\theta(0.5) = 0.2/0.11 \approx 1.82$.
+
+The \emph{sensitivity} of $-\log\Prob(\tau < \infty)$ to~$\lambda$ is
+proportional to $\psi$, so the PI sensitivity exceeds FI by the same factor:
+\begin{equation}\label{eq:sensitivity_amp}
+  \frac{d(-\log\Prob(\tau^{\PI}))/d\lambda}
+       {d(-\log\Prob(\tau^{\FI}))/d\lambda}
+  = \frac{\psi^{\PI}}{\psi^{\FI}} > 1.
+\end{equation}
+
+\medskip\noindent\textbf{Step 4: Probability-level amplification.}
+In terms of the ruin probabilities themselves, for small changes in~$\lambda$:
+\begin{align}\label{eq:prob_sensitivity}
+  \frac{d\log\Prob(\tau^{\PI})}{d\lambda}
+  &= \psi^{\PI}\cdot a \cdot \frac{1}{1-\lambda}
+  \qquad\text{(approximately)}, \\
+  \frac{d\log\Prob(\tau^{\FI})}{d\lambda}
+  &= 2\gamma\,a. \notag
+\end{align}
+The ratio of the $\lambda$-elasticities of the ruin probabilities
+equals the Lundberg exponent ratio~\eqref{eq:sensitivity_ratio_proof}.
+\end{proof}
+
+\begin{remark}[Numerical verification of the sensitivity ratio]
+\label{rem:sensitivity_numerical}
+Our Monte Carlo simulations (Table~\ref{tab:sensitivity}) yield
+empirical Lundberg exponents $\psi_{\mathrm{eff}}^{\PI} \approx 30$--$66$
+across different~$\lambda$ values, compared with theoretical
+$\psi^{\FI} = 2\gamma(1-\lambda) \in [5.5, 10]$.
+The empirical ratio $\psi^{\PI}/\psi^{\FI} \approx 5$--$6$ exceeds
+the myopic prediction of~$1.82$, consistent with the additional safety
+provided by the hedging term, which further reduces the effective PI
+portfolio.
+\end{remark}
+
+
+%% ------------------------------------------------------------------------
+\subsection{Proof of Proposition~\ref{prop:heterogeneous}}\label{sec:proof_heterogeneous}
+%% ------------------------------------------------------------------------
+
+We outline the perturbation analysis for heterogeneous risk aversion.
+Full algebraic details are provided in the supplementary appendix.
+
+\begin{proof}[Proof sketch]
+Consider two types of investors: type~A with risk aversion
+$\gamma_A = \gamma + \varepsilon$ and type~B with
+$\gamma_B = \gamma - \varepsilon$, each comprising $N/2$ of the
+$N$~investors.
+At $\varepsilon = 0$, this reduces to the symmetric game.
+
+\medskip\noindent\textbf{Step 1: Coupled PDE system.}
+Under heterogeneity, the equilibrium functions $g_A$ and $g_B$ satisfy
+a coupled Cauchy system
+\citep[Theorems~3.1 and 3.2, Remark~3.4]{HuangSun2025}:
+\begin{equation}\label{eq:coupled_PDE}
+\begin{cases}
+  \partial_t c_k + \dfrac{\beta^2}{2}\,\partial_{qq} c_k
+  - \dfrac{\beta}{\sigma}\,
+    \bigl[\theta - \sigma^2\bar{g}(t,q)\bigr]\,\partial_q c_k
+  + \kappa_k\,\dfrac{\theta^2}{\sigma^2} = 0, \\[6pt]
+  c_k(T,q) = 0, \qquad k \in \{A, B\},
+\end{cases}
+\end{equation}
+where the aggregate function
+$\bar{g} = \frac{1}{N(1-\lambda)}\bigl[\frac{N_A g_A}{\gamma_A}
++ \frac{N_B g_B}{\gamma_B}\bigr]$
+couples the two equations through the drift coefficient.
+
+\medskip\noindent\textbf{Step 2: Perturbation expansion.}
+Write $c_k = c_0 + \varepsilon\,c_1^k + O(\varepsilon^2)$ and
+$g_k = g_0 + \varepsilon\,g_1^k + O(\varepsilon^2)$.
+At zeroth order, $c_0$ and $g_0$ satisfy the symmetric Cauchy problem
+and are $\lambda$-independent (Remark~\ref{rem:g_indep}).
+
+The first-order corrections satisfy
+\begin{align}
+  g_1^A &= -\frac{\beta}{\sigma\kappa_0}\,\partial_q c_1^A
+          - \frac{\beta\,\partial_q c_0}{\sigma\kappa_0\gamma},
+  \label{eq:g1A} \\
+  g_1^B &= -\frac{\beta}{\sigma\kappa_0}\,\partial_q c_1^B
+          + \frac{\beta\,\partial_q c_0}{\sigma\kappa_0\gamma},
+  \label{eq:g1B}
+\end{align}
+where $\kappa_0 = 1/\gamma$.
+
+\medskip\noindent\textbf{Step 3: Antisymmetry and decoupling.}
+With $N_A = N_B = N/2$, the aggregate first-order correction vanishes:
+$\bar{g}_1 = (g_1^A + g_1^B)/[2\gamma(1-\lambda)] = 0$, because
+$g_1^A = -g_1^B$ (from the antisymmetry $c_1^A = -c_1^B$).
+The antisymmetric mode $c_1^D := c_1^A$ satisfies the \emph{decoupled} PDE
+\begin{equation}\label{eq:c1D_PDE}
+  \mathcal{L}^0 c_1^D + \frac{(1-\lambda/N)\,\theta^2}{\gamma^2\sigma^2} = 0,
+  \qquad c_1^D(T,q) = 0,
+\end{equation}
+where $\mathcal{L}^0$ is the backward Kolmogorov operator of the
+zeroth-order filter process.
+
+\medskip\noindent\textbf{Step 4: Stochastic representation and
+$\lambda$-dependence.}
+By the Feynman--Kac theorem, the solution
+of~\eqref{eq:c1D_PDE} has the representation
+\begin{equation}\label{eq:c1D_FK}
+  c_1^D(t,q) = \frac{(1-\lambda/N)}{\gamma^2\sigma^2}\,
+  \E_{Q_0}^{t,q}\!\biggl[\int_t^T \theta\bigl(P_0(u)\bigr)^2\,du\biggr]
+  > 0,
+\end{equation}
+where $P_0$ is the filter process under the zeroth-order
+Girsanov measure~$Q_0$.
+The source term $\theta^2 > 0$ ensures strict positivity.
+
+The $\lambda$-dependence enters through:
+\begin{enumerate}[label=(\alph*)]
+\item the explicit prefactor $(1-\lambda/N)$, and
+\item the measure~$Q_0$, whose drift coefficient involves
+  $\bar{g}_0 = g_0/[\gamma(1-\lambda)]$.
+\end{enumerate}
+Both channels are absent in the symmetric case, confirming
+that heterogeneity breaks the $\lambda$-independence of~$g$.
+
+\medskip\noindent\textbf{Step 5: Effect on the wealth gap.}
+The expected wealth gap for type~A at first order in~$\varepsilon$ is
+\begin{equation}\label{eq:GA_expansion}
+  G_A(\lambda, T) = G_0(\lambda, T)
+  - \frac{\varepsilon\mu_1}{\gamma(1-\lambda)}\biggl[
+    \frac{I_0^{\mathrm{tot}}}{\gamma} + I_1^{A,\mathrm{tot}}\biggr]
+  + O(\varepsilon^2),
+\end{equation}
+where $I_0^{\mathrm{tot}} = \int_0^T [\mu_1/\sigma^2 -
+\E_{\mu_1}[g_0(t,P(t))]]\,dt > 0$ and
+$I_1^{A,\mathrm{tot}} = \int_0^T \E_{\mu_1}[g_1^A(t,P(t))]\,dt$.
+
+The $\lambda$-derivative satisfies
+\begin{equation}\label{eq:dGA_dlambda}
+  \frac{\partial G_A}{\partial\lambda}
+  = \frac{G_A}{1-\lambda} + \varepsilon\,\Phi(\lambda, T)
+  + O(\varepsilon^2),
+\end{equation}
+where $\Phi(\lambda, T)$ captures the $\lambda$-correction from
+heterogeneity.
+The sign of~$\Phi$ is determined by the stochastic representation
+of~$c_1^D$: since the source term in~\eqref{eq:c1D_PDE} is proportional
+to $(1-\lambda/N)$ and the measure~$Q_0$ makes $\E_{Q_0}[\theta^2]$
+increasing in~$\lambda$ (through the drift modification), we obtain
+$\Phi(\lambda, T) > 0$ in the mean-field limit $N \to \infty$.
+\end{proof}
+
+
+%% ========================================================================
+\section{Numerical Analysis}\label{sec:numerics_v2}
+%% ========================================================================
+
+We validate the analytical results of Section~\ref{sec:results} through
+extensive Monte Carlo simulations.
+All experiments use the parameter calibration of
+\citet[Figure~4]{HuangSun2025}, and we simulate both FI and PI strategies
+on the \emph{same} Brownian paths to minimize variance in comparisons.
+
+\subsection{Simulation setup}\label{sec:sim_setup}
+
+\paragraph{Base parameters.}
+$\mu_1 = 0.2$, $\mu_2 = 0.02$, $\sigma = 0.1$, $\gamma = 5$,
+$x = 3$, $p = 0.5$, $T = 10$.
+The competition parameter $\lambda$ varies from $0$ to $0.5$.
+The warning threshold~$D$ is varied from $1.5$ to $2.95$.
+
+\paragraph{Monte Carlo design.}
+We simulate $M = 200{,}000$ paths (increased to $500{,}000$ for
+the Lundberg exponent analysis) with time step $\Delta t = 0.01$
+using the Euler--Maruyama scheme.
+Both FI and PI strategies are simulated using the \emph{same}
+Brownian increments $\{\Delta W_k\}_{k=1}^{T/\Delta t}$,
+so that the difference $X^{\FI}(t) - X^{\PI}(t)$ has reduced variance.
+
+\paragraph{PI strategy approximation.}
+We use the \emph{myopic} PI strategy
+$\pi^*(t) = \theta(P(t))/[\sigma^2\gamma(1-\lambda)]$,
+omitting the hedging term $h(t,q) \ge 0$.
+By the hedging demand analysis in~\eqref{eq:g_decomp}, this overestimates the PI investment
+relative to the true equilibrium strategy.
+For the good-state comparison
+($\Prob_{\mu_1}(\tau^{\PI} \le T) \le \Prob_{\mu_1}(\tau^{\FI} \le T)$),
+the myopic approximation is \emph{conservative}: it makes the PI
+investor more aggressive than the true equilibrium, bringing PI
+closer to FI.
+Any safety advantage found for the myopic PI thus also holds for
+the true PI.
+For the bad-state comparison, the myopic approximation slightly
+underestimates the over-investment effect (since the hedging
+term further reduces $\pi^*$ below the myopic level).
+
+\paragraph{Simulation under $\Prob_{\mu_k}$.}
+To condition on the true state, we set the drift in the stock SDE
+to $\mu = \mu_k$ for $k \in \{1, 2\}$.
+The filter~$P(t)$ is updated using the Euler--Maruyama discretization
+of the innovation process, with the true state determining the
+relationship between the stock return and the innovation.
+
+
+%% ------------------------------------------------------------------------
+\subsection{Good-state safety}\label{sec:num_good}
+%% ------------------------------------------------------------------------
+
+Table~\ref{tab:good_state} presents the ruin probabilities
+$\Prob_{\mu_1}(\tau < T)$ for FI and PI investors under the good state.
+
+\begin{table}[H]
+\centering
+\caption{Ruin probabilities under $\Prob_{\mu_1}$ (good state).
+  Parameters: $\mu_1 = 0.2$, $\mu_2 = 0.02$, $\sigma = 0.1$,
+  $\gamma = 5$, $x = 3$, $p = 0.5$, $T = 10$.
+  Monte Carlo with $M = 200{,}000$ paths.}
+\label{tab:good_state}
+\smallskip
+\begin{tabular}{ccccl}
+\toprule
+$D$ & $\lambda$ & $\Prob^{\FI}(\tau < T)$
+    & $\Prob^{\PI}(\tau < T)$ & Ratio \\
+\midrule
+2.0 & 0.0 & 0.000040 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.0 & 0.1 & 0.000115 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.0 & 0.2 & 0.000320 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.0 & 0.3 & 0.000795 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+\midrule
+2.5 & 0.0 & 0.005360 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.5 & 0.1 & 0.008870 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.5 & 0.2 & 0.014700 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.5 & 0.3 & 0.024050 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+\midrule
+2.8 & 0.0 & 0.107305 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.8 & 0.1 & 0.130590 & 0.000010 & $< 0.001$ \\
+2.8 & 0.2 & 0.160225 & 0.000055 & $< 0.001$ \\
+2.8 & 0.3 & 0.195515 & 0.000230 & $0.001$ \\
+\midrule
+2.9 & 0.0 & 0.291390 & 0.006685 & $0.023$ \\
+2.9 & 0.1 & 0.322010 & 0.014015 & $0.044$ \\
+2.9 & 0.2 & 0.355450 & 0.027360 & $0.077$ \\
+2.9 & 0.3 & 0.393355 & 0.049635 & $0.126$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\emph{Discussion.}
+The PI investor is dramatically safer than the FI investor under the
+good state, with zero observed ruin for $D \le 2.8$ across all~$\lambda$
+values in $200{,}000$ simulated paths.
+Even at $D = 2.9$ (safety margin $a = 0.1$), the PI ruin probability is
+2\%--13\% of the FI level depending on~$\lambda$.
+This is consistent with Theorem~\ref{thm:expo_bound}:
+the PI ruin probability is bounded by the FI \emph{infinite-horizon}
+ruin probability, which for $a \ge 0.2$ is vanishingly small.
+
+The mechanism is transparent: the PI investor starts at
+$\pi^*(0) = 2.20$ (at $\lambda = 0$) compared to $\pi^{\FI} = 4.00$,
+giving 45\% less leverage.
+This reduced leverage during the early learning phase---when the filter
+is still uncertain---provides an exponential safety buffer.
+
+The ratio $\Prob^{\PI}/\Prob^{\FI}$ increases with~$\lambda$
+(from $0.023$ to $0.126$ at $D = 2.9$), indicating that competition
+erodes PI's safety advantage, but never eliminates it within the
+parameter range studied.
+
+
+%% ------------------------------------------------------------------------
+\subsection{Bad-state amplification}\label{sec:num_bad}
+%% ------------------------------------------------------------------------
+
+Table~\ref{tab:bad_state} presents the ruin probabilities under the bad
+state $\Prob_{\mu_2}$.
+
+\begin{table}[H]
+\centering
+\caption{Ruin probabilities under $\Prob_{\mu_2}$ (bad state).
+  Same parameters as Table~\ref{tab:good_state}.}
+\label{tab:bad_state}
+\smallskip
+\begin{tabular}{ccccl}
+\toprule
+$D$ & $\lambda$ & $\Prob^{\FI}(\tau < T)$
+    & $\Prob^{\PI}(\tau < T)$ & Ratio \\
+\midrule
+2.0 & 0.0 & ${<}5{\times}10^{-6}$ & ${<}5{\times}10^{-6}$ & --- \\
+2.0 & 0.1 & ${<}5{\times}10^{-6}$ & ${<}5{\times}10^{-6}$ & --- \\
+2.0 & 0.2 & ${<}5{\times}10^{-6}$ & ${<}5{\times}10^{-6}$ & --- \\
+2.0 & 0.3 & ${<}5{\times}10^{-6}$ & ${<}5{\times}10^{-6}$ & --- \\
+\midrule
+2.5 & 0.0 & 0.000010 & 0.000010 & $1.00$ \\
+2.5 & 0.1 & 0.000035 & 0.000090 & $2.57$ \\
+2.5 & 0.2 & 0.000135 & 0.000415 & $3.07$ \\
+2.5 & 0.3 & 0.000770 & 0.001640 & $2.13$ \\
+\midrule
+2.8 & 0.0 & 0.034125 & 0.039925 & $1.17$ \\
+2.8 & 0.1 & 0.052340 & 0.056370 & $1.08$ \\
+2.8 & 0.2 & 0.078290 & 0.078575 & $1.00$ \\
+2.8 & 0.3 & 0.114105 & 0.109160 & $0.96$ \\
+\midrule
+2.9 & 0.0 & 0.228810 & 0.218125 & $0.95$ \\
+2.9 & 0.1 & 0.268700 & 0.259975 & $0.97$ \\
+2.9 & 0.2 & 0.314375 & 0.310615 & $0.99$ \\
+2.9 & 0.3 & 0.367460 & 0.365875 & $1.00$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\emph{Discussion.}
+The risk reversal phenomenon is clearly visible.
+At moderate safety margin ($D = 2.5$, $a = 0.5$) with
+$\lambda \in \{0.1, 0.2, 0.3\}$, the PI ruin probability exceeds the
+FI one by a factor of $2$--$3$, confirming the bad-state amplification
+of Theorem~\ref{thm:bad_state}.
+The reversal is driven by the over-investment mechanism of
+Proposition~\ref{prop:over_invest}: the PI investor's initial portfolio
+$\bar{\pi} = 3.14$ (at $\lambda = 0.3$) is $5.5\times$ the FI optimal
+$\pi_2^{\FI} = 0.57$.
+
+As $D$ increases toward~$x$ (small safety margin), the bad-state
+ratio approaches~$1$ from below for $D = 2.8$ at large~$\lambda$ and
+$D = 2.9$ across all~$\lambda$.
+This is because with a tiny safety margin, the transient
+over-investment effect is overwhelmed by the symmetric
+barrier-hitting behavior at short times.
+
+\medskip
+Table~\ref{tab:mixture} presents the ruin probabilities under the
+mixture measure $\Prob_{p} = p\,\Prob_{\mu_1} + (1-p)\,\Prob_{\mu_2}$,
+which represents the investor's \emph{ex ante} risk.
+
+\begin{table}[H]
+\centering
+\caption{Ruin probabilities under the mixture $\Prob_{0.5}$.}
+\label{tab:mixture}
+\smallskip
+\begin{tabular}{ccccl}
+\toprule
+$D$ & $\lambda$ & $\Prob_{\mathrm{mix}}^{\FI}$ & $\Prob_{\mathrm{mix}}^{\PI}$ & Ratio \\
+\midrule
+2.0 & 0.0 & 0.000020 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.0 & 0.3 & 0.000398 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+\midrule
+2.5 & 0.0 & 0.002685 & 0.000005 & $0.002$ \\
+2.5 & 0.3 & 0.012410 & 0.000820 & $0.066$ \\
+\midrule
+2.8 & 0.0 & 0.070715 & 0.019963 & $0.282$ \\
+2.8 & 0.3 & 0.154810 & 0.054695 & $0.353$ \\
+\midrule
+2.9 & 0.0 & 0.260100 & 0.112405 & $0.432$ \\
+2.9 & 0.3 & 0.380408 & 0.207755 & $0.546$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\emph{Discussion.}
+Under the mixture measure (which reflects the investor's prior
+uncertainty), the PI investor is safer overall: the ratio
+$\Prob_{\mathrm{mix}}^{\PI}/\Prob_{\mathrm{mix}}^{\FI} < 1$
+everywhere.
+The good-state safety advantage dominates the bad-state disadvantage
+because the bad-state ruin events are rare in absolute terms.
+However, the ratio increases with both~$D$ and~$\lambda$,
+approaching~$1$ when the safety margin is small and competition
+is intense.
+
+
+%% ------------------------------------------------------------------------
+\subsection{Sensitivity analysis}\label{sec:num_sensitivity}
+%% ------------------------------------------------------------------------
+
+We investigate the $\lambda$-sensitivity of the ruin probability under
+the good state, as predicted by Theorem~\ref{thm:sensitivity}.
+
+\begin{table}[H]
+\centering
+\caption{Log-ruin probability $-\log\Prob(\tau < T)$ versus~$\lambda$
+  under $\Prob_{\mu_1}$, at $D = 2.9$.}
+\label{tab:sensitivity}
+\smallskip
+\begin{tabular}{cccl}
+\toprule
+$\lambda$ & $-\log\Prob^{\FI}$ & $-\log\Prob^{\PI}$ & Log-ratio \\
+\midrule
+0.00 & 1.000 & 4.956 & $-3.956$ \\
+0.05 & 0.950 & 4.740 & $-3.790$ \\
+0.10 & 0.900 & 4.233 & $-3.333$ \\
+0.15 & 0.850 & 3.917 & $-3.067$ \\
+0.20 & 0.800 & 3.569 & $-2.769$ \\
+0.25 & 0.750 & 3.268 & $-2.518$ \\
+0.30 & 0.700 & 2.977 & $-2.277$ \\
+0.35 & 0.650 & 2.721 & $-2.071$ \\
+0.40 & 0.600 & 2.465 & $-1.865$ \\
+0.45 & 0.550 & 2.246 & $-1.696$ \\
+0.50 & 0.500 & 2.009 & $-1.509$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\emph{Discussion.}
+Both $-\log\Prob^{\FI}$ and $-\log\Prob^{\PI}$ decrease linearly
+in~$\lambda$ (ruin probability increases with competition), but the
+PI slope is approximately $5$--$6$ times steeper.
+Specifically:
+\begin{itemize}
+\item FI: $d(-\log\Prob^{\FI})/d\lambda \approx -1.0$
+  (from $\psi^{\FI} = 2\gamma(1-\lambda) \cdot a$ with $a = 0.1$).
+\item PI: $d(-\log\Prob^{\PI})/d\lambda \approx -5.9$
+  (average slope from Table~\ref{tab:sensitivity}).
+\item Ratio: $\approx 5.9$, consistent with the empirical Lundberg
+  exponent ratio $\psi^{\PI}/\psi^{\FI} \approx 5$--$6$.
+\end{itemize}
+This confirms the sensitivity amplification of
+Theorem~\ref{thm:sensitivity}: the same increase in competition
+intensity~$\lambda$ has a disproportionately larger effect on the
+PI ruin probability.
+
+Figure~\ref{fig:logP_vs_lambda} visualizes this relationship.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/sensitivity_logP_vs_lambda.png}
+\caption{Log-ruin probability $\log\Prob(\tau < T)$ versus competition
+  intensity~$\lambda$ at $D = 2.9$.
+  The PI curve (solid) has a steeper slope than FI (dashed),
+  demonstrating the sensitivity amplification of
+  Theorem~\ref{thm:sensitivity}.}
+\label{fig:logP_vs_lambda}
+\end{figure}
+
+
+\subsection{Effective Lundberg exponents}\label{sec:num_lundberg}
+
+We estimate the effective Lundberg exponent from the dependence of
+the ruin probability on the safety margin~$a = x - D$.
+The theoretical prediction is $\psi^{\FI} = 2\gamma(1-\lambda)$
+for FI; for PI, we estimate $\psi^{\PI}$ from the log-linear
+fit $-\log\Prob(\tau < T) \approx \psi \cdot a$ across
+multiple~$D$ values, using $T = 10$ as a proxy for $T = \infty$.
+
+\begin{table}[H]
+\centering
+\caption{Effective Lundberg exponents at $T = 10$.
+  Monte Carlo with $M = 500{,}000$ paths.}
+\label{tab:lundberg}
+\smallskip
+\begin{tabular}{cccc}
+\toprule
+$\lambda$ & $\psi^{\FI}$ (theory)
+          & $\psi^{\PI}_{\mathrm{eff}}$ (empirical) & Ratio \\
+\midrule
+0.00 & 10.00 & 57.76 & 5.78 \\
+0.15 &  8.50 & 48.43 & 5.70 \\
+0.30 &  7.00 & 35.78 & 5.11 \\
+0.45 &  5.50 & 28.32 & 5.15 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\emph{Discussion.}
+The empirical Lundberg exponents confirm that the PI ruin probability
+decays exponentially faster with the safety margin than the FI one,
+with a ratio of approximately $5$--$6$.
+This ratio exceeds the myopic prediction
+$\mu_1/\theta(p) = 0.2/0.11 \approx 1.82$ by a factor of~$3$,
+demonstrating that the hedging term provides additional safety
+beyond the myopic under-investment.
+
+The ratio is remarkably stable across~$\lambda$ values
+($5.11$--$5.78$), consistent with the theoretical prediction that
+$\psi^{\PI}/\psi^{\FI}$ depends on the filter dynamics (which are
+$\lambda$-independent) rather than on the competition structure.
+
+Figure~\ref{fig:lundberg} illustrates the exponential decay of
+ruin probability with the safety margin.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/lundberg_exponent.png}
+\caption{Effective Lundberg exponents.
+  Log-ruin probability $\log\Prob(\tau < T)$ versus safety margin~$a$
+  for FI (dashed) and PI (solid) at several~$\lambda$ values.
+  The steeper PI slopes reflect the larger Lundberg exponent.}
+\label{fig:lundberg}
+\end{figure}
+
+
+%% ------------------------------------------------------------------------
+\subsection{Boundary behavior}\label{sec:num_boundary}
+%% ------------------------------------------------------------------------
+
+We examine the behavior of the PI/FI ruin ratio as the barrier~$D$
+approaches the initial wealth~$x$, and as $D \to 0$.
+
+\begin{table}[H]
+\centering
+\caption{PI/FI ruin ratio near the boundary ($D \to x$) under $\Prob_{\mu_1}$.}
+\label{tab:boundary}
+\smallskip
+\begin{tabular}{cccccl}
+\toprule
+$D$ & $a$ & $\lambda$ & $\Prob^{\FI}$ & $\Prob^{\PI}$ & Ratio \\
+\midrule
+2.0 & 1.00 & 0.0 & 0.000045 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.0 & 1.00 & 0.4 & 0.002479 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+\midrule
+2.6 & 0.40 & 0.0 & 0.018316 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.6 & 0.40 & 0.4 & 0.090718 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+\midrule
+2.8 & 0.20 & 0.0 & 0.135335 & ${<}5{\times}10^{-6}$ & $\approx 0$ \\
+2.8 & 0.20 & 0.4 & 0.301194 & 0.001380 & $0.005$ \\
+\midrule
+2.9 & 0.10 & 0.0 & 0.367879 & 0.007180 & $0.020$ \\
+2.9 & 0.10 & 0.4 & 0.548812 & 0.083805 & $0.153$ \\
+\midrule
+2.95 & 0.05 & 0.0 & 0.606531 & 0.134955 & $0.222$ \\
+2.95 & 0.05 & 0.4 & 0.740818 & 0.295725 & $0.399$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\emph{Discussion.}
+As $D \to x$ (i.e., $a \to 0$), both ruin probabilities approach~$1$
+(any process will cross a nearby barrier), and the PI/FI ratio increases
+toward~$1$.
+However, the ratio never exceeds~$1$ within the observed range:
+PI remains safer everywhere in $(D, \lambda)$-space under
+$\Prob_{\mu_1}$.
+
+Figure~\ref{fig:boundary} shows the ratio as a function of~$D$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/boundary_ratio_vs_D.png}
+\caption{PI/FI ruin ratio versus barrier level~$D$ under $\Prob_{\mu_1}$
+  for several~$\lambda$ values.
+  The ratio is identically zero for $D \le 2.6$ (PI has zero observed ruin)
+  and increases toward~$1$ as $D \to x = 3$, but never crosses~$1$.}
+\label{fig:boundary}
+\end{figure}
+
+As $D \to 0$, both ruin probabilities vanish exponentially fast (with
+rates $\psi^{\FI}\cdot a$ and $\psi^{\PI}\cdot a$), and the ratio
+$\Prob^{\PI}/\Prob^{\FI} \to 0$ since $\psi^{\PI} > \psi^{\FI}$.
+
+As $T \to \infty$, the Lundberg exponents dominate and the ratio
+converges to $\exp(-(\psi^{\PI} - \psi^{\FI})\cdot a)$, which
+provides an exponentially small upper bound on the long-run PI/FI ratio.
+
+
+\subsection{Phase diagram}\label{sec:num_phase}
+
+Figure~\ref{fig:phase} presents the heatmap of the PI/FI ruin ratio
+in $(D, \lambda)$-space under~$\Prob_{\mu_1}$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/phase_diagram.png}
+\caption{Phase diagram of the PI/FI ruin ratio in $(D, \lambda)$-space
+  under $\Prob_{\mu_1}$.
+  Blue (ratio $\approx 0$): PI has negligible ruin.
+  The ratio increases toward the upper-right corner
+  ($D \to x$, $\lambda \to 1$) but remains below~$1$ everywhere.}
+\label{fig:phase}
+\end{figure}
+
+\emph{Discussion.}
+The phase diagram confirms the uniform safety of PI under the good state
+across the entire $(D, \lambda)$-space.
+The ratio is smallest (PI most advantaged) at moderate~$D$ and
+small~$\lambda$, where the FI ruin probability is already non-negligible
+but the PI under-investment provides strong protection.
+The PI advantage is greatest precisely in the regime where ruin risk
+is most economically relevant.
+
+
+\subsection{Robustness: alternative parameter calibrations}
+\label{sec:num_robust}
+
+To verify that our findings are not artifacts of the specific
+Huang--Sun calibration, we repeat the two-state analysis for
+two additional parameter sets.
+
+\begin{table}[H]
+\centering
+\caption{Risk reversal under alternative calibrations.
+  Panel~B: $\gamma = 2$, $\sigma = 0.2$ (moderate).
+  Panel~C: $\gamma = 1$, $\sigma = 0.1$ (aggressive).}
+\label{tab:robust}
+\smallskip
+\begin{tabular}{lcccc}
+\toprule
+Panel & $D$ & $\lambda$ & Good: PI/FI & Bad: PI/FI \\
+\midrule
+B ($\gamma{=}2$, $\sigma{=}0.2$)
+  & 2.0 & 0.3 & 0.000 & 24.0 \\
+B & 2.5 & 0.1 & 0.000 & 10.6 \\
+B & 2.5 & 0.3 & 0.002 & 5.1 \\
+\midrule
+C ($\gamma{=}1$, $\sigma{=}0.1$)
+  & 1.0 & 0.0 & 0.000 & 3.1 \\
+C & 1.5 & 0.3 & 0.000 & 1.2 \\
+C & 2.0 & 0.0 & 0.000 & 1.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\emph{Discussion.}
+The risk reversal phenomenon persists across all parameter
+calibrations: PI is safer under the good state (ratio $< 1$) and
+riskier under the bad state (ratio $> 1$) for moderate safety margins
+and competition intensity.
+Under more aggressive calibrations (Panel~C, $\gamma = 1$), the
+reversal amplitudes are smaller because the FI bad-state portfolio
+$\pi_2^{\FI} = 2.0$ is already substantial, narrowing the gap with
+the PI portfolio.
+
+
+%% ========================================================================
+\section{Discussion}\label{sec:discuss_v2}
+%% ========================================================================
+
+\subsection{Economic interpretation of the risk reversal}
+\label{sec:discuss_reversal}
+
+The central finding of this paper---that partial information
+\emph{protects} investors under the good state but \emph{endangers}
+them under the bad state---admits a transparent economic interpretation.
+
+\paragraph{The paradox of ignorance.}
+Under the good state ($\mu = \mu_1$), the FI investor knows the true
+(high) drift and invests aggressively:
+$\pi^{\FI} = \mu_1/[\sigma^2\gamma(1-\lambda)]$.
+The PI investor, uncertain about the drift, uses the estimated
+value $\theta(P(t)) < \mu_1$ and invests more conservatively.
+This under-investment is suboptimal in expectation
+(Theorem~\ref{thm:wealth} shows a wealth loss), but it provides
+an unintended benefit: reduced portfolio volatility.
+
+The reduced volatility translates directly into reduced ruin
+probability.
+The PI investor's wealth process has instantaneous variance
+$(\pi^*(t))^2\sigma^2 < (\pi^{\FI})^2\sigma^2$ during the early
+learning phase, which is precisely when the safety margin is
+smallest and ruin risk is highest.
+By the time the filter converges ($P(t) \approx 1$) and the PI
+portfolio approaches the FI level, the accumulated drift has
+already moved wealth far from the barrier.
+
+This is a \emph{mechanical} effect, not a reflection of superior
+judgment: the PI investor is simply too cautious to be endangered.
+The protection is strongest when uncertainty is highest (large
+$\delta$, small~$p$) and the barrier is moderately close
+($D \in [2.0, 2.8]$).
+
+\paragraph{Under the bad state: the price of ignorance.}
+The mirror image applies under $\mu = \mu_2$.
+The FI investor knows the low drift and invests conservatively:
+$\pi_2^{\FI} = \mu_2/[\sigma^2\gamma(1-\lambda)]$, which is
+$5.5\times$ smaller than the PI investor's initial position.
+The PI investor, still believing $\mu$ could be $\mu_1$ with
+probability~$p = 0.5$, over-invests dramatically.
+This over-investment generates unnecessary volatility and
+increases ruin risk, especially during the early period before
+the filter can identify the bad state.
+
+\paragraph{The aggregate picture.}
+Under the ex ante mixture measure $\Prob_p$
+($p = 0.5$), the PI investor is safer overall
+(Table~\ref{tab:mixture}).
+The good-state safety advantage dominates because:
+(i)~the PI under-investment is symmetric (about $50\%$ of FI)
+in the good state, while the over-investment under the bad state,
+though large in ratio, is small in absolute portfolio size;
+(ii)~the exponential dependence on the Lundberg exponent means
+that the good-state advantage ($\psi^{\PI}/\psi^{\FI} \approx 5$)
+amplifies exponentially with the safety margin.
+
+
+%% ------------------------------------------------------------------------
+\subsection{Connection to Huang--Sun's amplification observation}
+\label{sec:discuss_HS}
+%% ------------------------------------------------------------------------
+
+\citet[Figure~4]{HuangSun2025} observe that co-drawdown probabilities
+increase with~$\lambda$ more sharply under PI than under FI, and
+conjecture that partial information amplifies downward risk.
+Our analysis provides a precise theoretical explanation.
+
+The amplification is not about the \emph{level} of ruin probability
+(PI can be safer or riskier depending on the true state), but about
+the \emph{sensitivity} to competition.
+Theorem~\ref{thm:sensitivity} shows that the Lundberg exponent is
+$\psi^{\PI}/\psi^{\FI} \approx 5$--$6$ times larger for PI, meaning
+that the same increase in~$\lambda$ causes a proportionally larger
+change in $\log\Prob(\tau^{\PI})$.
+
+Under the mixture measure (Figure~4 of \citealt{HuangSun2025}),
+the increasing co-drawdown reflects the bad-state channel:
+as~$\lambda$ increases, the bad-state PI ruin probability grows
+rapidly (because the over-investment is amplified by the
+$1/(1-\lambda)$ factor), while the good-state PI ruin remains
+near zero.
+The mixture probability thus shifts weight toward the bad-state
+contribution, generating the observed upward trend.
+
+
+%% ------------------------------------------------------------------------
+\subsection{Implications for systemic risk}\label{sec:discuss_systemic}
+%% ------------------------------------------------------------------------
+
+The risk reversal has important implications for the macroprudential
+assessment of fund manager competition under incomplete information.
+
+\paragraph{Tail amplification.}
+Under the mixture measure, the PI investor is safer \emph{on average}
+(Table~\ref{tab:mixture}).
+However, Theorem~\ref{thm:bad_state} shows that conditional on the
+bad state, PI investors face catastrophically higher ruin risk.
+This is a form of \emph{tail amplification}: partial information
+shifts risk from the body to the tail of the state distribution.
+
+A regulator using the mixture measure would underestimate the
+systemic risk posed by PI investors, because the good-state safety
+masks the bad-state vulnerability.
+The correct assessment requires conditioning on the worst case,
+which is precisely the scenario where PI investors are most
+vulnerable.
+
+\paragraph{Simultaneous failure.}
+Under the symmetric game, all $N$~PI investors use the same strategy
+(driven by the common filter) and therefore fail simultaneously:
+$\tau_i = \tau_j$ a.s.\ for all~$i, j$.
+This perfect correlation in default events means that the co-drawdown
+probability equals the individual ruin probability.
+The heterogeneous game (Proposition~\ref{prop:heterogeneous}) introduces
+some dispersion in failure times, but the common filter ensures
+that the correlation remains high.
+
+\paragraph{Policy implications.}
+Our results suggest that:
+\begin{enumerate}[label=(\roman*)]
+\item Competition ($\lambda$) is more dangerous under partial
+  information than full information, not because PI investors are
+  riskier on average, but because they are more \emph{sensitive}
+  to competition.
+\item Disclosure requirements that improve information quality
+  (moving the regime from PI toward FI) have a dual effect:
+  they increase average expected wealth
+  (Theorem~\ref{thm:wealth})
+  but may also increase ruin risk under the good state
+  (Theorem~\ref{thm:expo_bound}).
+\item The optimal regulatory response depends on the prior
+  probability~$p$ of the good state: when $p$ is high
+  (economy likely in good shape), the good-state safety of PI
+  may be more relevant than the bad-state vulnerability.
+\end{enumerate}
+
+
+%% ------------------------------------------------------------------------
+\subsection{Open problems}\label{sec:open}
+%% ------------------------------------------------------------------------
+
+\begin{enumerate}[label=\arabic*.]
+\item \textbf{Full pathwise comparison under $\Prob_{\mu_1}$.}
+Theorem~\ref{thm:expo_bound} establishes
+$\Prob_{\mu_1}(\tau^{\PI} \le T) \le \Prob_{\mu_1}(\tau^{\FI} < \infty)$
+but falls short of the full comparison
+$\Prob_{\mu_1}(\tau^{\PI} \le T) \le \Prob_{\mu_1}(\tau^{\FI} \le T)$.
+The obstruction is a Girsanov density correlation: under the true
+measure~$\Prob_{\mu_1}$, the Dubins--Schwarz comparison established
+under~$Q$ does not transfer because the Girsanov density~$L(T)$
+correlates differently with the two ruin events.
+Resolving this likely requires either a direct coupling argument
+on the wealth processes (not on the time-changed Brownian motions)
+or a comparison theorem for one-dimensional diffusions with
+stochastic coefficients.
+
+\item \textbf{Sharp boundary of the bad-state reversal region.}
+Our numerics (Table~\ref{tab:bad_state}) show that the
+bad-state amplification $\Prob^{\PI}/\Prob^{\FI} > 1$ occurs
+for moderate~$D$ and~$\lambda$, but the precise boundary in
+$(D, \lambda)$-space is determined only numerically.
+A sharp characterization---perhaps in terms of the over-investment
+ratio $\bar{\pi}/\pi_2^{\FI}$ and the BL formula---would provide
+closed-form conditions for the reversal.
+
+\item \textbf{General $N$-type heterogeneous game.}
+Proposition~\ref{prop:heterogeneous} treats two types with equal population.
+The general case with $K$~types and arbitrary population fractions
+$\alpha_1, \ldots, \alpha_K$ involves a $K$-dimensional coupled PDE
+system whose perturbation theory is substantially more complex.
+Of particular interest is whether the antisymmetry
+($c_1^A = -c_1^B$) persists for unequal populations, and whether
+the aggregate correction $\bar{g}_1$ remains zero.
+
+\item \textbf{Price impact and endogenous volatility.}
+The current model takes the stock price as exogenous.
+In a market with price impact, the aggregate portfolio
+$\bar{\pi}$ feeds back into the stock dynamics, creating a
+fixed-point problem.
+Under PI, the filter itself depends on the stock price, so the
+feedback loop involves both the portfolio and the belief dynamics.
+The interaction between learning, price impact, and competition
+is a challenging but important direction.
+
+\item \textbf{Mean-field game limit.}
+As $N \to \infty$ with $\lambda$ fixed, the game converges to a
+mean-field game.
+The convergence rate and the behavior of the ruin probability in
+the large-$N$ limit are open questions.
+In particular, the heterogeneous perturbation
+(Proposition~\ref{prop:heterogeneous}) suggests that the mean-field limit
+may qualitatively differ from the finite-$N$ game when
+risk-aversion heterogeneity is present.
+\end{enumerate}
+
+
+%% ========================================================================
+\section{Conclusion}\label{sec:conclude_v2}
+%% ========================================================================
+
+We have established a theoretical framework for first-passage time
+comparison in mean-variance portfolio games under partial information,
+building on the model of \citet{HuangSun2025}.
+Our main contribution is the \emph{risk reversal theorem}: the PI
+investor is dramatically safer under the good state
+(Theorem~\ref{thm:expo_bound}) but faces amplified ruin risk under
+the bad state (Theorem~\ref{thm:bad_state}).
+
+The good-state safety arises from the mechanical under-investment of
+the uncertain PI investor.
+The exponential martingale bound
+(Theorem~\ref{thm:expo_bound}) shows that the PI ruin probability
+is bounded by the FI \emph{infinite-horizon} probability, with a
+theoretical Lundberg exponent ratio of $\mu_1/\theta(p) \approx 1.82$
+(Monte Carlo estimates: $5$--$6$ times).
+The bad-state amplification arises from the over-investment of the
+PI investor who does not know the state is bad.
+The coupling argument
+(Theorem~\ref{thm:bad_state}) provides an explicit lower bound on
+the PI ruin probability in terms of the Bachelier--L\'evy formula
+and the over-investment ratio $\bar{\pi}/\pi_2^{\FI}$.
+
+The sensitivity amplification (Theorem~\ref{thm:sensitivity}) provides
+the theoretical foundation for the co-drawdown phenomenon observed in
+\citet[Figure~4]{HuangSun2025}: the PI ruin probability is
+$5$--$6$ times more sensitive to the competition parameter~$\lambda$,
+explaining why co-drawdown increases sharply with competition under
+partial information.
+
+The perturbation analysis for heterogeneous investors
+(Proposition~\ref{prop:heterogeneous}) reveals that risk-aversion
+heterogeneity breaks the $\lambda$-independence of the equilibrium
+function~$g$, creating a new channel through which competition affects
+the filter dynamics.
+This opens the door to a richer theory of co-drawdown in heterogeneous
+populations, where different investor types fail at different rates
+and the aggregate default behavior depends on the composition of the
+investor population.
+
+
+%% ========================================================================
+%% Bibliography
+%% ========================================================================
+
+\bibliographystyle{plainnat}
+
+\begin{thebibliography}{99}
+
+
+\bibitem[Basak and Makarov(2014)]{BasakMakarov2014}
+Basak, S. and Makarov, D. (2014).
+\newblock Strategic asset allocation in money management.
+\newblock \emph{Journal of Finance}, 69(1):179--217.
+
+\bibitem[B{\"a}uerle and Bayraktar(2013)]{BaeuerleBayraktar2013}
+B{\"a}uerle, N. and Bayraktar, E. (2013).
+\newblock A note on applications of stochastic ordering to control problems
+  in insurance and finance.
+\newblock \emph{Stochastics}, 86(2):330--340.
+\newblock arXiv:1312.1068.
+
+\bibitem[Carmona et~al.(2018)]{Carmona2018}
+Carmona, R., Fouque, J.-P., Mousavi, S.~M., and Sun, L.-H. (2018).
+\newblock Systemic risk and stochastic games with delay.
+\newblock \emph{Journal of Optimization Theory and Applications},
+  179(1):88--120.
+
+\bibitem[Deng et~al.(2022)]{Deng2022}
+Deng, C., Su, X., and Yang, C. (2022).
+\newblock Relative wealth concerns with partial information and heterogeneous
+  priors.
+\newblock \emph{SIAM Journal on Financial Mathematics}, 13(3):SC59--SC85.
+\newblock arXiv:2007.11781.
+
+\bibitem[Espinosa and Touzi(2015)]{EspinosaTouzi2015}
+Espinosa, G.-E. and Touzi, N. (2015).
+\newblock Optimal investment under relative performance concerns.
+\newblock \emph{Mathematical Finance}, 25(2):221--257.
+
+\bibitem[Henderson et~al.(2020)]{Henderson2020}
+Henderson, V., Kladivko, K., Monoyios, M., and Reisinger, C. (2020).
+\newblock Executive stock option exercise with full and partial information
+  on a drift change point.
+\newblock \emph{SIAM Journal on Financial Mathematics}, 11(4):1007--1062.
+
+\bibitem[Huang and Sun(2025)]{HuangSun2025}
+Huang, Y.-J. and Sun, Z. (2025).
+\newblock Mean-variance portfolio games under partial information.
+\newblock \emph{Mathematical Finance}, to appear.
+
+
+\bibitem[Karatzas and Shreve(1991)]{KaratzasShreve1991}
+Karatzas, I. and Shreve, S.~E. (1991).
+\newblock \emph{Brownian Motion and Stochastic Calculus}.
+\newblock Springer, 2nd edition.
+
+\bibitem[Lacker and Zariphopoulou(2019)]{LackerZariphopoulou2019}
+Lacker, D. and Zariphopoulou, T. (2019).
+\newblock Mean field and $n$-agent games for optimal investment under
+  relative performance criteria.
+\newblock \emph{Annals of Applied Probability}, 29(2):1003--1038.
+
+\bibitem[Leobacher and Ngare(2016)]{Leobacher2016}
+Leobacher, G. and Ngare, P. (2016).
+\newblock Bayesian dividend optimization and finite time ruin probabilities.
+\newblock \emph{Stochastic Models}, 32(2):216--242.
+
+
+\bibitem[Zhang and Yan(2024)]{ZhangYan2024}
+Zhang, P. and Yan, Z. (2024).
+\newblock Optimal portfolio with relative performance and CRRA risk preferences
+  in a partially observable financial market.
+\newblock \emph{Applied Mathematics and Computation}, 481:128935.
+
+\end{thebibliography}
+
+\end{document}

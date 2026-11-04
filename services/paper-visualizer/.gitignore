@@ -1,0 +1,32 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# ---- Node ----
+node_modules/
+paper_visualizer/frontend/dist/
+paper_visualizer/frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- Secrets ----
+.env
+.env.local
+.env.*.local
+paper_visualizer/.env
+
+# ---- IDE / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# ---- Runtime artefacts ----
+*.log
+.cache/

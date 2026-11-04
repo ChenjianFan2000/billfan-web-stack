@@ -1,0 +1,401 @@
+{
+  "slug": "cross_impact",
+  "source": {
+    "tex_path": "output/cross_impact/main_v2.tex",
+    "pdf_path": "output/cross_impact/main_v2.pdf",
+    "source_hash": "sha256:de7cf2271efaa92cf89889a00af2e4a73aacc1992ceccd976c1bdb85ebe83b81",
+    "ingested_at": "2026-04-16T01:25:31.392194+00:00"
+  },
+  "title": {
+    "en": "No-Manipulation Conditions for Heterogeneous Power-Law Cross-Impact Kernels: Sharp Characterisation and Boundary Analysis",
+    "zh": "异质幂律交叉冲击核的无操纵条件：精确刻画与边界分析"
+  },
+  "short_title": {
+    "zh": "异质幂律交叉冲击无操纵条件",
+    "en": "No-Manipulation for Heterogeneous Power-Law Cross-Impact"
+  },
+  "author": "",
+  "date": "",
+  "status": "draft",
+  "abstract": {
+    "tex": "We derive necessary and sufficient conditions for the absence of price manipulation\nin a multi-asset market with transient cross-impact governed by a power-law propagator.\nFor the singular kernel $H_{ij}(t) = c_{ij}\\,t^{-\\beta_{ij}}$ with heterogeneous\ndecay exponents $\\beta_{ij}\\in(0,\\tfrac12)$, we show that price manipulation is\nprecluded (simultaneously for all time horizons $T>0$) if and only if\n(a)~the cross-impact exponents satisfy the \\emph{mean-exponent condition}\n$\\beta_{ij} = (\\beta_{ii}+\\beta_{jj})/2$, and\n(b)~the Gamma-weighted matrix $\\bC := [c_{ij}\\,\\gamma(\\beta_{ij})]$ is nonnegative\ndefinite, where $\\gamma(\\beta) = 2\\,\\Gamma(1-\\beta)\\sin(\\pi\\beta/2)$.\n\nFor the regularised kernel $H_{ij}^{(t_0)}(t) = c_{ij}\\,(t+t_0)^{-\\beta_{ij}}$,\nwe discover an asymmetric necessity structure: when cross-impact decays\n\\emph{faster} than the mean of the self-impact exponents, the mean-exponent\ncondition remains necessary; when it decays \\emph{slower}, an explicit\n$t_0$-dependent admissible region exists, which shrinks to zero as $t_0\\to 0^+$,\nrecovering the singular kernel's necessity.  The proof rests on a spectral\nasymptotic analysis of incomplete Gamma functions.\n\nWe provide a comprehensive boundary analysis: in the permanent-impact limit\n$\\beta\\to 0^+$, the no-manipulation condition becomes vacuous (round trips\nare costless); singular\n$\\bC$ with heterogeneous exponents provides a structural safety margin\nagainst zero-cost round trips; and the large-$N$ scaling reveals that\npositive cross-impact is scalable ($c_{\\max}=1$ independent of~$N$) while\nnegative cross-impact vanishes as $O(1/(N{-}1))$.",
+    "en": "We derive necessary and sufficient conditions for absence of price manipulation in a multi-asset market with transient cross-impact governed by a power-law propagator with heterogeneous exponents. For the singular kernel, no-manipulation holds iff a mean-exponent condition and positive semidefiniteness of a Gamma-weighted matrix hold simultaneously. For regularized kernels, an asymmetric necessity structure is discovered, proved via spectral asymptotics of incomplete Gamma functions.",
+    "zh": "本文研究多资产市场中由幂律传播算子驱动的瞬态交叉冲击下价格操纵缺失的充要条件。对奇异核$H_{ij}(t)=c_{ij}t^{-\\beta_{ij}}$，证明无价格操纵当且仅当均值指数条件成立且Gamma加权矩阵半正定。对正则化核，发现不对称的必要性结构，并通过不完全Gamma函数的谱渐近分析加以证明。"
+  },
+  "domain": [
+    "market_microstructure",
+    "derivatives"
+  ],
+  "math_tools": [
+    "fourier_analysis",
+    "large_deviations",
+    "perturbation_expansion",
+    "linear_spectral_statistics"
+  ],
+  "prerequisites": [
+    {
+      "topic_id": "transient_price_impact",
+      "level": "intermediate",
+      "why": "Core model is built on transient cross-impact with propagator kernels."
+    },
+    {
+      "topic_id": "fourier_analysis_distributions",
+      "level": "advanced",
+      "why": "Proofs rely on Fourier transforms of tempered distributions and spectral positivity."
+    },
+    {
+      "topic_id": "matrix_analysis",
+      "level": "intermediate",
+      "why": "No-manipulation condition reduces to positive semidefiniteness of a matrix."
+    },
+    {
+      "topic_id": "special_functions",
+      "level": "intermediate",
+      "why": "Incomplete Gamma functions appear in regularized kernel asymptotics."
+    }
+  ],
+  "main_theorems": [
+    {
+      "id": "prop:equiv",
+      "env": "proposition",
+      "statement_tex": "The Volterra kernel $G(t,s) = \\mathbf{1}_{t\\ge s}\\,H(t-s)$ precludes price manipulation\nif and only if it is nonnegative definite in the sense of~\\eqref{eq:nnd}.",
+      "section_number": "2",
+      "label": {
+        "zh": "等价命题",
+        "en": "NND equivalence for Volterra kernel"
+      },
+      "key_ideas": {
+        "zh": [
+          "Volterra核",
+          "非负定"
+        ],
+        "en": [
+          "Volterra kernel",
+          "nonnegative definiteness"
+        ]
+      }
+    },
+    {
+      "id": "lem:FT",
+      "env": "lemma",
+      "statement_tex": "For $\\beta\\in(0,1)$, the tempered distribution $|t|^{-\\beta}$ has Fourier transform\n\\begin{equation}\\label{eq:FTformula}\n  \\widehat{|t|^{-\\beta}}(\\omega) = \\gamma(\\beta)\\,|\\omega|^{\\beta-1},\n\\end{equation}\nwhere $\\gamma(\\beta)$ is given by~\\eqref{eq:gamma}.",
+      "section_number": "2",
+      "label": {
+        "zh": "幂律Fourier变换",
+        "en": "Fourier transform of power-law kernel"
+      },
+      "key_ideas": {
+        "zh": [
+          "分布Fourier变换",
+          "幂律衰减"
+        ],
+        "en": [
+          "tempered distribution",
+          "power-law Fourier transform"
+        ]
+      }
+    },
+    {
+      "id": "lem:BS",
+      "env": "lemma",
+      "statement_tex": "Let $\\mathbf{T}=(T_{ij})_{i,j=1}^N$ be a matrix of tempered distributions on $\\R$.\nDefine the quadratic form\n\\[\n  Q_{\\mathbf{T}}(f) :=\n  \\sum_{i,j=1}^N \\langle T_{ij},\\, f_i * \\widetilde{f}_j\\rangle,\n  \\qquad f\\in\\mathcal{S}(\\R,\\R^N),\n\\]\nwhere $\\widetilde{f}(t)=f(-t)$.\nThen $Q_{\\mathbf{T}}(f)\\ge 0$ for all $f\\in\\mathcal{S}(\\R,\\R^N)$ if and only if\n$\\widehat{\\mathbf{T}}(\\omega) := [\\widehat{T}_{ij}(\\omega)]$ is a nonnegative-definite\nmatrix-valued tempered measure.\n\nIf, moreover, $\\widehat{\\mathbf{T}}$ is locally integrable, then $Q_{\\mathbf{T}}(f)\\ge 0$\nfor all $f$ if and only if $\\widehat{\\mathbf{T}}(\\omega)\\ge 0$ (as a matrix) for\nalmost every $\\omega$.",
+      "section_number": "2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:main",
+      "env": "theorem",
+      "statement_tex": "Under \\Cref{ass:kernel}, the following are equivalent.\n\\begin{enumerate}[label=\\textup{(\\roman*)},nosep]\n  \\item\\label{it:nomanip}\n    $G(t,s)=\\mathbf{1}_{t\\ge s}\\,H(t-s)$ precludes price manipulation\n    for all $T>0$.\n  \\item\\label{it:Fourier}\n    The spectral matrix\n    $\\widehat{H}(\\omega) = [c_{ij}\\,\\gamma(\\beta_{ij})\\,|\\omega|^{\\beta_{ij}-1}]_{i,j}$\n    is nonnegative definite for all $\\omega>0$.\n  \\item\\label{it:conditions}\n    The following two conditions hold:\n    \\begin{enumerate}[label=\\textup{(\\alph*)},nosep]\n      \\item\\label{it:meanexp}\n        $\\beta_{ij} = \\frac{\\beta_{ii}+\\beta_{jj}}{2}$ for all $i,j$\n          with $c_{ij}\\neq 0$\n        \\textup{(mean-exponent condition);}\n      \\item\\label{it:Ctilde}\n        $\\bC := [c_{ij}\\,\\gamma(\\beta_{ij})]_{i,j}$ is nonnegative definite.\n    \\end{enumerate}\n\\end{enumerate}",
+      "section_number": "3",
+      "label": {
+        "zh": "主定理：无操纵充要条件",
+        "en": "Main no-manipulation characterisation"
+      },
+      "key_ideas": {
+        "zh": [
+          "均值指数条件",
+          "Gamma加权矩阵半正定"
+        ],
+        "en": [
+          "mean-exponent condition",
+          "Gamma-weighted matrix PSD"
+        ]
+      }
+    },
+    {
+      "id": "cor:regularised",
+      "env": "corollary",
+      "statement_tex": "Let $t_0>0$ and consider the regularised kernel~\\eqref{eq:reg_kernel}\nsatisfying symmetry conditions as in \\Cref{ass:kernel}(ii)--(iii).\nIf conditions~\\ref{it:meanexp}--\\ref{it:Ctilde} of \\Cref{thm:main} hold, then\n$G^{(t_0)}(t,s) = \\mathbf{1}_{t\\ge s}\\,H^{(t_0)}(t-s)$ precludes price manipulation.",
+      "section_number": "5.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:reg_FT",
+      "env": "lemma",
+      "statement_tex": "For $\\beta\\in(0,1)$ and $t_0>0$, the Fourier transform of the even function\n$(|t|+t_0)^{-\\beta}$ satisfies:\n\\begin{enumerate}[label=\\textup{(\\roman*)},nosep]\n\\item \\textbf{Exact representation:}\n\\begin{equation}\\label{eq:reg_FT}\n  \\widehat{(|t|+t_0)^{-\\beta}}(\\omega)\n  = 2\\operatorname{Re}\\bigl[e^{-it_0\\omega}\\,\n    (-i\\omega)^{\\beta-1}\\,\\Gamma(1-\\beta,\\,-it_0\\omega)\\bigr],\n\\end{equation}\nwhere $\\Gamma(s,z)=\\int_z^\\infty u^{s-1}e^{-u}\\,du$ is the upper incomplete\nGamma function.\n\\item \\textbf{Low-frequency asymptotics:} As $\\omega\\to 0^+$,\n\\begin{equation}\\label{eq:reg_low}\n  \\widehat{(|t|+t_0)^{-\\beta}}(\\omega)\n  \\sim \\gamma(\\beta)\\,\\omega^{\\beta-1} \\to +\\infty,\n\\end{equation}\nwhere $\\gamma(\\beta) = 2\\Gamma(1-\\beta)\\sin(\\pi\\beta/2)$. The regularised\nkernel has the same leading singularity at low frequencies as the singular\nkernel $|t|^{-\\beta}$.\n\\item \\textbf{High-frequency asymptotics:} As $\\omega\\to\\infty$,\n\\begin{equation}\\label{eq:reg_high}\n  \\widehat{(|t|+t_0)^{-\\beta}}(\\omega) = O(\\omega^{-2}).\n\\end{equation}\nThe high-frequency decay is faster than the singular kernel's\n$O(\\omega^{\\beta-1})$ because the regularisation removes the\ncusp at the origin.\n\\end{enumerate}",
+      "section_number": "5.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:reg_necessity",
+      "env": "proposition",
+      "statement_tex": "Let $N=2$, $t_0 > 0$, $\\beta_{11}, \\beta_{22}\\in(0,1)$, and $c_{11}, c_{22} > 0$.\nSet $\\delta := 2\\beta_{12} - \\beta_{11} - \\beta_{22}$.\n\\begin{enumerate}[label=\\textup{(\\roman*)},nosep]\n  \\item If $\\delta < 0$ and $c_{12}\\neq 0$, then $G^{(t_0)}$ admits price\n    manipulation for some $T>0$.  In particular, the mean-exponent condition\n    $\\delta = 0$ is necessary whenever $\\beta_{12} < (\\beta_{11}+\\beta_{22})/2$.\n  \\item If $\\delta \\ge 0$, the mean-exponent condition is \\emph{not} necessary:\n    the regularised kernel precludes manipulation for all~$T>0$ provided\n    \\begin{equation}\\label{eq:reg_bound}\n      c_{12}^2 \\;\\le\\; t_0^{\\delta}\\,\n        \\frac{\\Gamma(1-\\beta_{11})\\,\\Gamma(1-\\beta_{22})}{\\Gamma(1-\\beta_{12})^2}\\,.\n    \\end{equation}\n  \\item As $t_0\\to 0^+$ with $\\delta > 0$, the right-hand side\n    of~\\eqref{eq:reg_bound} vanishes, recovering the necessity of the\n    mean-exponent condition for the singular kernel.\n\\end{enumerate}",
+      "section_number": "5.3",
+      "label": {
+        "zh": "正则化核的不对称必要性",
+        "en": "Asymmetric necessity for regularised kernel"
+      },
+      "key_ideas": {
+        "zh": [
+          "不对称必要性",
+          "可容许区域"
+        ],
+        "en": [
+          "asymmetric necessity",
+          "admissible region"
+        ]
+      }
+    },
+    {
+      "id": "prop:permanent",
+      "env": "proposition",
+      "statement_tex": "In the homogeneous-exponent case $\\beta_{ij}=\\beta$ for all $i,j$, as $\\beta\\to 0^+$:\n\\begin{enumerate}[label=\\textup{(\\roman*)},nosep]\n\\item The Gamma-weighted matrix $\\bC = \\gamma(\\beta)\\,C$ degenerates:\n  $\\gamma(\\beta)\\to 0$, so $\\bC\\to 0$, and the condition $\\bC\\ge 0$ becomes vacuous.\n\\item The transient-impact cost of a round-trip strategy $u$\n  ($\\int_0^T u_t\\,dt = 0$) converges to\n  $\\mathcal{C}(u) \\to 0$,\n  regardless of the sign of~$C$. This is the well-known degeneracy of\n  permanent impact: reversing a position fully undoes the price effect.\n\\end{enumerate}\nThus, as $\\beta\\to 0^+$, the no-manipulation condition becomes vacuous\n(round trips are costless for any~$C$), reflecting the degeneracy of\npermanent-impact models.",
+      "section_number": "6.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:singular",
+      "env": "proposition",
+      "statement_tex": "Assume the mean-exponent condition holds and $\\bC\\ge 0$ with $\\bC v = 0$\nfor some $v\\neq 0$.\n\\begin{enumerate}[label=\\textup{(\\roman*)},nosep]\n\\item \\textbf{Homogeneous exponents} ($b_1=\\cdots=b_N=\\beta$):\n  The portfolio direction $v$ has identically zero transient-impact cost.\n  Any round-trip strategy $u(t) = f(t)\\,v$ with $\\int_0^T f(t)\\,dt = 0$\n  satisfies $\\mathcal{C}(u) = 0$.\n\\item \\textbf{Heterogeneous exponents} ($b_i\\neq b_j$ for some $i,j$):\n  The cost $\\mathcal{C}(u)$ for a strategy $u(t) = f(t)\\,v$ is zero only for\n  specific frequency-matched trading patterns, not for generic round trips.\n  Generically, $\\mathcal{C}(u) > 0$ even at the PSD boundary.\n\\end{enumerate}",
+      "section_number": "6.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:largeN",
+      "env": "proposition",
+      "statement_tex": "The matrix $\\bC$ in~\\eqref{eq:largeN_matrix} is nonnegative definite if and only if\n\\begin{equation}\\label{eq:largeN_bounds}\n  -\\frac{1}{N-1} \\;\\le\\; c \\;\\le\\; 1.\n\\end{equation}",
+      "section_number": "6.3",
+      "label": {
+        "zh": "大N尺度刻画",
+        "en": "Large-N scaling of cross-impact bounds"
+      },
+      "key_ideas": {
+        "zh": [
+          "大N极限",
+          "半正定条件"
+        ],
+        "en": [
+          "large-N scaling",
+          "PSD condition bounds"
+        ]
+      }
+    }
+  ],
+  "sections": [
+    {
+      "number": "1",
+      "title_tex": "Introduction"
+    },
+    {
+      "number": "2",
+      "title_tex": "Model and Preliminaries"
+    },
+    {
+      "number": "3",
+      "title_tex": "Main Result"
+    },
+    {
+      "number": "4",
+      "title_tex": "Economic Implications"
+    },
+    {
+      "number": "4.1",
+      "title_tex": "The mean-exponent condition"
+    },
+    {
+      "number": "4.2",
+      "title_tex": "Connection to the empirical \\texorpdfstring{$\\beta\\approx 0.5$}{beta approx 0.5}"
+    },
+    {
+      "number": "4.3",
+      "title_tex": "The Gamma-weighted matrix \\texorpdfstring{$\\bC$}{C-tilde}"
+    },
+    {
+      "number": "4.4",
+      "title_tex": "Testable predictions"
+    },
+    {
+      "number": "5",
+      "title_tex": "Regularised Kernel"
+    },
+    {
+      "number": "5.1",
+      "title_tex": "Sufficient conditions"
+    },
+    {
+      "number": "5.2",
+      "title_tex": "Spectral asymptotics for the regularised kernel"
+    },
+    {
+      "number": "5.3",
+      "title_tex": "Asymmetric necessity for the regularised kernel"
+    },
+    {
+      "number": "5.4",
+      "title_tex": "Obstruction to full necessity"
+    },
+    {
+      "number": "6",
+      "title_tex": "Boundary Analysis"
+    },
+    {
+      "number": "6.1",
+      "title_tex": "Permanent-impact limit (\\texorpdfstring{$\\beta\\to 0^+$}{beta to 0+})"
+    },
+    {
+      "number": "6.2",
+      "title_tex": "Singular \\texorpdfstring{$\\bC$}{C-tilde} and zero-cost portfolios"
+    },
+    {
+      "number": "6.3",
+      "title_tex": "Large-\\texorpdfstring{$N$}{N} scaling"
+    },
+    {
+      "number": "7",
+      "title_tex": "Assumption Necessity"
+    },
+    {
+      "number": "7.1",
+      "title_tex": "Necessity of symmetry (\\Cref{ass:kernel}(ii))"
+    },
+    {
+      "number": "7.2",
+      "title_tex": "Necessity of nonnegative self-impact (\\Cref{ass:kernel}(iii))"
+    },
+    {
+      "number": "7.3",
+      "title_tex": "Necessity of the mean-exponent condition (\\ref{it:meanexp})"
+    },
+    {
+      "number": "7.4",
+      "title_tex": "Necessity of \\texorpdfstring{$\\bC\\ge 0$}{C-tilde >= 0}"
+    },
+    {
+      "number": "7.5",
+      "title_tex": "Necessity of the power-law form"
+    },
+    {
+      "number": "8",
+      "title_tex": "Numerical Illustrations"
+    },
+    {
+      "number": "8.1",
+      "title_tex": "Two assets: singular kernel"
+    },
+    {
+      "number": "8.2",
+      "title_tex": "Three assets"
+    },
+    {
+      "number": "8.3",
+      "title_tex": "Parameter sensitivity"
+    },
+    {
+      "number": "8.3.1",
+      "title_tex": "Sensitivity to self-impact exponents"
+    },
+    {
+      "number": "8.3.2",
+      "title_tex": "Sensitivity to $N$"
+    },
+    {
+      "number": "8.4",
+      "title_tex": "Regularised kernel: admissible region"
+    },
+    {
+      "number": "8.5",
+      "title_tex": "Admissible region for regularised kernel: \\texorpdfstring{$t_0$}{t0} dependence"
+    },
+    {
+      "number": "9",
+      "title_tex": "Conclusion"
+    }
+  ],
+  "related_papers": [
+    {
+      "slug": "cross_impact",
+      "relation": "shared_domain",
+      "note": "Both study cross-impact in multi-asset markets and no-arbitrage/no-manipulation conditions."
+    },
+    {
+      "slug": "discrete_vs_rough",
+      "relation": "shared_tool",
+      "note": "Shares use of power-law/rough kernels and Fourier spectral analysis."
+    },
+    {
+      "slug": "variance_options",
+      "relation": "shared_tool",
+      "note": "Fourier analysis of singular kernels is a common technical tool."
+    }
+  ],
+  "figures": [],
+  "generation": {
+    "model": "claude-sonnet-4-6",
+    "generated_at": "2026-04-16T01:28:54.347693+00:00",
+    "prompt_version": "v1",
+    "langs": []
+  },
+  "repo": "realresearch",
+  "repo_root": "E:/Anaconda/Realresearch",
+  "project_id": null,
+  "quality": {
+    "tier": "B",
+    "significance_score": 11,
+    "critic_verdict": "PASS",
+    "coherence_verdict": "MAJOR_ISSUES",
+    "significance_max": 16,
+    "dimensions": {
+      "correctness": "acceptable",
+      "rigor": "acceptable",
+      "novelty": "acceptable",
+      "framing": "strong",
+      "coherence": "acceptable"
+    },
+    "assessed_by": "unified_critic"
+  }
+}

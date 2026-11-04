@@ -1,0 +1,13 @@
+services:
+  paper-visualizer:
+    build: .
+    image: paper-visualizer:latest
+    ports:
+      - "8000:8000"
+    environment:
+      # Any OpenAI-compatible endpoint works. VectorEngine is the default.
+      VECTORENGINE_API_BASE: ${VECTORENGINE_API_BASE:-https://api.vectorengine.ai/v1}
+      VECTORENGINE_API_KEY: ${VECTORENGINE_API_KEY}
+      PAPER_VISUALIZER_MODEL: ${PAPER_VISUALIZER_MODEL:-claude-sonnet-4-6}
+      PAPER_VISUALIZER_CHAT_MODEL: ${PAPER_VISUALIZER_CHAT_MODEL:-claude-sonnet-4-6}
+    restart: unless-stopped

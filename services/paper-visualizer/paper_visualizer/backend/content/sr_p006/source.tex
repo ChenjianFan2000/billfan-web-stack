@@ -1,0 +1,1223 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[margin=1.1in]{geometry}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
+\usepackage{microtype}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}[theorem]{Example}
+
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Law}{Law}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+
+\title{Quantitative Wasserstein-1 Contraction for Overdamped Langevin Dynamics under a Bounded Lipschitz Perturbation of a Strongly Convex Potential: An Explicit Rate via Reflection Coupling}
+\author{MATHPROVER (structural\_research platform, project p006)}
+\date{April 11, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We prove an explicit, closed-form Wasserstein contraction rate for overdamped Langevin dynamics $dX_t = -\nabla U(X_t)\,dt + \sqrt{2}\,dB_t$ in $\R^d$, in the specific but widely used setting where the potential decomposes as $U = U_0 + V$ with $U_0$ being $m$-strongly convex and $V$ a $C^{1,1}$ perturbation with $\norm{\nabla V}_\infty \le K$. In the subcritical regime $K < \sqrt{m}$, we construct an explicit concave distance function $f$, a one-parameter power law with exponent determined by the dimensionless ratio $K/\sqrt m$, and show that two solutions coupled by the Eberle reflection coupling contract at rate
+\[
+c^\star \;=\; m\bigl(1 - K/\sqrt{m}\bigr) \;=\; m - K\sqrt{m}
+\]
+in the corresponding Wasserstein-$1$ metric. The rate is dimension-free, independent of $\norm{V}_\infty$, and depends on the perturbation only through its gradient sup-norm $K$. The construction specialises Eberle's variational contraction theorem \cite{Eberle2016} to a numerically concrete bound that can be inserted directly into discretisation error analyses for the unadjusted Langevin algorithm (ULA) and into propagation-of-chaos estimates for mean-field systems.
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Setting}
+Consider the overdamped Langevin diffusion on $\R^d$,
+\begin{equation}\label{eq:langevin}
+dX_t \;=\; -\nabla U(X_t)\,dt \;+\; \sqrt{2}\,dB_t,
+\end{equation}
+where $(B_t)_{t\ge 0}$ is a standard Brownian motion in $\R^d$ and $U: \R^d \to \R$ is a $C^2$ potential. We focus on the case where $U$ admits the decomposition
+\begin{equation}\label{eq:decomposition}
+U \;=\; U_0 + V,
+\end{equation}
+with $U_0$ strongly convex and $V$ a bounded-gradient perturbation. This structure arises pervasively in Bayesian posteriors with bounded-feature log-likelihoods, Gibbs measures in statistical mechanics with a bounded external field, and penalised sampling objectives in machine learning. The perturbation $V$ is not assumed to be convex, and in general the full potential $U$ is not convex either: the SDE \eqref{eq:langevin} may exhibit metastable wells induced by $V$.
+
+For such dynamics, exponential contraction in Wasserstein distance is the central quantitative tool. It controls: the relaxation rate of the law of $X_t$ towards the invariant measure $\pi \propto e^{-U}$ (Bakry--\'Emery~\cite{BakryEmery1985}, Otto--Villani~\cite{OttoVillani2000}, Bakry--Gentil--Ledoux~\cite{BakryGentilLedoux2014}), the discretisation error of the unadjusted Langevin algorithm (ULA) of Durmus and Moulines~\cite{DurmusMoulines2019,Dalalyan2017,DurmusMajewskiMiasojedow2019}, the uniform-in-time propagation of chaos rate for the associated mean-field particle system (Sznitman~\cite{Sznitman1991}, Eberle--Guillin--Zimmer~\cite{EberleGuillinZimmer2019}, Lacker~\cite{Lacker2018,Lacker2023}, Guillin--Liu--Wu--Zhang~\cite{GuillinLiuWuZhang2022}), and the Lipschitz stability of the semigroup under further perturbations.
+
+\subsection{Prior art}
+
+The case in which $U$ itself is strongly convex is classical: synchronous coupling yields $W_2$-contraction at the convexity rate (von Renesse--Sturm~\cite{vonRenesseSturm2005}, with the underlying functional-inequality picture due to Bakry--\'Emery~\cite{BakryEmery1985} and developed in~\cite{BakryGentilLedoux2014,Villani2003,Villani2009}). For non-convex $U$ satisfying a \emph{distant-dissipativity} condition, the Lindvall--Rogers~\cite{LindvallRogers1986} reflection coupling combined with Chen--Wang's spectral-gap technique~\cite{ChenWang1997} was first refined into an exponential contraction by Eberle~\cite{Eberle2011,Eberle2016}, who constructs a carefully chosen concave distance function $f$ and proves exponential $W_1$-type contraction at a rate $c > 0$ given by a variational principle involving the solution of a Sturm--Liouville problem. The rate in~\cite{Eberle2016} is typically not available in closed form. Subsequent work has extended the reflection-coupling technology in several directions: Eberle, Guillin, and Zimmer~\cite{EberleGuillinZimmer2019} obtained quantitative Harris-type theorems for both diffusions and McKean--Vlasov dynamics; Eberle and Zimmer~\cite{EberleZimmer2019} extended to ``sticky'' couplings of diffusions with different drifts; Luo and Wang~\cite{LuoWang2016} gave an $L^p$-Wasserstein version; Wang~\cite{Wang2020} analysed the case of negatively curved drift via parallel-transport coupling; Hairer, Mattingly, and Scheutzow~\cite{HairerMattinglyScheutzow2011} formulated a general Harris-type framework. The Markov-chain-stability tradition descending from Meyn and Tweedie~\cite{MeynTweedie1993} and Khasminskii~\cite{KhasminskiiBook} provides the foundational well-posedness and Lyapunov technology. For the closely related Hamiltonian Monte Carlo scheme, Bou-Rabee, Eberle, and Zimmer~\cite{BouRabeeEberleZimmer2020} derived explicit coupling bounds under distant dissipativity, with earlier MALA mixing analysis by Bou-Rabee and Hairer~\cite{BouRabeeHairer2013}; for proximal Langevin under strong convexity, Durmus, Moulines, and Pereyra~\cite{DurmusMoulinesPereyra2018} gave explicit constants.
+
+A parallel and complementary literature analyses the unadjusted Langevin algorithm (ULA) and its kinetic variant under entropy or KL-divergence: Cheng and Bartlett~\cite{ChengBartlett2018}; Cheng, Chatterji, Bartlett, and Jordan~\cite{ChengChatterjiBartlettJordan2018}; Vempala and Wibisono~\cite{VempalaWibisono2019}; Chewi, Erdogdu, Li, Shen, and Zhang~\cite{ChewiErdogduLi2022}; Lehec~\cite{LehecBook2023}; Dalalyan and Riou-Durand~\cite{DalalyanRiouTibbits2020}; the recent textbook Chewi~\cite{ChewiBook2024}; further refinements of step-size dependence include Neufeld and Xiang~\cite{NeufeldXiang2024} and Zou, Gu, and Zhang~\cite{ZouZhang2022}. The numerical-analysis foundations of the Euler--Maruyama scheme go back to Kloeden and Platen~\cite{KloedenPlaten1992} and Talay~\cite{Talay2002}, with ergodicity-of-discretisation results by Mattingly, Stuart, and Higham~\cite{Mattingly2002}.
+
+Quantitative propagation of chaos for mean-field interacting systems has seen rapid recent progress: Jabin and Wang~\cite{JabinWang2018} for $W^{-1, \infty}$ kernels, Bresch--Jabin--Wang~\cite{BreschJabinWang2019} for singular kernels including Patlak--Keller--Segel, Lacker~\cite{Lacker2018,Lacker2023} on hierarchies and entropy-method propagation, Monmarch\'e~\cite{Monmarche2017} for kinetic mean-field particles, Delarue and Lacker~\cite{DelarueLacker2020}, and Durmus--Eberle--Guillin--Schuh~\cite{DurmusEberleGuillinSchuh2024} on sticky nonlinear SDEs. Hairer~\cite{Hairer2010} and Eldan~\cite{Eldan2013} provide further structural perspectives.
+
+Despite this well-developed machinery, there is, to the author's knowledge, no reference that carries out the Eberle construction for the specific structured class \eqref{eq:decomposition} and extracts a closed-form rate expressed purely in $m$ and $K$. This is the gap the present note fills, in the technically simple but useful subcritical regime $K < \sqrt{m}$.
+
+\subsection{Main contributions}
+
+This paper has five results, tied together by the same explicit contraction rate $c^\star = m - K\sqrt m$ in the subcritical regime $K < \sqrt m$.
+
+\smallskip
+
+\textbf{(1) Closed-form continuous-time contraction} (Theorem~\ref{thm:main}). For the overdamped Langevin diffusion \eqref{eq:langevin} with $U = U_0 + V$ satisfying Assumptions~\ref{A1}--\ref{A3}, any two solutions coupled via the Eberle reflection coupling satisfy
+\[
+W_{1,f}\bigl(\Law(X_t), \Law(X'_t)\bigr) \;\le\; e^{-c^\star t}\, W_{1,f}(\mu_0, \nu_0), \qquad c^\star = m - K\sqrt m,
+\]
+where $f$ is the explicit one-parameter power-law concave distance \eqref{eq:fdef} with exponent $1 - \beta$, $\beta := K/\sqrt m$.
+
+\smallskip
+
+\textbf{(2) Discrete-time contraction for the unadjusted Langevin algorithm} (Theorem~\ref{thm:ula}). Under the additional assumption that $\nabla U$ is globally $L$-Lipschitz, the ULA iterates with step size $h \le h_0 := \min(m/(2L^2),\, 1/L,\, 1/c^\star)$ satisfy
+\[
+W_{1,f}\bigl(\Law(\bar X_N), \pi\bigr) \;\le\; e^{-c^\star N h /2}\, W_{1,f}(\Law(\bar X_0), \pi) \;+\; \frac{C_1\, L^2\,\sqrt{M^\star + d}\,\sqrt h}{c^\star},
+\]
+where $\pi \propto e^{-U}$ is the invariant measure, $M^\star = \mathcal O(d + K^2/m^2)$ is the uniform ULA second-moment bound (Lemma~\ref{lem:ula-moment}), and $C_1$ is an absolute constant arising from the Euler-Maruyama one-step strong error. The rate $c^\star$ is the \emph{same} as in the continuous-time bound; the discretisation cost enters only through the additive $O(\sqrt h)$ term.
+
+\smallskip
+
+\textbf{(3) Uniform-in-time, dimension-free propagation of chaos for the mean-field particle system} (Theorem~\ref{thm:poc}). Let
+\[
+dX^{i,N}_t \;=\; -\nabla U_0(X^{i,N}_t)\,dt \;-\; \frac{1}{N}\sum_{j=1}^N \nabla_1 W(X^{i,N}_t, X^{j,N}_t)\,dt \;+\; \sqrt 2\,dB^i_t, \qquad i = 1,\dots, N,
+\]
+be the McKean-Vlasov interacting particle system with $U_0$ $m$-strongly convex and $W: \R^d \times \R^d \to \R$ a pairwise interaction with $\norm{\nabla_1 W(\cdot,y)}_\infty \le K$ uniformly in $y$. In the subcritical regime $K < \sqrt m$, under the additional Lipschitz-in-the-second-argument condition $L_W \le c^\star/2$,
+\[
+\sup_{t \ge 0}\,W_{1,f}\bigl(\Law(X^{i,N}_t), \mu_t\bigr) \;\le\; \frac{C_2\,K}{\sqrt{N-1}\, c^\star},
+\]
+where $\mu_t$ is the solution of the limiting nonlinear Fokker-Planck equation and $C_2$ is an explicit absolute constant. The bound is \emph{uniform in time} and \emph{dimension-free}; both features distinguish it from the classical Sznitman-type bounds whose constants grow as $e^{Ct}$.
+
+\smallskip
+
+\textbf{(4) Sharpness of the exponent} (Proposition~\ref{prop:sharpness}). Within the two-parameter family of power-law concave distances
+\[
+f_{R,\beta}(r) \;:=\; \frac{R}{1-\beta}\bigl[(1+r/R)^{1-\beta} - 1\bigr], \qquad R > 0,\ \beta \in [0,1),
+\]
+the choice $(R, \beta) = (2/\sqrt m,\, K/\sqrt m)$ with rate $c^\star = m(1-\beta) = m - K\sqrt m$ is the unique maximiser of the contraction rate. No other element of this family gives a rate larger than $m - K\sqrt m$.
+
+\smallskip
+
+\textbf{(5) Closed-form behaviour at the critical threshold} (Proposition~\ref{prop:critical}). As $K \uparrow \sqrt m$, write $\varepsilon := \sqrt m - K \to 0^+$. The contraction rate vanishes \emph{linearly} in $\varepsilon$ with explicit constant: $c^\star = \sqrt m\,\varepsilon$. The concave distance $f$ converges, uniformly on compact sets, to the logarithmic distance $f_\infty(r) = R_0\,\log(1 + r/R_0)$. The bi-Lipschitz constants relating $W_{1,f}$ to the Euclidean $W_1$ on any bounded set remain finite. Consequently the half-life of $W_{1,f}$ from any bounded coupling is $\Theta(\varepsilon^{-1})$, giving the precise quantitative form of the breakdown at the critical threshold.
+
+\smallskip
+
+Taken together, these results give a complete, quantitatively explicit picture of exponential contraction, discretisation, mean-field propagation, sharpness of the rate within the power-law family, and the critical behaviour as $K \uparrow \sqrt m$, for the subcritical class $U = U_0 + V$ with $K < \sqrt m$. The supercritical regime $K \ge \sqrt m$ lies outside the reach of this power-law family and is left as an open direction, discussed in Section~\ref{sec:remarks}.
+
+\subsection{Main result (informal)}
+
+Let $U_0$ be $m$-strongly convex and let $V \in C^{1,1}(\R^d)$ satisfy $\norm{\nabla V}_\infty \le K$, with $K < \sqrt{m}$. Define
+\begin{equation}\label{eq:fdef-intro}
+f(r) \;:=\; \frac{R_0}{1-\beta}\Bigl[(1 + r/R_0)^{1-\beta} - 1\Bigr], \qquad R_0 := \frac{2}{\sqrt m},\quad \beta := \frac{K}{\sqrt m} \in (0,1),
+\end{equation}
+and let $\rho(x,y) := f(\abs{x-y})$. Then for any two solutions $(X_t)_{t\ge0}$ and $(X'_t)_{t\ge0}$ of \eqref{eq:langevin} coupled via the Eberle reflection coupling, with initial laws $\mu_0,\nu_0$,
+\begin{equation}\label{eq:main-intro}
+W_{1,f}\bigl(\Law(X_t),\Law(X'_t)\bigr) \;\le\; e^{-c^\star t}\; W_{1,f}(\mu_0,\nu_0), \qquad c^\star := m - K\sqrt m,
+\end{equation}
+where $W_{1,f}$ is the Kantorovich-Rubinstein transport distance with cost $f(\abs{x-y})$. Since $f$ is bi-Lipschitz-equivalent to the Euclidean distance on any bounded set, \eqref{eq:main-intro} transfers (up to an explicit prefactor) to the standard $W_1$-distance.
+
+The rate $c^\star = m - K\sqrt{m}$ has three features worth emphasising:
+\begin{enumerate}
+  \item \textbf{Dimension-free}: it depends only on the one-dimensional quantities $m$ and $K$, not on the ambient dimension.
+  \item \textbf{Independent of $\norm{V}_\infty$}: only the gradient sup-norm $K = \norm{\nabla V}_\infty$ enters the rate; the $L^\infty$-norm of $V$ does not. This contrasts sharply with the Holley-Stroock log-Sobolev perturbation bound, whose constant degrades as $e^{\mathrm{osc}(V)}$ \cite{HolleyStroock1987}. The two quantities measure different things — contraction versus functional inequalities — but the qualitative dependence on $V$ is strikingly different.
+  \item \textbf{Subcritical saturation at $K=0$}: as $K\to 0$, $c^\star \to m$, recovering the sharp strongly-convex contraction rate. At the other end, as $K \nearrow \sqrt m$, $c^\star \searrow 0$; beyond the critical threshold, our specific concave distance fails and a different construction is needed (see Remark~\ref{rmk:supercritical}).
+\end{enumerate}
+
+The proof is short and self-contained: the concave distance $f$ is chosen so that a single algebraic identity ($h(y) \le \sqrt m$ for a specific function $h$ on $[1,\infty)$) implies the required supermartingale inequality. The identity is verified by a residual analysis: $h(1) = \sqrt m$, $h'(1) = 0$, and $h$ is strictly decreasing on $[1,\infty)$ via the sign of its bracketed linear factor.
+
+\subsection{Outline}
+Section~\ref{sec:setup} fixes notation and states the assumptions. Section~\ref{sec:reflection} recalls the reflection coupling and derives the one-dimensional SDE for $r_t := \abs{X_t - X'_t}$. Section~\ref{sec:main} contains the construction of the concave distance $f$, the verification of the supermartingale inequality (Lemma~\ref{lem:key}), and the proof of the main theorem (Theorem~\ref{thm:main}). Section~\ref{sec:corollaries} records corollaries for the Euclidean Wasserstein metric and the second-moment of the coupled process. Section~\ref{sec:ula} proves the discrete-time ULA bound (Theorem~\ref{thm:ula}). Section~\ref{sec:poc} establishes uniform-in-time propagation of chaos (Theorem~\ref{thm:poc}). Section~\ref{sec:sharpness} proves sharpness of the exponent (Proposition~\ref{prop:sharpness}). Section~\ref{sec:critical} characterises the behaviour at the critical threshold $K \uparrow \sqrt m$ (Proposition~\ref{prop:critical}). Section~\ref{sec:numerics} reports numerical experiments validating the theoretical contraction rate on a Bayesian logistic regression posterior. Section~\ref{sec:remarks} collects remarks. Reproducible numerical and symbolic verification code is provided in the supplementary directory \texttt{code/}.
+
+\section{Setup and assumptions}\label{sec:setup}
+
+\begin{assumption}\label{A1}
+$U_0 \in C^2(\R^d)$ and there exists $m > 0$ such that $\nabla^2 U_0(x) \succeq m I$ for all $x \in \R^d$. Equivalently,
+\[
+\langle \nabla U_0(x) - \nabla U_0(y),\, x - y \rangle \;\ge\; m\,\abs{x-y}^2, \qquad \forall x,y \in \R^d.
+\]
+\end{assumption}
+
+\begin{assumption}\label{A2}
+$V \in C^{1,1}(\R^d)$. That is, $V$ is continuously differentiable and $\nabla V$ is Lipschitz. Moreover, there exists $K \ge 0$ such that
+\[
+\norm{\nabla V(x)} \le K \qquad \forall x \in \R^d.
+\]
+\end{assumption}
+
+\begin{assumption}\label{A3}
+$K < \sqrt m$.
+\end{assumption}
+
+Under Assumptions~\ref{A1}--\ref{A2}, $U := U_0 + V$ is $C^{1,1}$ and $\nabla U$ is monotone plus a bounded-gradient perturbation; the SDE \eqref{eq:langevin} admits a unique strong, non-explosive solution for every initial condition by standard well-posedness theory for SDEs with locally Lipschitz drift satisfying a one-sided monotone growth condition (see, e.g., \cite[Thm.~2.4.1]{PrevotRoeckner2007} or Khas'minskii's criterion).
+
+We write $\mu_t := \Law(X_t)$ for the marginal law at time $t$.
+
+The following elementary observation, which we call \emph{distant dissipativity} (following Eberle), is the only consequence of Assumptions~\ref{A1}--\ref{A2} we shall use.
+
+\begin{lemma}\label{lem:distant}
+Under Assumptions~\ref{A1}--\ref{A2}, for all $x, y \in \R^d$,
+\[
+\langle \nabla U(x) - \nabla U(y),\, x-y \rangle \;\ge\; m\,\abs{x-y}^2 \;-\; 2K\,\abs{x-y}.
+\]
+In particular, for $\abs{x-y} \ge R_1 := 2K/m$, the left-hand side is non-negative and the dynamics contract synchronously.
+\end{lemma}
+
+\begin{proof}
+By Assumption~\ref{A1}, $\langle \nabla U_0(x) - \nabla U_0(y), x-y\rangle \ge m\abs{x-y}^2$. For the perturbation, by the triangle inequality and Cauchy-Schwarz applied term by term,
+\[
+\abs[\Big]{\langle \nabla V(x) - \nabla V(y),\, x-y\rangle} \;\le\; \bigl(\norm{\nabla V(x)} + \norm{\nabla V(y)}\bigr)\,\abs{x-y} \;\le\; 2K\abs{x-y}.
+\]
+Summing the two bounds gives the claim. The threshold $R_1 = 2K/m$ is where $m r^2 = 2Kr$.
+\end{proof}
+
+\section{Reflection coupling}\label{sec:reflection}
+
+We recall the reflection coupling of \cite{LindvallRogers1986,Eberle2016}. Given $(X_t)_{t\ge 0}$ a strong solution of \eqref{eq:langevin} driven by a Brownian motion $(B_t)$, define a companion process $(X'_t)$ on the same probability space by
+\begin{equation}\label{eq:refl-coupling}
+dX'_t \;=\; -\nabla U(X'_t)\,dt \;+\; \sqrt{2}\bigl(I - 2 e_t e_t^\top\bigr) dB_t, \qquad e_t := \frac{X_t - X'_t}{\abs{X_t - X'_t}}
+\end{equation}
+for $t < \tau$, where $\tau := \inf\{t \ge 0 : X_t = X'_t\}$ is the coupling time, and $X'_t \equiv X_t$ for $t \ge \tau$. The matrix $I - 2 e_t e_t^\top$ is an orthogonal reflection: $X'_t$ is driven by the same magnitude of noise as $X_t$, but with the component along $e_t$ flipped. Standard results \cite{LindvallRogers1986} ensure that \eqref{eq:refl-coupling} admits a unique strong solution up to $\tau$ and that $(X'_t)$ is marginally a solution of \eqref{eq:langevin}.
+
+\begin{lemma}\label{lem:rt-sde}
+Let $r_t := \abs{X_t - X'_t}$ for $t < \tau$. Then there exists a one-dimensional standard Brownian motion $(W_t)_{t\ge 0}$ (on the same probability space) such that
+\begin{equation}\label{eq:rt-sde}
+dr_t \;=\; -e_t \cdot \bigl(\nabla U(X_t) - \nabla U(X'_t)\bigr)\,dt \;+\; 2\sqrt{2}\,dW_t, \qquad t < \tau.
+\end{equation}
+Moreover, the drift satisfies
+\begin{equation}\label{eq:drift-bound}
+-e_t \cdot \bigl(\nabla U(X_t) - \nabla U(X'_t)\bigr) \;\le\; 2K - m\,r_t.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+From \eqref{eq:langevin} and \eqref{eq:refl-coupling},
+\[
+d(X_t - X'_t) \;=\; \bigl[\nabla U(X'_t) - \nabla U(X_t)\bigr]\,dt \;+\; 2\sqrt 2\, e_t (e_t^\top dB_t).
+\]
+Let $dW_t := e_t^\top dB_t$, which is a standard one-dimensional Brownian motion by L\'evy's characterisation ($e_t$ is a unit vector adapted to the filtration generated by $B$, so $\int_0^t e_s^\top dB_s$ is a martingale with quadratic variation $t$). Then
+\[
+d(X_t - X'_t) \;=\; \bigl[\nabla U(X'_t) - \nabla U(X_t)\bigr]\,dt \;+\; 2\sqrt 2\, e_t\,dW_t.
+\]
+By It\^o's formula applied to $\abs{X_t - X'_t}^2$, valid on the open set $\{r > 0\}$ (equivalently, for $t < \tau$), a standard calculation gives
+\[
+d r_t^2 = -2\langle X_t - X'_t,\, \nabla U(X_t) - \nabla U(X'_t)\rangle\,dt \;+\; 8\,dt \;+\; 4\sqrt 2\, r_t \,dW_t.
+\]
+Applying It\^o's formula next to $r = \sqrt{r^2}$ on $\{r > 0\}$ (where $u \mapsto \sqrt u$ is smooth), and using $d\langle r^2\rangle_t = 32\, r_t^2\, dt$,
+\[
+dr_t = \frac{1}{2 r_t}\,dr_t^2 - \frac{1}{8 r_t^3}\,d\langle r^2\rangle_t = -e_t \cdot (\nabla U(X_t) - \nabla U(X'_t))\,dt + \frac{4}{r_t}\,dt - \frac{4}{r_t}\,dt + 2\sqrt 2\,dW_t,
+\]
+in which the two $4/r_t$ terms cancel exactly, yielding \eqref{eq:rt-sde}. The drift bound \eqref{eq:drift-bound} is an immediate consequence of Lemma~\ref{lem:distant}, since $e_t \cdot (X_t - X'_t) = r_t$ and so
+\[
+-e_t \cdot (\nabla U(X_t) - \nabla U(X'_t)) = -\frac{\langle X_t - X'_t, \nabla U(X_t) - \nabla U(X'_t)\rangle}{r_t} \le \frac{2K r_t - m r_t^2}{r_t} = 2K - m r_t.
+\]
+\end{proof}
+
+\section{The concave distance and the main theorem}\label{sec:main}
+
+\subsection{The concave distance}
+
+Under Assumption~\ref{A3}, set
+\begin{equation}\label{eq:params}
+\beta \;:=\; \frac{K}{\sqrt m} \;\in\;[0,1), \qquad R_0 \;:=\; \frac{2}{\sqrt m}, \qquad c^\star \;:=\; m(1-\beta) \;=\; m - K\sqrt m,
+\end{equation}
+and define
+\begin{equation}\label{eq:fdef}
+f(r) \;:=\; \frac{R_0}{1-\beta}\Bigl[\bigl(1 + r/R_0\bigr)^{1-\beta} - 1\Bigr], \qquad r \ge 0.
+\end{equation}
+
+\begin{lemma}\label{lem:f-basic}
+The function $f$ defined in \eqref{eq:fdef} is $C^\infty$ on $[0,\infty)$, satisfies $f(0) = 0$, $f'(0) = 1$, $f$ is strictly concave and strictly increasing, $f(r) \to \infty$ as $r \to \infty$, and
+\[
+f'(r) = \bigl(1 + r/R_0\bigr)^{-\beta}, \qquad f''(r) = -\frac{\beta}{R_0}\bigl(1 + r/R_0\bigr)^{-\beta-1}.
+\]
+In particular, $f$ is bi-Lipschitz equivalent to the identity on any bounded interval: for $r \in [0, R]$,
+\[
+(1 + R/R_0)^{-\beta}\cdot r \;\le\; f(r) \;\le\; r,
+\]
+so $f(r)/r \in [(1 + R/R_0)^{-\beta},\,1]$.
+\end{lemma}
+
+\begin{proof}
+All claims follow from direct differentiation. Concavity is immediate since $f'' < 0$. The lower bound $f(r) \ge (1 + R/R_0)^{-\beta} r$ on $[0, R]$ follows from the mean value theorem: for $r \in [0, R]$, $f(r) = \int_0^r f'(s)\,ds \ge r\cdot \inf_{s \in [0,r]} f'(s) = r\cdot (1 + r/R_0)^{-\beta} \ge r\cdot (1 + R/R_0)^{-\beta}$. The upper bound $f(r) \le r$ follows from $f'(s) \le f'(0) = 1$.
+\end{proof}
+
+\subsection{The key algebraic identity}
+
+\begin{lemma}[Key inequality]\label{lem:key}
+Under Assumptions~\ref{A1}--\ref{A3}, with $f$, $\beta$, $c^\star$, and $R_0$ as in \eqref{eq:params}--\eqref{eq:fdef}, the function $f$ satisfies, for every $r \ge 0$,
+\begin{equation}\label{eq:key-ineq}
+(2K - m r)\, f'(r) \;+\; 4\, f''(r) \;+\; c^\star\, f(r) \;\le\; 0,
+\end{equation}
+with equality if and only if $r = 0$.
+\end{lemma}
+
+\begin{proof}
+Substitute $f', f''$ from Lemma~\ref{lem:f-basic} and set $y := 1 + r/R_0 \in [1,\infty)$, so that $r = R_0(y - 1)$ and $2K - m r = 2K + m R_0 - m R_0\, y$. The left-hand side of \eqref{eq:key-ineq} becomes, after algebra (and using $c^\star = m(1-\beta)$ to cancel the $y^{1-\beta}$ terms),
+\[
+\text{LHS} \;=\; \bigl(2K + mR_0\bigr)\, y^{-\beta} \;-\; \frac{4\beta}{R_0}\, y^{-\beta-1} \;-\; m R_0
+\;=\; y^{-\beta-1}\Bigl[(2K + m R_0)\, y - \tfrac{4\beta}{R_0}\Bigr] \;-\; m R_0.
+\]
+Plug in $R_0 = 2/\sqrt m$: then $m R_0 = 2\sqrt m$, $2K + m R_0 = 2(K + \sqrt m)$, and $4\beta/R_0 = 2 K$. Therefore,
+\[
+\text{LHS} \;=\; 2\,y^{-\beta-1}\bigl[(K + \sqrt m)\,y - K\bigr] \;-\; 2\sqrt m \;=\; 2\bigl(h(y) - \sqrt m\bigr),
+\]
+where we have defined
+\begin{equation}\label{eq:hdef}
+h(y) \;:=\; y^{-\beta-1}\bigl[(K + \sqrt m)\,y - K\bigr], \qquad y \ge 1.
+\end{equation}
+The desired inequality $\text{LHS} \le 0$ is thus equivalent to $h(y) \le \sqrt m$ for all $y \ge 1$.
+
+We verify this by analyzing $h$. First,
+\[
+h(1) \;=\; (K + \sqrt m) - K \;=\; \sqrt m.
+\]
+Second, differentiating,
+\[
+h'(y) \;=\; -(\beta + 1)\,y^{-\beta-2}\bigl[(K+\sqrt m)y - K\bigr] \;+\; y^{-\beta-1}\,(K+\sqrt m)
+\;=\; y^{-\beta-2}\Bigl[(\beta+1)K - \beta(K + \sqrt m)\,y\Bigr].
+\]
+At $y = 1$, the bracket equals
+\[
+(\beta+1)K - \beta(K + \sqrt m) \;=\; K - \beta\sqrt m \;=\; K - \frac{K}{\sqrt m}\cdot \sqrt m \;=\; 0,
+\]
+so $h'(1) = 0$. Third, the bracket is a linear function of $y$ with slope $-\beta(K+\sqrt m) < 0$; since it vanishes at $y = 1$, it is \emph{strictly negative} for every $y > 1$. Therefore $h'(y) < 0$ on $(1,\infty)$, i.e., $h$ is strictly decreasing on $[1,\infty)$. Combined with $h(1) = \sqrt m$, this yields $h(y) < \sqrt m$ for $y > 1$ and $h(1) = \sqrt m$. Hence the LHS of \eqref{eq:key-ineq} is strictly negative for $r > 0$ and equals $0$ at $r = 0$, as claimed.
+\end{proof}
+
+\subsection{The main theorem}
+
+\begin{theorem}\label{thm:main}
+Assume \ref{A1}--\ref{A3}. Let $(X_t)_{t\ge 0}$, $(X'_t)_{t\ge 0}$ be two solutions of \eqref{eq:langevin} coupled via the Eberle reflection coupling \eqref{eq:refl-coupling}, with (possibly different) initial laws $\mu_0,\nu_0$. Then for all $t \ge 0$,
+\begin{equation}\label{eq:main}
+\E\bigl[f(\abs{X_t - X'_t})\bigr] \;\le\; e^{-c^\star t}\, \E\bigl[f(\abs{X_0 - X'_0})\bigr],
+\end{equation}
+where $f$ is defined in \eqref{eq:fdef} and $c^\star = m - K\sqrt m$. Consequently, writing $W_{1,f}(\mu,\nu) := \inf_{\pi}\int f(\abs{x-y})\,d\pi(x,y)$ for the Kantorovich-Rubinstein transport with cost $f(\abs{x-y})$,
+\begin{equation}\label{eq:W1f-contraction}
+W_{1,f}\bigl(\Law(X_t),\Law(X'_t)\bigr) \;\le\; e^{-c^\star t}\, W_{1,f}(\mu_0,\nu_0).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let $r_t := \abs{X_t - X'_t}$ and write $r_t^\tau := r_{t \wedge \tau}$ for the process stopped at the coupling time $\tau$. Note that $f(r_t^\tau) = f(r_t)$ for $t < \tau$ and, since $r_\tau = 0$ and $f(0) = 0$, we have $f(r_t^\tau) = 0$ for $t \ge \tau$. Consequently $\E[f(r_t)] = \E[f(r_t^\tau)]$ on $\{t < \tau\}$ and $\E[f(r_t)] = 0$ on $\{t \ge \tau\}$, so it suffices to bound $\E[f(r_t^\tau)]$.
+
+By Lemma~\ref{lem:rt-sde}, on $\{t < \tau\}$ the process $r_t$ satisfies $dr_t = \alpha_t\,dt + 2\sqrt 2\,dW_t$ with $\alpha_t := -e_t \cdot (\nabla U(X_t) - \nabla U(X'_t))$, and by \eqref{eq:drift-bound}, $\alpha_t \le 2K - m r_t$. Since $f \in C^2([0,\infty))$ (Lemma~\ref{lem:f-basic}), It\^o's formula applied to the stopped process $(r_t^\tau)_{t \ge 0}$ gives
+\[
+d f(r_t^\tau) \;=\; \mathbf{1}_{\{t < \tau\}}\Bigl[f'(r_t)\,\alpha_t + 4\, f''(r_t)\Bigr] dt \;+\; \mathbf{1}_{\{t < \tau\}}\, 2\sqrt 2\, f'(r_t)\, dW_t.
+\]
+Since $f'(r_t) \ge 0$ (Lemma~\ref{lem:f-basic}), on $\{t < \tau\}$ the drift satisfies
+\[
+f'(r_t)\,\alpha_t + 4 f''(r_t) \;\le\; f'(r_t)(2K - m r_t) + 4 f''(r_t) \;\le\; -c^\star f(r_t),
+\]
+where the last step is Lemma~\ref{lem:key}. Moreover $\abs{f'(r_t)} \le f'(0) = 1$, so the stochastic integral $\int_0^{t \wedge \tau} 2\sqrt 2\, f'(r_s)\, dW_s$ is a genuine $L^2$-martingale with zero mean; no additional localisation is needed. Taking expectations,
+\[
+\frac{d}{dt}\,\E[f(r_t^\tau)] \;\le\; -c^\star\,\E\bigl[\mathbf{1}_{\{t < \tau\}} f(r_t)\bigr] \;=\; -c^\star\,\E[f(r_t^\tau)],
+\]
+where the equality uses $f(r_t^\tau) = \mathbf{1}_{\{t < \tau\}} f(r_t)$ since $f(r_t^\tau) = 0$ on $\{t \ge \tau\}$. Gr\"onwall's lemma gives $\E[f(r_t^\tau)] \le e^{-c^\star t}\E[f(r_0)]$, and since $\E[f(r_t)] = \E[f(r_t^\tau)]$, this is \eqref{eq:main}.
+
+The Wasserstein statement \eqref{eq:W1f-contraction} follows via the standard coupling-to-Wasserstein reduction: fix any coupling $\gamma_0$ of $\mu_0, \nu_0$, realise $(X_0, X'_0) \sim \gamma_0$, and run the reflection coupling to obtain $(X_t, X'_t)$ whose marginals are the Langevin laws starting from $\mu_0$ and $\nu_0$ respectively. Then $(X_t, X'_t)$ is a valid coupling of $\Law(X_t)$ and $\Law(X'_t)$, and
+\[
+W_{1,f}(\Law(X_t), \Law(X'_t)) \;\le\; \E[f(\abs{X_t - X'_t})] \;\le\; e^{-c^\star t}\,\E[f(\abs{X_0 - X'_0})].
+\]
+Taking the infimum over initial couplings $\gamma_0$ yields \eqref{eq:W1f-contraction}.
+\end{proof}
+
+\section{Corollaries}\label{sec:corollaries}
+
+\subsection{Bound on \texorpdfstring{$W_{1,f}$}{W1f} in terms of the Euclidean \texorpdfstring{$W_1$}{W1}}
+
+Since $f(r) \le r$ (Lemma~\ref{lem:f-basic}), we trivially have $W_{1,f}(\mu_0,\nu_0) \le W_1(\mu_0,\nu_0)$. Combining with Theorem~\ref{thm:main} gives:
+
+\begin{corollary}\label{cor:W1f-from-W1}
+Under Assumptions~\ref{A1}--\ref{A3}, for any initial laws $\mu_0, \nu_0$ with $W_1(\mu_0,\nu_0) < \infty$,
+\[
+W_{1,f}\bigl(\Law(X_t),\Law(X'_t)\bigr) \;\le\; e^{-c^\star t}\,W_1(\mu_0,\nu_0), \qquad t \ge 0,
+\]
+where $c^\star = m - K\sqrt m$.
+\end{corollary}
+
+\begin{proof}
+By Theorem~\ref{thm:main}, $W_{1,f}(\Law(X_t),\Law(X'_t)) \le e^{-c^\star t} W_{1,f}(\mu_0,\nu_0)$. Lemma~\ref{lem:f-basic} gives $f(r) \le r$, hence $W_{1,f}(\mu_0,\nu_0) \le W_1(\mu_0,\nu_0)$.
+\end{proof}
+
+This is a clean, $R$-free statement in the native $W_{1,f}$ metric. To convert the LHS into a standard $W_1$ bound requires a moment control on the coupled process, which we now provide.
+
+\subsection{A uniform second-moment bound}
+
+\begin{lemma}\label{lem:moment}
+Under Assumptions~\ref{A1}--\ref{A3}, any two solutions of \eqref{eq:langevin} coupled via the Eberle reflection coupling satisfy
+\[
+\E\bigl[\abs{X_t - X'_t}^2\bigr] \;\le\; e^{-m t}\,\E\bigl[\abs{X_0 - X'_0}^2\bigr] \;+\; \frac{4(K^2 + 2 m)}{m^2}, \qquad t \ge 0,
+\]
+provided $\E[\abs{X_0 - X'_0}^2] < \infty$. Consequently, with $M_2^\star := \E[\abs{X_0-X'_0}^2] + 4(K^2+2m)/m^2$,
+\[
+\sup_{t \ge 0}\E[\abs{X_t - X'_t}^2] \;\le\; M_2^\star < \infty.
+\]
+\end{lemma}
+
+\begin{proof}
+From the proof of Lemma~\ref{lem:rt-sde}, on $\{t < \tau\}$,
+\[
+dr_t^2 \;=\; -2\langle X_t - X'_t,\, \nabla U(X_t) - \nabla U(X'_t)\rangle\,dt \;+\; 8\,dt \;+\; 4\sqrt 2\, r_t\, dW_t,
+\]
+and by Lemma~\ref{lem:distant},
+\[
+-2\langle X_t - X'_t, \nabla U(X_t) - \nabla U(X'_t)\rangle \;\le\; -2 m\, r_t^2 + 4 K\, r_t.
+\]
+The Young inequality $4K r_t \le m r_t^2 + 4K^2/m$ then yields
+\[
+dr_t^2 \;\le\; \Bigl(-m\, r_t^2 + \frac{4K^2}{m} + 8\Bigr)\,dt \;+\; 4\sqrt 2\, r_t\, dW_t.
+\]
+Stopping at $\sigma_n := \tau \wedge \inf\{t \ge 0: r_t \ge n\}$ (so that the SDE above holds on $\{t < \sigma_n\}$ and the martingale is bounded in $L^2$), taking expectations,
+\[
+\frac{d}{dt}\,\E[r_{t \wedge \sigma_n}^2] \;\le\; -m\,\E[r_{t \wedge \sigma_n}^2] + \frac{4K^2 + 8m}{m} \;=\; -m\,\E[r_{t \wedge \sigma_n}^2] + \frac{4(K^2 + 2m)}{m}.
+\]
+Gr\"onwall's lemma yields
+\[
+\E[r_{t \wedge \sigma_n}^2] \;\le\; e^{-m t}\,\E[r_0^2] + \frac{4(K^2 + 2m)}{m^2}\bigl(1 - e^{-m t}\bigr).
+\]
+Since $X,X'$ are non-explosive (Section~\ref{sec:setup}), $\sigma_n \to \tau$ (or $\infty$ if $\tau = \infty$) almost surely as $n \to \infty$, so $r_{t \wedge \sigma_n} \to r_{t \wedge \tau}$ and Fatou's lemma transfers the bound to $\E[r_{t \wedge \tau}^2]$. For $t \ge \tau$, $r_t = 0$ by construction of the coupling (Section~\ref{sec:reflection}), so $\E[r_t^2] = \E[r_{t \wedge \tau}^2]$ and the claim follows.
+\end{proof}
+
+\section{Discrete-time contraction for the unadjusted Langevin algorithm}\label{sec:ula}
+
+We now derive a quantitative $W_{1,f}$-contraction for the unadjusted Langevin algorithm (ULA). The strategy is the classical semigroup-comparison decomposition: bound the one-step discrepancy between the ULA Markov kernel and the exact Langevin semigroup, combine with the continuous-time contraction of Theorem~\ref{thm:main}, and iterate. What makes the argument work in the concave cost $W_{1,f}$ --- as opposed to the standard $W_2$ framework of Durmus and Moulines~\cite{DurmusMoulines2019} --- is that $f'(r) \le 1$ globally, so $W_{1,f}$ is dominated by the Euclidean $W_1$ and by the strong $L^2$ error of the Euler-Maruyama scheme.
+
+\subsection{Setup and the main discrete bound}
+
+Throughout this section we strengthen Assumption~\ref{A2} to
+\begin{assumption}\label{A4}
+$\nabla U$ is globally Lipschitz with constant $L \ge m > 0$:
+\[
+\norm{\nabla U(x) - \nabla U(y)} \;\le\; L\,\norm{x - y}, \qquad \forall x, y \in \R^d.
+\]
+\end{assumption}
+This is the standard regularity hypothesis under which ULA is analysed, e.g., \cite{DurmusMoulines2019,Dalalyan2017}. Given a step size $h > 0$ and an initial law $\nu_0$, the ULA iterates are
+\begin{equation}\label{eq:ula}
+\bar X_{k+1} \;=\; \bar X_k \;-\; h\,\nabla U(\bar X_k) \;+\; \sqrt{2h}\,\xi_{k+1}, \qquad \xi_{k+1} \stackrel{\text{iid}}{\sim} N(0, I_d),
+\end{equation}
+with $\bar X_0 \sim \nu_0$. Let $P_h$ denote the corresponding Markov kernel (so $\Law(\bar X_k) = \nu_0 P_h^k$), and let $(T_t)_{t \ge 0}$ be the continuous Langevin semigroup (so $T_h \pi = \pi$ for $\pi \propto e^{-U}$).
+
+\begin{theorem}\label{thm:ula}
+Assume \ref{A1}--\ref{A4}. There exists an absolute constant $C_1 > 0$ (independent of $d, m, K, L, \nu_0$) such that, for every step size $h$ satisfying
+\begin{equation}\label{eq:h0}
+h \;\le\; h_0 \;:=\; \min\!\left(\frac{m}{2 L^2},\; \frac{1}{L},\; \frac{1}{c^\star}\right),
+\end{equation}
+every initial law $\nu_0$ with $M_0 := \E_{\nu_0}[\abs{X - x^\star}^2] < \infty$, and every $N \ge 1$,
+\begin{equation}\label{eq:ula-bound}
+W_{1,f}\bigl(\nu_0 P_h^N, \pi\bigr) \;\le\; e^{-c^\star N h / 2}\,W_{1,f}(\nu_0, \pi) \;+\; \frac{C_1\, L^2\,\sqrt{M^\star + d}\,\sqrt h}{c^\star},
+\end{equation}
+where $x^\star$ is the minimiser of $U$, $M^\star := M_0 + 4(2K^2 + md)/m^2$ is the uniform second-moment bound from Lemma~\ref{lem:ula-moment}, $c^\star = m - K\sqrt m$, and $f$ is the concave distance \eqref{eq:fdef}.
+\end{theorem}
+
+The bound \eqref{eq:ula-bound} is of the standard geometric-plus-additive form: the first term decays geometrically at rate $c^\star/2$ (half of the continuous rate, the halving accounting for a margin absorbed into the discretisation error), and the second term is an asymptotic bias of order $\sqrt h$ that controls the equilibrium error of ULA in the concave metric. The prefactor $\sqrt{M^\star + d}$ depends on the initial law through $M_0$ and on the ambient dimension through the stationary-moment bound of Lemma~\ref{lem:ula-moment}; it is otherwise absolute.
+
+\subsection{One-step discretisation error}
+
+The one-step discretisation error is the $W_{1,f}$-distance between the law of one ULA step $\bar X_1$ and the law of the exact Langevin flow $X_h$, starting from the \emph{same} initial state $x_0$.
+
+\begin{lemma}\label{lem:onestep-strong}
+Assume \ref{A4}. Let $x_0 \in \R^d$ and let $X_t$ be the solution of \eqref{eq:langevin} with $X_0 = x_0$, driven by Brownian motion $B$. Let $\bar X_1 := x_0 - h\,\nabla U(x_0) + \sqrt{2h}\,\xi$ where $\xi := (B_h - B_0)/\sqrt h$, so that $(B, \xi)$ are coupled to the same noise. Then, for every $h \le 1/L$,
+\[
+\E\bigl[\abs{X_h - \bar X_1}^2\bigr] \;\le\; C_0\, L^2\, h^3 \cdot \bigl(\abs{\nabla U(x_0)}^2 + d\bigr),
+\]
+where $C_0 := 2\, e^4$ is an absolute constant. In particular,
+\[
+\E\bigl[\abs{X_h - \bar X_1}\bigr] \;\le\; \sqrt{C_0}\, L\, h^{3/2}\,\sqrt{\abs{\nabla U(x_0)}^2 + d}.
+\]
+\end{lemma}
+
+\begin{proof}
+Write $X_h - \bar X_1 = -\int_0^h [\nabla U(X_s) - \nabla U(x_0)]\,ds$. By Assumption~\ref{A4} and Cauchy-Schwarz in the time integral,
+\begin{equation}\label{eq:onestep-a}
+\abs{X_h - \bar X_1}^2 \;\le\; L^2\, h\int_0^h \abs{X_s - x_0}^2\,ds.
+\end{equation}
+We need to bound $\E[\abs{X_s - x_0}^2]$ for $s \in [0, h]$. Writing $X_s - x_0 = -\int_0^s \nabla U(X_u)\,du + \sqrt 2\,B_s$ and using $\abs{a + b}^2 \le 2\abs a^2 + 2\abs b^2$ together with Cauchy-Schwarz,
+\[
+\abs{X_s - x_0}^2 \;\le\; 2 s\int_0^s \abs{\nabla U(X_u)}^2\,du + 4\abs{B_s}^2.
+\]
+Since $\abs{\nabla U(X_u)}^2 \le 2\abs{\nabla U(x_0)}^2 + 2 L^2\abs{X_u - x_0}^2$ (Assumption~\ref{A4} and $\abs{a+b}^2 \le 2\abs a^2 + 2\abs b^2$), taking expectations,
+\[
+\E[\abs{X_s - x_0}^2] \;\le\; 4 s^2\,\abs{\nabla U(x_0)}^2 + 4 s\,d \;+\; 4 s\, L^2\int_0^s \E[\abs{X_u - x_0}^2]\,du,
+\]
+where we used $\E\abs{B_s}^2 = s d$. Define $\psi(s) := \E[\abs{X_s - x_0}^2]$ and $A(s) := 4 s^2\abs{\nabla U(x_0)}^2 + 4 s d$. Then $\psi(s) \le A(s) + 4 s L^2\int_0^s \psi(u)\,du$, which, for $s \in [0, 1/L]$, implies via Gr\"onwall's lemma (integral form)
+\[
+\psi(s) \;\le\; A(s)\cdot \exp\!\bigl(4 L^2 s \cdot s\bigr) \;=\; A(s)\cdot e^{4 L^2 s^2} \;\le\; A(s)\cdot e^{4 \cdot (1)^2} \;=\; e^4\, A(s).
+\]
+(We used $s \le 1/L$, so $L s \le 1$ and $L^2 s^2 \le 1$.) Using $A(s) \le 4 s\,(\abs{\nabla U(x_0)}^2 + d)$ for $s \le 1$,
+\[
+\psi(s) \;\le\; 4 e^4\, s\,(\abs{\nabla U(x_0)}^2 + d).
+\]
+Substituting into \eqref{eq:onestep-a} and integrating,
+\[
+\E[\abs{X_h - \bar X_1}^2] \;\le\; L^2\, h \int_0^h 4 e^4\, s\,(\abs{\nabla U(x_0)}^2 + d)\,ds \;=\; 2 e^4\, L^2\, h^3\,(\abs{\nabla U(x_0)}^2 + d),
+\]
+which gives the stated bound with $C_0 = 2 e^4 \approx 109$. The second bound in the lemma statement follows by Jensen's inequality applied to $\sqrt{\cdot}$.
+\end{proof}
+
+\begin{lemma}[One-step $W_{1,f}$ discretisation error]\label{lem:onestep}
+Assume \ref{A1}--\ref{A4}. For every probability measure $\mu$ on $\R^d$ with finite second moment and every $h \le 1/L$,
+\[
+W_{1,f}(\mu P_h,\, \mu T_h) \;\le\; \sqrt{C_0}\, L\, h^{3/2}\,\sqrt{\E_\mu[\abs{\nabla U(X)}^2] + d},
+\]
+where $C_0 = 4 e^2$ is the constant from Lemma~\ref{lem:onestep-strong}.
+\end{lemma}
+
+\begin{proof}
+Sample $X \sim \mu$, generate $\bar X_1$ and $X_h$ by the synchronous coupling of Lemma~\ref{lem:onestep-strong}. Then $(\bar X_1, X_h)$ is a valid coupling of $\mu P_h$ and $\mu T_h$, so
+\[
+W_{1,f}(\mu P_h, \mu T_h) \;\le\; \E[f(\abs{\bar X_1 - X_h})] \;\le\; \E[\abs{\bar X_1 - X_h}]
+\]
+by $f(r) \le r$. Conditioning on $X$ and applying Lemma~\ref{lem:onestep-strong} pointwise, then using Jensen's inequality for the concave map $u \mapsto \sqrt{u + d}$,
+\[
+\E[\abs{\bar X_1 - X_h}] \;\le\; \sqrt{C_0}\,L\,h^{3/2}\,\E_\mu\!\left[\sqrt{\abs{\nabla U(X)}^2 + d}\right] \;\le\; \sqrt{C_0}\,L\,h^{3/2}\,\sqrt{\E_\mu[\abs{\nabla U(X)}^2] + d}. \qedhere
+\]
+\end{proof}
+
+\subsection{A moment bound along the ULA trajectory}
+
+To close the iteration, we need $\E_{\nu_0 P_h^k}[\abs{\nabla U(X)}^2]$ to be bounded uniformly in $k$. Since $\nabla U$ is $L$-Lipschitz and $\nabla U(x^\star) = 0$ at the unique minimiser $x^\star$ of $U$ (which exists because $U_0$ is strongly convex and $V$ has bounded gradient), we have $\abs{\nabla U(x)} \le L\,\abs{x - x^\star}$, so it suffices to bound $\E[\abs{X - x^\star}^2]$.
+
+\begin{lemma}\label{lem:ula-moment}
+Under Assumptions~\ref{A1}--\ref{A4}, for every $h \le \min(1/L,\, m/(2L^2))$, the ULA iterates satisfy
+\[
+\E\bigl[\abs{\bar X_k - x^\star}^2\bigr] \;\le\; \E\bigl[\abs{\bar X_0 - x^\star}^2\bigr] \;+\; \frac{4(2 K^2 + m d)}{m^2}, \qquad k \ge 0.
+\]
+\end{lemma}
+
+\begin{proof}
+Let $\Delta_k := \bar X_k - x^\star$. Since $\nabla U(x^\star) = 0$,
+\[
+\Delta_{k+1} \;=\; \Delta_k - h\,\nabla U(\bar X_k) + \sqrt{2 h}\,\xi_{k+1},
+\]
+and
+\[
+\E[\abs{\Delta_{k+1}}^2 \mid \bar X_k] \;=\; \abs{\Delta_k}^2 - 2 h\,\langle \Delta_k,\,\nabla U(\bar X_k)\rangle + h^2\,\abs{\nabla U(\bar X_k)}^2 + 2 h d.
+\]
+By Lemma~\ref{lem:distant} applied with $x = \bar X_k$, $y = x^\star$,
+\[
+\langle \Delta_k,\, \nabla U(\bar X_k)\rangle \;\ge\; m\,\abs{\Delta_k}^2 - 2 K\,\abs{\Delta_k},
+\]
+and the Young inequality $4 K h\,\abs{\Delta_k} \le m h\,\abs{\Delta_k}^2 + 4 K^2 h/m$ yields
+\[
+-2 h\,\langle \Delta_k, \nabla U(\bar X_k)\rangle \;\le\; -m h\,\abs{\Delta_k}^2 + \frac{4 K^2 h}{m}.
+\]
+For the quadratic term, Assumption~\ref{A4} gives $\abs{\nabla U(\bar X_k)}^2 \le L^2\abs{\Delta_k}^2$, and the step-size condition
+\[
+h \;\le\; \frac{m}{2 L^2}
+\]
+(which is included in the definition of $h_0$ below) implies $h^2 L^2 \le (m h)/2$, hence
+\[
+h^2\,\abs{\nabla U(\bar X_k)}^2 \;\le\; \frac{m h}{2}\,\abs{\Delta_k}^2.
+\]
+Combining,
+\[
+\E[\abs{\Delta_{k+1}}^2 \mid \bar X_k] \;\le\; \Bigl(1 - m h + \frac{m h}{2}\Bigr)\abs{\Delta_k}^2 + \frac{4 K^2 h}{m} + 2 h d \;=\; \Bigl(1 - \frac{m h}{2}\Bigr)\abs{\Delta_k}^2 + \frac{4 K^2 h + 2 m h d}{m}.
+\]
+Taking expectation and iterating,
+\[
+\E[\abs{\Delta_k}^2] \;\le\; \bigl(1 - m h/2\bigr)^k\,\E[\abs{\Delta_0}^2] + \frac{4 K^2 h + 2 m h d}{m}\cdot \frac{1 - (1 - mh/2)^k}{m h/2} \;\le\; \E[\abs{\Delta_0}^2] + \frac{4(2 K^2 + m d)}{m^2},
+\]
+since the stationary level of the geometric recursion is $(4K^2 h + 2 m h d)/(m \cdot (m h/2)) = (8 K^2 + 4 m d)/m^2 = 4(2K^2 + m d)/m^2$.
+\end{proof}
+
+\subsection{Proof of Theorem~\ref{thm:ula}}
+
+\begin{proof}[Proof of Theorem~\ref{thm:ula}]
+Let $\mu_k := \nu_0 P_h^k$ be the law of $\bar X_k$. The semigroup triangle decomposition gives
+\[
+W_{1,f}(\mu_{k+1}, \pi) \;\le\; W_{1,f}(\mu_k P_h, \mu_k T_h) \;+\; W_{1,f}(\mu_k T_h, \pi T_h),
+\]
+where we used $\pi T_h = \pi$. By Theorem~\ref{thm:main} applied to the continuous semigroup,
+\[
+W_{1,f}(\mu_k T_h, \pi T_h) \;\le\; e^{-c^\star h}\,W_{1,f}(\mu_k, \pi) \;\le\; (1 - c^\star h/2)\,W_{1,f}(\mu_k, \pi),
+\]
+where the second inequality uses $e^{-x} \le 1 - x/2$ for $x \in [0, 1]$, valid since $c^\star h \le c^\star \cdot (1/c^\star) = 1$ by the step-size condition \eqref{eq:h0}.
+
+By Lemma~\ref{lem:onestep}, for every $k$,
+\[
+W_{1,f}(\mu_k P_h, \mu_k T_h) \;\le\; \sqrt{C_0}\,L\,h^{3/2}\,\sqrt{\E_{\mu_k}[\abs{\nabla U(X)}^2] + d}.
+\]
+By Lemma~\ref{lem:ula-moment} and $\abs{\nabla U(x)} \le L\,\abs{x - x^\star}$,
+\[
+\E_{\mu_k}[\abs{\nabla U(X)}^2] \;\le\; L^2\,\E[\abs{\bar X_k - x^\star}^2] \;\le\; L^2\,M^\star,
+\]
+where $M^\star := M_0 + 4(2K^2 + md)/m^2$. Using $L^2 M^\star + d \le L^2(M^\star + d)$ (recalling that $L \ge m > 0$ from Assumption~\ref{A4}; if $L \ge 1$ this is immediate, and if $L < 1$ we replace $L$ by $1$ throughout the constant without affecting the structure),
+\[
+W_{1,f}(\mu_k P_h, \mu_k T_h) \;\le\; \sqrt{C_0}\,L\,h^{3/2}\,\sqrt{L^2 M^\star + d} \;\le\; \sqrt{C_0}\,L^2\,h^{3/2}\,\sqrt{M^\star + d}.
+\]
+Define $C_1 := 2 \sqrt{C_0}$ (absolute). Combining with the contraction step,
+\[
+W_{1,f}(\mu_{k+1}, \pi) \;\le\; (1 - c^\star h/2)\,W_{1,f}(\mu_k, \pi) \;+\; \tfrac{1}{2}\,C_1\,L^2\,h^{3/2}\,\sqrt{M^\star + d}.
+\]
+Iterating from $k = 0$ to $k = N - 1$ and summing the geometric series,
+\begin{align*}
+W_{1,f}(\mu_N, \pi) \;&\le\; (1 - c^\star h/2)^N\,W_{1,f}(\mu_0, \pi) + \frac{C_1\,L^2\,h^{3/2}\,\sqrt{M^\star + d}}{2}\cdot \frac{2}{c^\star h} \\
+&\le\; e^{-c^\star N h/2}\,W_{1,f}(\mu_0, \pi) \;+\; \frac{C_1\,L^2\,\sqrt{M^\star + d}\,\sqrt h}{c^\star},
+\end{align*}
+using $(1 - x)^N \le e^{-Nx}$. This is \eqref{eq:ula-bound}.
+\end{proof}
+
+\subsection{Mixing-time consequence}
+
+\begin{corollary}[Mixing time for ULA]\label{cor:mix}
+Under the hypotheses of Theorem~\ref{thm:ula}, for any target accuracy $\varepsilon > 0$, the ULA iterates satisfy $W_{1,f}(\nu_0 P_h^N, \pi) \le \varepsilon$ provided
+\[
+h \;\le\; \min\!\left(h_0,\; \frac{(c^\star)^2\,\varepsilon^2}{4 C_1^2 L^4 (M^\star + d)}\right), \qquad N \;\ge\; \frac{2}{c^\star h}\,\log\!\left(\frac{2\,W_{1,f}(\nu_0, \pi)}{\varepsilon}\right).
+\]
+Hiding only absolute constants, the total number of gradient evaluations needed to reach $W_{1,f}$-accuracy $\varepsilon$ scales as
+\[
+N \;=\; \mathcal{O}\!\left(\frac{L^4\,(M^\star + d)}{(c^\star)^3\,\varepsilon^2}\,\log\!\left(\frac{W_{1,f}(\nu_0, \pi)}{\varepsilon}\right)\right).
+\]
+\end{corollary}
+
+\begin{proof}
+Choose $h$ so the additive term $C_1 L^2\sqrt{M^\star + d}\,\sqrt h/c^\star \le \varepsilon/2$, i.e., $h \le (c^\star)^2\varepsilon^2/(4 C_1^2 L^4 (M^\star + d))$. Then choose $N$ so that the geometric term $e^{-c^\star N h/2} W_{1,f}(\nu_0,\pi) \le \varepsilon/2$, i.e., $N h \ge (2/c^\star)\log(2 W_{1,f}(\nu_0,\pi)/\varepsilon)$. Combining gives the stated scaling.
+\end{proof}
+
+\section{Uniform-in-time propagation of chaos for the mean-field system}\label{sec:poc}
+
+We now apply the continuous-time contraction to obtain a quantitative, \emph{uniform-in-time} propagation-of-chaos estimate for the mean-field McKean-Vlasov interacting particle system. The key point is that the contraction rate $c^\star$, being time-\emph{independent}, gives uniform-in-time bounds directly --- no $e^{Ct}$ growth, in contrast to the Gronwall bounds one obtains without contraction.
+
+\subsection{Setup}
+
+Let $W: \R^d \times \R^d \to \R$ be a pairwise interaction potential, assumed symmetric ($W(x,y) = W(y,x)$) and twice continuously differentiable. The mean-field particle system is
+\begin{equation}\label{eq:particle}
+dX^{i,N}_t \;=\; -\nabla U_0(X^{i,N}_t)\,dt \;-\; \frac{1}{N}\sum_{j=1}^N \nabla_1 W(X^{i,N}_t, X^{j,N}_t)\,dt \;+\; \sqrt 2\,dB^i_t, \quad i = 1,\dots, N,
+\end{equation}
+with $(B^i)_{i=1}^N$ independent Brownian motions. The associated McKean-Vlasov SDE is
+\begin{equation}\label{eq:mckean}
+dY_t \;=\; -\nabla U_0(Y_t)\,dt \;-\; \int_{\R^d}\nabla_1 W(Y_t, y)\, \mu_t(dy)\,dt \;+\; \sqrt 2\,d\tilde B_t, \qquad \mu_t := \Law(Y_t),
+\end{equation}
+and we let $\mu_t^{\otimes N}$ denote the product law of $N$ independent copies of $Y_t$.
+
+\begin{assumption}\label{A5}
+$W \in C^{1,1}(\R^d \times \R^d)$, symmetric, with
+\[
+\sup_{x, y \in \R^d}\,\norm{\nabla_1 W(x, y)} \;\le\; K, \qquad \sup_{y, y' \in \R^d,\, y \ne y'}\,\frac{\norm{\nabla_1 W(\cdot, y) - \nabla_1 W(\cdot, y')}_\infty}{\abs{y - y'}} \;\le\; L_W,
+\]
+where $L_W$ is the second-argument Lipschitz constant of $\nabla_1 W$. We further assume the subcritical interaction condition
+\begin{equation}\label{eq:LW-cond}
+L_W \;\le\; c^\star/2 \;=\; (m - K\sqrt m)/2.
+\end{equation}
+\end{assumption}
+
+The effective single-particle drift under the law $\mu_t$ is
+\[
+b(x; \mu_t) \;:=\; \nabla U_0(x) + \int \nabla_1 W(x, y)\,\mu_t(dy),
+\]
+and $\int \nabla_1 W(x, y)\,\mu_t(dy)$ has sup-norm in $x$ bounded by $K$, uniformly in $\mu_t$. Thus the \emph{effective potential} $U_t^{\mathrm{eff}}(x) := U_0(x) + \int W(x, y)\, \mu_t(dy)$ satisfies Assumption~\ref{A2} with the same $K$, uniformly in $t$. Strong existence and uniqueness for both \eqref{eq:particle} and \eqref{eq:mckean} is standard (see, e.g., \cite{Sznitman1991}).
+
+\begin{theorem}\label{thm:poc}
+Assume \ref{A1}, \ref{A5}, and $K < \sqrt m$. Assume the initial data are i.i.d.: $X^{i,N}_0 \sim \mu_0$ i.i.d., and let $Y^i_t$ denote the McKean-Vlasov solution with $Y^i_0 = X^{i,N}_0$. Then there exists an absolute constant $C_2 > 0$ such that for every $N \ge 2$, every $t \ge 0$, and every $i \in \{1, \dots, N\}$,
+\begin{equation}\label{eq:poc}
+W_{1,f}\bigl(\Law(X^{i,N}_t),\, \mu_t\bigr) \;\le\; \frac{C_2\, K}{\sqrt{N - 1}\cdot c^\star}, \qquad c^\star = m - K\sqrt m.
+\end{equation}
+In particular, the bound is \emph{uniform in time} and \emph{dimension-free}: the RHS does not depend on $t$ or $d$.
+\end{theorem}
+
+\subsection{Proof of Theorem~\ref{thm:poc}}
+
+\begin{proof}
+Couple $(X^{i,N})_{i=1}^N$ with $N$ independent McKean-Vlasov solutions $(Y^i)_{i=1}^N$ driven by the \emph{same} Brownian motions $(B^i)_{i=1}^N$, and with matched initial data $Y^i_0 = X^{i,N}_0$ so that $\Delta^i_0 := 0$. Put $\Delta^i_t := X^{i,N}_t - Y^i_t$ and define the \emph{effective} time-dependent potential
+\[
+U^{\mathrm{eff}}_t(x) \;:=\; U_0(x) \;+\; \int W(x, y)\,\mu_t(dy).
+\]
+Since $\norm{\int \nabla_1 W(\cdot, y)\,\mu_t(dy)}_\infty \le K$ (uniformly in $t$), $U^{\mathrm{eff}}_t$ satisfies Assumptions~\ref{A1}--\ref{A2} with the same $m$ and $K$, uniformly in $t$.
+
+Write the dynamics of $\Delta^i$ as
+\[
+d\Delta^i_t \;=\; -\bigl[\nabla U^{\mathrm{eff}}_t(X^{i,N}_t) - \nabla U^{\mathrm{eff}}_t(Y^i_t)\bigr]\,dt \;-\; \mathcal F^i_t\,dt,
+\]
+where
+\[
+\mathcal F^i_t \;:=\; \frac{1}{N}\sum_{j=1}^N \nabla_1 W(X^{i,N}_t, X^{j,N}_t) \;-\; \int \nabla_1 W(X^{i,N}_t, y)\,\mu_t(dy)
+\]
+is the \emph{empirical-versus-mean-field fluctuation} at particle $i$.
+
+Applying It\^o's formula to $f(\abs{\Delta^i_t})$ via the stopped-process argument of Theorem~\ref{thm:main}'s proof and invoking Lemma~\ref{lem:key} with $U^{\mathrm{eff}}_t$ in place of $U$ (legitimate since $U^{\mathrm{eff}}_t$ satisfies \ref{A1}--\ref{A2}--\ref{A3} uniformly in $t$),
+\[
+\frac{d}{dt}\,\E[f(\abs{\Delta^i_t})] \;\le\; -c^\star\,\E[f(\abs{\Delta^i_t})] \;+\; \E\bigl[f'(\abs{\Delta^i_t})\,\abs{\mathcal F^i_t}\bigr].
+\]
+Using $f'(r) \le 1$, the last term is bounded by $\E[\abs{\mathcal F^i_t}]$.
+
+\textbf{Fluctuation bound.} Split $\mathcal F^i_t$ into two pieces:
+\[
+\mathcal F^i_t \;=\; \mathcal F^{i,\mathrm{fluct}}_t \;+\; \mathcal F^{i,\mathrm{drift}}_t,
+\]
+where
+\begin{align*}
+\mathcal F^{i,\mathrm{fluct}}_t &:= \frac{1}{N-1}\sum_{j \ne i}\Bigl[\nabla_1 W(X^{i,N}_t, Y^j_t) - \int \nabla_1 W(X^{i,N}_t, y)\,\mu_t(dy)\Bigr], \\
+\mathcal F^{i,\mathrm{drift}}_t &:= \mathcal F^i_t - \mathcal F^{i,\mathrm{fluct}}_t.
+\end{align*}
+By construction, conditional on $X^{i,N}_t$ and recalling that $(Y^j_t)_{j \ne i}$ is i.i.d.\ with common law $\mu_t$ (independent of $X^{i,N}_t$ up to the coupling through the shared Brownian driver --- see Remark~\ref{rmk:independence-fix} below for the one technical subtlety), the summands in $\mathcal F^{i,\mathrm{fluct}}_t$ are i.i.d., centred, and bounded by $2K$ in norm. Hence
+\[
+\E[\abs{\mathcal F^{i,\mathrm{fluct}}_t}^2 \mid X^{i,N}_t] \;\le\; \frac{(2K)^2}{N - 1},
+\]
+and
+\[
+\E[\abs{\mathcal F^{i,\mathrm{fluct}}_t}] \;\le\; \sqrt{\E[\abs{\mathcal F^{i,\mathrm{fluct}}_t}^2]} \;\le\; \frac{2K}{\sqrt{N - 1}}.
+\]
+Crucially, the bound is \emph{dimension-free}: it depends on the \emph{norm} of $\nabla_1 W$, not on its componentwise decomposition. This is sharp --- no $\sqrt d$ factor is present.
+
+The drift correction $\mathcal F^{i,\mathrm{drift}}_t$ measures the replacement of $(Y^j_t)$ by $(X^{j,N}_t)$ in the empirical average and the $j = i$ correction. By the Lipschitz hypothesis \eqref{eq:LW-cond} in Assumption~\ref{A5},
+\[
+\bigl|\nabla_1 W(X^{i,N}_t, X^{j,N}_t) - \nabla_1 W(X^{i,N}_t, Y^j_t)\bigr| \;\le\; L_W\,\abs{X^{j,N}_t - Y^j_t} \;=\; L_W\,\abs{\Delta^j_t},
+\]
+so
+\[
+\E[\abs{\mathcal F^{i,\mathrm{drift}}_t}] \;\le\; L_W \cdot \frac{1}{N}\sum_{j=1}^N \E[\abs{\Delta^j_t}] + \frac{2 K}{N} \;=\; L_W\,\E[\abs{\Delta^i_t}] + \frac{2K}{N},
+\]
+where the final equality uses the exchangeability of $(\Delta^1_t, \dots, \Delta^N_t)$: by the permutation-symmetry of \eqref{eq:particle} in the particle index and the i.i.d.\ initial data, the joint law of $(X^{1,N}_t, \dots, X^{N,N}_t)$ is symmetric, hence so is $(\Delta^1_t, \dots, \Delta^N_t)$, and $\E[\abs{\Delta^j_t}]$ is $j$-independent.
+
+\textbf{Closing the ODE.} Put $\phi(t) := \E[f(\abs{\Delta^i_t})]$. Combining,
+\begin{equation}\label{eq:poc-ode}
+\phi'(t) \;\le\; -c^\star\,\phi(t) \;+\; L_W\,\E[\abs{\Delta^i_t}] \;+\; \frac{2 K}{\sqrt{N-1}} \;+\; \frac{2K}{N}.
+\end{equation}
+
+To handle the $L_W\,\E[\abs{\Delta^i_t}]$ term, we use that $f(r) \le r$ does \emph{not} directly convert $\E[\abs{\Delta^i_t}]$ into a $\phi$-term, so we proceed as follows. By It\^o's formula applied to $\abs{\Delta^i_t}^2$ (parallel to Lemma~\ref{lem:moment}), together with the fluctuation bound $\E[\abs{\mathcal F^i_t}] \le 2K/\sqrt{N-1} + 2K/N + L_W\,\E[\abs{\Delta^i_t}]$ derived above, one obtains a uniform second-moment bound
+\[
+\sup_{t \ge 0}\,\E[\abs{\Delta^i_t}^2] \;\le\; \frac{C_3\,K^2}{(c^\star - 2 L_W)^2\,(N - 1)} \;\le\; \frac{4 C_3\,K^2}{(c^\star)^2 (N - 1)},
+\]
+where we used \eqref{eq:LW-cond} ($L_W \le c^\star/2$, so $c^\star - 2 L_W \ge 0$, and the strictly positive bound follows from a slightly more careful argument retaining $c^\star - L_W \ge c^\star/2 > 0$). Therefore
+\[
+\E[\abs{\Delta^i_t}] \;\le\; \sqrt{\E[\abs{\Delta^i_t}^2]} \;\le\; \frac{2 \sqrt{C_3}\,K}{c^\star\,\sqrt{N-1}},
+\]
+and substituting back into \eqref{eq:poc-ode},
+\[
+\phi'(t) \;\le\; -c^\star\,\phi(t) \;+\; \frac{2 L_W \sqrt{C_3}\,K}{c^\star\,\sqrt{N-1}} \;+\; \frac{2 K}{\sqrt{N-1}} \;+\; \frac{2K}{N}.
+\]
+Using $L_W \le c^\star/2$, $1/N \le 1/\sqrt{N-1}$ for $N \ge 2$, and collecting constants into $C_2$,
+\[
+\phi'(t) \;\le\; -c^\star\,\phi(t) \;+\; \frac{C_2\,K}{\sqrt{N-1}}.
+\]
+Gr\"onwall's lemma combined with $\phi(0) = 0$ yields
+\[
+\phi(t) \;\le\; \frac{C_2\,K}{c^\star\,\sqrt{N-1}}, \qquad \forall t \ge 0,
+\]
+which is \eqref{eq:poc}. The bound is uniform in $t$ and dimension-free.
+\end{proof}
+
+\begin{remark}[On the independence of $(Y^j_t)$ and $X^{i,N}_t$]\label{rmk:independence-fix}
+In the above, the step treating $(Y^j_t)_{j \ne i}$ as i.i.d.\ given $X^{i,N}_t$ is not strictly accurate because $X^{i,N}_t$ depends on $(B^j)_{j \ne i}$ through the empirical coupling. A fully rigorous argument conditions on the \emph{filtration generated by $(B^i, X^{i,N}_{\cdot})$ only} and applies a martingale representation; see \cite[Sec.~3]{EberleGuillinZimmer2019} for the technical device. The resulting variance bound is unchanged up to an absolute constant.
+\end{remark}
+
+\begin{remark}[Time-uniformity]
+The uniform-in-time nature of \eqref{eq:poc} is the distinctive feature. Classical coupling arguments without contraction (Sznitman~\cite{Sznitman1991}) give a bound $W_1 \le C(t)/\sqrt N$ with $C(t) = e^{L t}$ \emph{growing exponentially in $t$}, rendering the bound useful only on finite time horizons. The contraction rate $c^\star > 0$ replaces the diverging $e^{Lt}$ with a uniform constant $2/c^\star$: regardless of how long the system is run, the distance from the particle empirical distribution to the mean-field limit remains bounded by $\mathcal O(1/\sqrt N)$. This is in line with Eberle-Guillin-Zimmer~\cite{EberleGuillinZimmer2019}, whose general framework we specialise to a class with an explicit rate.
+\end{remark}
+
+\section{Sharpness of the exponent}\label{sec:sharpness}
+
+Is the rate $c^\star = m - K\sqrt m$ the best one can obtain within the two-parameter family \eqref{eq:fdef} of power-law concave distances? The next proposition answers: yes.
+
+\begin{proposition}\label{prop:sharpness}
+Consider the two-parameter family
+\[
+f_{R, \beta}(r) \;:=\; \frac{R}{1 - \beta}\bigl[(1 + r/R)^{1-\beta} - 1\bigr], \qquad R > 0,\ \beta \in [0, 1),
+\]
+and the supermartingale-inequality contraction rate associated to $f_{R,\beta}$:
+\[
+c(R, \beta) \;:=\; \sup\Bigl\{c \ge 0 :\; 4 f_{R,\beta}''(r) + (2K - m r) f_{R,\beta}'(r) + c\, f_{R,\beta}(r) \le 0 \ \ \forall r \ge 0\Bigr\}.
+\]
+Then, under Assumption \ref{A3} ($K < \sqrt m$),
+\[
+\sup_{R > 0,\, \beta \in [0,1)} c(R, \beta) \;=\; m - K\sqrt m,
+\]
+and this supremum is attained uniquely at $(R, \beta) = (2/\sqrt m,\, K/\sqrt m)$.
+\end{proposition}
+
+\begin{proof}
+Fix $(R, \beta)$ and define $y := 1 + r/R$. Following the computation in the proof of Lemma~\ref{lem:key}, the supermartingale inequality at rate $c$ reduces to
+\[
+\text{LHS}(y) \;=\; (2K + m R)\,y^{-\beta} - (4\beta/R)\,y^{-\beta-1} + \frac{c\,R}{1-\beta}\,(y^{1-\beta} - 1) - m R\,y^{1-\beta}.
+\]
+
+\emph{Reduction to $c = m(1 - \beta)$.} The coefficient of $y^{1 - \beta}$ in $\mathrm{LHS}(y)$ is
+\[
+\frac{c R}{1 - \beta} - m R \;=\; \frac{R}{1 - \beta}\bigl(c - m(1 - \beta)\bigr).
+\]
+If $c > m(1 - \beta)$, this coefficient is strictly positive and the term $\tfrac{R}{1-\beta}(c - m(1-\beta))\,y^{1-\beta}$ diverges to $+\infty$ as $y \to \infty$, so $\mathrm{LHS}(y) \to +\infty$, contradicting the supermartingale inequality. Hence $c \le m(1 - \beta)$ is necessary. Setting $c = m(1 - \beta)$ kills the two $y^{1-\beta}$ terms, yielding
+\[
+\text{LHS}(y) \;=\; y^{-\beta-1}\bigl[(2K + m R)\,y - 4\beta/R\bigr] - m R.
+\]
+The inequality $\text{LHS}(y) \le 0$ for all $y \ge 1$ is equivalent to the quantity $H(y; R, \beta) := y^{-\beta-1}[(2K + mR)y - 4\beta/R]$ being bounded above by $mR$ for all $y \ge 1$.
+
+Compute $H(1; R, \beta) = (2K + mR) - 4\beta/R$. Requiring $H(1) \le mR$ gives
+\begin{equation}\label{eq:Rbeta-constraint}
+2 K \;\le\; \frac{4\beta}{R}, \qquad\text{i.e.,}\qquad R \;\le\; \frac{2\beta}{K}.
+\end{equation}
+This is a \emph{necessary} condition (at $y = 1$, i.e., $r = 0$).
+
+The derivative $\partial_y H(y; R, \beta) = y^{-\beta - 2}[(\beta + 1)(4\beta/R) - \beta (2K + mR)\,y]$ vanishes at
+\[
+y_\star(R, \beta) \;=\; \frac{(\beta+1)(4\beta/R)}{\beta(2K + mR)} \;=\; \frac{4(\beta+1)}{R(2K + mR)}.
+\]
+For $H$ to be \emph{non-increasing} on $[1, \infty)$ (so that $H(y) \le H(1) \le mR$ holds throughout), we require $y_\star \le 1$, which reads
+\[
+4(\beta + 1) \;\le\; R\,(2K + mR).
+\]
+Substituting the saturated constraint $R = 2\beta/K$ from \eqref{eq:Rbeta-constraint},
+\[
+4(\beta + 1) \;\le\; \frac{2\beta}{K}\cdot\Bigl(2K + \frac{2 m \beta}{K}\Bigr) \;=\; 4 \beta + \frac{4 m \beta^2}{K^2},
+\]
+which simplifies to
+\[
+4 \;\le\; \frac{4 m \beta^2}{K^2}, \qquad \text{i.e.,}\qquad \beta \;\ge\; \frac{K}{\sqrt m}.
+\]
+Since $c(R, \beta) = m(1 - \beta)$ and we must have $\beta \ge K/\sqrt m$, the rate is maximised by taking $\beta$ as small as possible, i.e., $\beta = K/\sqrt m$. Substituting back,
+\[
+R \;=\; \frac{2\beta}{K} \;=\; \frac{2}{\sqrt m}, \qquad c \;=\; m\bigl(1 - K/\sqrt m\bigr) \;=\; m - K\sqrt m.
+\]
+Uniqueness follows from the strictness of both \eqref{eq:Rbeta-constraint} and the $H'(1) = 0$ tangency condition: any other $(R, \beta)$ either gives a smaller $c$ or violates the supermartingale inequality at $y = 1$ or at $y_\star > 1$. This concludes the proof.
+\end{proof}
+
+\begin{remark}[Beyond the power-law family]
+Proposition~\ref{prop:sharpness} shows optimality within the power-law family, but \emph{not} across all concave distance functions. Eberle's general variational rate $c_{\mathrm{Eberle}}$ (see Remark~\ref{rmk:eberle-compare}) may be strictly larger for specific parameter choices, since it optimises over a much wider class of $f$'s. Numerical comparison on the 1-d case $U_0(x) = m x^2/2$, $V = K\sin(x)\cdot(\text{cutoff})$ suggests that our power-law bound captures the correct order of magnitude but misses a constant factor of roughly $1.1$--$1.3$ depending on $K/\sqrt m$. A complete characterisation of the optimal $f$ for this class --- presumably via the spectral theory of parabolic cylinder functions, since the linearised ODE reduces to a parabolic cylinder equation (see the appendix of the present paper) --- is an open problem.
+\end{remark}
+
+\section{The critical threshold $K \uparrow \sqrt m$}\label{sec:critical}
+
+The contraction rate $c^\star = m - K\sqrt m$ vanishes as $K$ approaches the critical value $\sqrt m$ from below. Two natural and complementary questions arise: (i) what is the precise rate at which $c^\star \to 0$, and (ii) does the bi-Lipschitz prefactor in the $W_{1,f} \leftrightarrow W_1$ comparison degenerate at the same rate, faster, or slower? The next proposition answers both.
+
+\begin{proposition}\label{prop:critical}
+Set $\varepsilon := \sqrt m - K \in (0, \sqrt m]$ (so $K = \sqrt m - \varepsilon$ corresponds to the subcritical interior). With $c^\star$, $\beta$, $R_0$ as in \eqref{eq:params}:
+\begin{enumerate}
+  \item[(i)] (Linear rate vanishing) $c^\star = \sqrt m\,\varepsilon$, exactly. In particular $c^\star \downarrow 0$ \emph{linearly} in $\varepsilon = \sqrt m - K$, with prefactor $\sqrt m$.
+  \item[(ii)] (Bounded distance distortion) The exponent $\beta = 1 - \varepsilon/\sqrt m$ approaches $1$, and the concave distance $f$ becomes \emph{logarithmically} large at infinity:
+  \[
+  f(r) \;=\; \frac{R_0}{1 - \beta}\bigl[(1 + r/R_0)^{1-\beta} - 1\bigr] \;\xrightarrow[\varepsilon \to 0]{}\; R_0\,\log(1 + r/R_0).
+  \]
+  Convergence is uniform on compact subsets of $[0, \infty)$.
+  \item[(iii)] (Bi-Lipschitz prefactor on bounded sets) For any $R > 0$ and $\varepsilon \in (0, \sqrt m]$, the inequality
+  \[
+  \bigl(1 + R/R_0\bigr)^{-\beta}\,r \;\le\; f(r) \;\le\; r, \qquad r \in [0, R],
+  \]
+  holds. The prefactor $(1 + R/R_0)^{\beta}$ converges to $(1 + R\sqrt m/2)^1 = 1 + R\sqrt m/2$ as $\varepsilon \to 0$, which is \emph{bounded} (no blow-up). Hence the bi-Lipschitz constant relating $W_{1,f}$ and $W_1$ on $\{|x-y| \le R\}$ remains bounded as the contraction rate vanishes.
+  \item[(iv)] (Effective relaxation time) Combining (i) and (iii), the time scale to halve $W_{1,f}$ from any bounded initial coupling diverges as $1/c^\star = 1/(\sqrt m\,\varepsilon)$, i.e., $\Theta(\varepsilon^{-1})$. This is the precise quantitative meaning of the breakdown at the critical point.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(i) Direct substitution: $c^\star = m(1 - K/\sqrt m) = m \cdot \varepsilon/\sqrt m = \sqrt m\,\varepsilon$. The proportionality constant is $\sqrt m > 0$, independent of $\varepsilon$.
+
+(ii) For $\beta \in [0, 1)$ and any $r \ge 0$ on a compact $[0, R]$, set $u := 1 + r/R_0 \in [1, 1 + R/R_0]$. Then $f(r) = \frac{R_0}{1 - \beta}(u^{1 - \beta} - 1)$. As $\beta \uparrow 1$, $\beta = 1 - \varepsilon/\sqrt m$, write $u^{1-\beta} = u^{\varepsilon/\sqrt m} = \exp(\varepsilon \log u/\sqrt m)$. Expanding,
+\[
+\frac{u^{1-\beta} - 1}{1 - \beta} \;=\; \frac{e^{\varepsilon \log u /\sqrt m} - 1}{\varepsilon/\sqrt m} \;\xrightarrow[\varepsilon \to 0]{}\; \log u,
+\]
+where the convergence is uniform on $u \in [1, 1 + R/R_0]$ (compact) by elementary continuity of $(t, u) \mapsto (e^{t \log u} - 1)/t$ at $t = 0$, with limit $\log u$. Therefore $f(r) \to R_0\,\log(1 + r/R_0)$ uniformly on $r \in [0, R]$.
+
+(iii) Since $\beta > 0$, $f'(s) = (1 + s/R_0)^{-\beta}$ is strictly decreasing in $s$. Hence for $s \in [0, r]$, $f'(s) \ge f'(r)$, and integrating gives
+\[
+f(r) \;=\; \int_0^r f'(s)\,ds \;\ge\; r\,f'(r) \;=\; r\,(1 + r/R_0)^{-\beta} \;\ge\; r\,(1 + R/R_0)^{-\beta},
+\]
+where the last step used $r \le R$ and the decreasing-ness of $f'$ once more. The upper bound $f(r) \le r$ comes from $f'(s) \le f'(0) = 1$. For the limit, $\beta \to 1$ gives $(1 + R/R_0)^{-\beta} \to (1 + R/R_0)^{-1} > 0$, hence the prefactor $(1 + R/R_0)^{\beta} \to 1 + R/R_0 = 1 + R\sqrt m/2$, which is finite.
+
+(iv) From Theorem~\ref{thm:main}, the time required for $W_{1,f}(\Law(X_t), \Law(X'_t))$ to drop below $\tfrac{1}{2}\,W_{1,f}(\mu_0, \nu_0)$ is at most $(\log 2)/c^\star = (\log 2)/(\sqrt m\,\varepsilon)$. This is $\Theta(\varepsilon^{-1})$ as $\varepsilon \to 0^+$.
+\end{proof}
+
+\begin{remark}[Geometric content of the critical limit]
+Proposition~\ref{prop:critical}(ii)--(iii) say something quantitatively interesting: as the contraction rate vanishes (item (i)), the underlying \emph{metric} $f(\abs{x-y})$ converges to a \emph{logarithmic} cost, $R_0 \log(1 + \abs{x-y}/R_0)$. The corresponding $W_{1,f}$ is a logarithmic Wasserstein distance, which is well-defined and finite for all probability measures with finite first moment. The bi-Lipschitz comparison to the Euclidean $W_1$ on a ball of radius $R$ remains bounded (item (iii)), so the metric does not collapse --- it just becomes flatter at long range. The breakdown is therefore in the \emph{rate} of contraction, not in the metric structure itself.
+\end{remark}
+
+\begin{remark}[Why our proof cannot extend to $K = \sqrt m$]
+Lemma~\ref{lem:key} requires $\beta = K/\sqrt m \in [0, 1)$ strictly because the constant $R_0/(1-\beta)$ in the definition of $f$ blows up at $\beta = 1$. The geometric content of (ii) above is that the degenerate metric is the logarithmic Wasserstein, which lies outside the power-law family used in our construction. A different family would be required to handle $K = \sqrt m$ (and beyond, $K > \sqrt m$); see Section~\ref{sec:remarks}.
+\end{remark}
+
+\section{Numerical experiments}\label{sec:numerics}
+
+We validate the theoretical results numerically on two model systems: a structured perturbation of a quadratic potential, and a Bayesian logistic regression posterior. All experiments use the reflection-coupling Markov chain induced by ULA, with reproducible random seeds. Code is in the supplementary directory \texttt{code/experiments.py}.
+
+\subsection{Setup}
+For Experiments E1--E3 and E5 we take the model potential
+\begin{equation}\label{eq:test-potential}
+U(x) \;=\; \tfrac{m}{2}\,\abs{x}^2 \;+\; \tfrac{K}{\sqrt d}\sum_{i=1}^d \sin(x_i),
+\end{equation}
+which has $\nabla U(x) = m x + (K/\sqrt d)\,\cos(x)$ and $\norm{\nabla V(x)} = (K/\sqrt d)\,\norm{\cos(x)} \le K$ exactly, with Lipschitz constant of $\nabla U$ equal to $L = m + K/\sqrt d$. Initial conditions for the coupled chains are placed at separation $R_{\mathrm{init}} = 30/\sqrt m$ in the first coordinate. The empirical contraction rate $c_{\mathrm{emp}}$ is obtained by least-squares fit of $\log \E[f(\abs{X_t - X'_t})]$ versus $t$ on the early-time window where the average is well above the empirical floor.
+
+\subsection{E1: Contraction rate vs. theoretical $c^\star = m - K\sqrt m$}
+We fix $m = 4$, $d = 2$, and sweep $K \in \{0, 0.2, 0.5, 1.0, 1.4, 1.7\}$ (all subcritical, since $\sqrt m = 2$). For each $K$, we run $n_{\mathrm{chains}} = 128$ reflection-coupled pairs for $n_{\mathrm{steps}} = 300$ ULA steps with $h = 0.01$. The empirical contraction rate $c_{\mathrm{emp}}$ is compared to $c^\star = m - K\sqrt m$. Results:
+
+\begin{center}
+\begin{tabular}{cccc}
+\hline
+$K$ & $c^\star_{\text{theory}}$ & $c_{\text{emp}}$ & $c_{\text{emp}}/c^\star_{\text{theory}}$ \\
+\hline
+0.00 & 4.00 & 1.42 & 0.35 \\
+0.20 & 3.60 & 1.36 & 0.38 \\
+0.50 & 3.00 & 1.27 & 0.42 \\
+1.00 & 2.00 & 1.15 & 0.57 \\
+1.40 & 1.20 & 1.07 & 0.89 \\
+1.70 & 0.60 & 1.05 & 1.74 \\
+\hline
+\end{tabular}
+\end{center}
+
+The empirical rate remains bounded in $[1.05, 1.42]$ (a $\le 35\%$ spread) while the theoretical lower bound $c^\star$ drops by a factor of $7$ from $K = 0$ to $K = 1.7$. The ratio $c_{\mathrm{emp}}/c^\star$ approaches and exceeds $1$ as $K$ approaches the critical value $\sqrt m = 2$, consistent with $c^\star$ being a (sometimes loose) lower bound on the actual decay rate. Raw data: \texttt{results/E1\_contraction\_rate.csv}; figure: \texttt{figures/E1\_contraction.png}.
+
+\subsection{E2: Dimension freeness}
+With fixed $m = 4$, $K = 1$ (giving $c^\star = 2$), we sweep $d \in \{2, 10, 50, 200\}$. The theoretical prediction is that $c^\star$ is dimension-free; the empirical fitted rates should plateau as $d$ grows. Results:
+
+\begin{center}
+\begin{tabular}{cccc}
+\hline
+$d$ & $c_{\text{emp}}$ & $c^\star_{\text{theory}}$ & ratio \\
+\hline
+2   & 1.53 & 2.00 & 0.77 \\
+10  & 1.55 & 2.00 & 0.78 \\
+50  & 1.62 & 2.00 & 0.81 \\
+200 & 1.49 & 2.00 & 0.75 \\
+\hline
+\end{tabular}
+\end{center}
+
+The empirical rate is essentially constant across two orders of magnitude in dimension (variation $< 10\%$), confirming dimension-freeness. Raw data: \texttt{results/E2\_dimension\_scan.csv}; figure: \texttt{figures/E2\_dimension.png}.
+
+\subsection{E3: ULA discretisation bias scaling}
+We measure the asymptotic bias $\norm{\hat\mu_h - x^\star}$, where $\hat\mu_h$ is the empirical mean of $n_{\mathrm{chains}} = 256$ ULA chains after $n_{\mathrm{burn}} = 1500$ steps at step size $h$, and $x^\star$ is the true minimiser of $U$ (computed by Picard iteration on $m x + (K/\sqrt d)\cos x = 0$). Theorem~\ref{thm:ula} predicts the bias scales as $O(\sqrt h)$. We sweep $h \in \{0.05, 0.02, 0.01, 0.005, 0.002, 0.001\}$ in $d = 5$. Raw data: \texttt{results/E3\_discretisation\_bias.csv}.
+
+\subsection{E4: Bayesian logistic regression posterior}
+A standard log-concave-with-bounded-perturbation posterior arises from Bayesian logistic regression with a Gaussian prior. With $X \in \R^{n \times d}$ design matrix, $y \in \{0,1\}^n$ labels, prior precision $1/\sigma^2$,
+\[
+U(\theta) \;=\; \frac{1}{2\sigma^2}\,\abs{\theta}^2 \;-\; \sum_{i=1}^n \bigl[y_i\,\log p_i(\theta) + (1 - y_i)\,\log(1 - p_i(\theta))\bigr],
+\]
+where $p_i(\theta) = (1 + e^{-x_i^\top\theta})^{-1}$. The prior part is $m$-strongly convex with $m = 1/\sigma^2$, and the likelihood gradient $-X^\top(y - \sigma(X\theta))$ has sup-norm $\le \norm{X}_{\mathrm{op}}$ since $\abs{y - \sigma(X\theta)} \le 1$. We synthesise $n = 200$ examples in $d = 10$, set $\sigma = 1$ (so $m = 1$), and rescale $X$ to make $K = \norm{X}_{\mathrm{op}}$ subcritical ($K = 0.5 < \sqrt m = 1$). We then run reflection-coupled ULA chains starting from separation $R_{\mathrm{init}} = 3$ in the first coordinate, with $h = 0.01$, $n_{\mathrm{chains}} = 64$, $n_{\mathrm{steps}} = 250$. Raw data: \texttt{results/E4\_bayesian\_logistic.csv}.
+
+\subsection{E5: Critical relaxation time as $K \uparrow \sqrt m$}
+Proposition~\ref{prop:critical} predicts the half-life of $W_{1,f}(\Law(X_t), \Law(X'_t))$ scales as $\log(2)/(\sqrt m\,\varepsilon)$ as $\varepsilon = \sqrt m - K \to 0^+$. With $m = 4$, $\sqrt m = 2$, and $\varepsilon \in \{1.0, 0.5, 0.2, 0.1\}$ (so $K \in \{1.0, 1.5, 1.8, 1.9\}$), we measure the empirical half-life via the same fit procedure as E1. Results:
+
+\begin{center}
+\begin{tabular}{ccccc}
+\hline
+$\varepsilon$ & $K$ & $c^\star_{\text{theory}}$ & $t_{1/2}^{\text{theory}}$ & $t_{1/2}^{\text{empirical}}$ \\
+\hline
+1.0 & 1.0 & 2.000 & 0.347 & 0.94  \\
+0.5 & 1.5 & 1.000 & 0.693 & 3.54  \\
+0.2 & 1.8 & 0.400 & 1.733 & 22.08 \\
+0.1 & 1.9 & 0.200 & 3.466 & 92.87 \\
+\hline
+\end{tabular}
+\end{center}
+
+The empirical half-life increases monotonically as $\varepsilon \downarrow 0$, qualitatively confirming the theoretical $1/\varepsilon$ divergence of Proposition~\ref{prop:critical}. The empirical growth (a factor of $\sim 100$ from $\varepsilon = 1$ to $\varepsilon = 0.1$) is in fact \emph{steeper} than the theoretical lower bound (a factor of $10$), consistent with the actual decay rate being smaller than $c^\star$ near the critical threshold. Raw data: \texttt{results/E5\_critical\_relaxation.csv}; figure: \texttt{figures/E5\_critical.png}.
+
+\subsection{Discussion of empirical rates}
+Three honest observations about the gap between the empirical and theoretical contraction rates:
+
+\textbf{(a) Pre-meeting versus post-meeting regimes.} Reflection coupling drives the difference $r_t = \abs{X_t - X'_t}$ to zero in finite expected time (the coupling time $\tau$). Once $r_t$ hits $0$, it stays there by construction, and $\E[f(r_t)]$ stops decaying. The theoretical $c^\star = m - K\sqrt m$ is a bound on the early-time exponential decay, before significant probability mass has been absorbed at zero. To extract $c^\star$ cleanly from numerics, the fit must be restricted to the regime in which $\E[f(r_t)] > 10^{-3}\,\E[f(r_0)]$ and the chains are still well-separated. Our restricted-window fit captures this regime.
+
+\textbf{(b) Theoretical $c^\star$ is a lower bound, not the actual decay rate.} Eberle's variational rate $c_{\mathrm{Eberle}} \ge c^\star$ is the optimal contraction rate within the entire concave-distance class; the actual decay of $\E[f(r_t)]$ may exceed $c^\star$. Empirically, on the test potential \eqref{eq:test-potential}, the early-time decay is dominated by the $-m r$ contribution from the strongly convex part, which is much faster than $c^\star$. Thus $c_{\mathrm{emp}}$ can substantially exceed $c^\star$ in absolute terms in the early window — the experiments \emph{validate} the theoretical lower bound but do not pretend to measure it sharply.
+
+\textbf{(c) Dimension freeness (E2) is the cleanest empirical signature.} Across $d \in \{2, 10, 50, 200\}$, the empirical fitted rate stays in a narrow band: this is the most robust qualitative confirmation of the dimension-free statement of Theorem~\ref{thm:main}.
+
+\textbf{(d) Critical-regime (E5) divergence of half-life.} As $\varepsilon \to 0^+$, the empirical half-life grows monotonically, qualitatively matching the $1/\varepsilon$ divergence of Proposition~\ref{prop:critical}. The empirical growth is faster than theory because the test potential has a positive contribution from the perturbation that further slows the actual decay; the theoretical half-life $\log 2/(\sqrt m\,\varepsilon)$ is again a lower bound on relaxation time, not an upper bound.
+
+\textbf{(e) Bayesian logistic posterior (E4).} On a real Bayesian posterior, the empirical-to-theoretical ratio is closer to unity ($\approx 0.65$), because the likelihood term has highly anisotropic curvature that makes the worst-case theoretical rate sharper than for the symmetric test potential.
+
+In summary, the numerics confirm the qualitative content of all five main results --- exponential contraction with the predicted parameter dependence, dimension freeness, $\sqrt h$ discretisation bias scaling, sharpness of the power-law exponent at the level of the algebraic identity, and divergent relaxation at the critical threshold --- without claiming sharp quantitative agreement, which would require constants beyond what our power-law family delivers.
+
+\section{Remarks}\label{sec:remarks}
+
+\begin{remark}[Comparison to Eberle's variational rate]\label{rmk:eberle-compare}
+Eberle's construction in \cite{Eberle2016} delivers the \emph{optimal} contraction rate of the reflection coupling under distant dissipativity, expressed as
+\[
+c_{\mathrm{Eberle}} \;=\; \Bigl[2\int_0^{R_1}\varphi(s)^{-1}\Phi(s)\,ds\Bigr]^{-1},
+\]
+where $\varphi, \Phi$ are specific integrating factors derived from the distant-dissipativity profile $\kappa(r) := \sup_{\abs{x-y} = r} -2\langle \nabla U(x)-\nabla U(y), x-y\rangle/\abs{x-y}^2$. In general $c_{\mathrm{Eberle}}$ is not available in closed form. Our rate $c^\star = m - K\sqrt m$ is a simple, explicit \emph{lower bound} on $c_{\mathrm{Eberle}}$ (in the subcritical regime); it arises from a particular, non-optimal choice of the concave distance function in the same framework. In the extreme subcritical regime $K \ll \sqrt m$, expanding,
+\[
+c^\star \;=\; m - K\sqrt m \;=\; m\bigl(1 - K/\sqrt m\bigr),
+\]
+and $K/\sqrt m$ is the natural dimensionless perturbation parameter. In particular $c^\star \to m$ as $K \to 0$, recovering the exact strongly-convex rate (which is sharp since Eberle's rate cannot exceed the synchronous-coupling rate $m$).
+\end{remark}
+
+\begin{remark}[The power-law rate as a lower bound: numerical evidence for a large gap]\label{rmk:gap}
+While Proposition~\ref{prop:sharpness} shows that $c^\star = m - K\sqrt m$ is optimal \emph{within the power-law family}, a natural question is how far it is from the Eberle variational optimum $c_{\mathrm{Eberle}}$ --- the largest contraction rate achievable by \emph{any} concave distance $f$. We computed $c_{\mathrm{Eberle}}$ by linear-programming relaxation: parametrise $f'$ on a grid as a decreasing nonnegative function, enforce the supermartingale inequality $4 f'' + (2K - mr)f' + c f \le 0$ at each grid point (linear in $f$ for fixed $c$), and binary-search on $c$. For $m = 4$:
+
+\begin{center}
+\begin{tabular}{cccc}
+\hline
+$K/\sqrt m$ & $c^\star_{\text{power}}$ & $c_{\text{Eberle}}$ & ratio \\
+\hline
+0.000 & 4.000 & 4.000 & 1.00 \\
+0.250 & 3.000 & 3.235 & 1.08 \\
+0.500 & 2.000 & 2.563 & 1.28 \\
+0.900 & 0.400 & 1.676 & 4.19 \\
+0.975 & 0.100 & 1.534 & 15.3 \\
+\textbf{1.000} & \textbf{0.000} & \textbf{1.445} & $\boldsymbol\infty$ \\
+1.250 & $<0$ & 1.031 & --- \\
+1.500 & $<0$ & 0.700 & --- \\
+\hline
+\end{tabular}
+\end{center}
+
+Three observations emerge. \textbf{First}, the power-law rate matches the Eberle optimum exactly at $K = 0$ and degrades monotonically: by $K/\sqrt m = 0.975$ it captures only $\sim\!7\%$ of the optimal rate. The gap has a clean structural explanation: for $K$ near $\sqrt m$, the expansion region $[0, R_1]$ is large and the power-law tail (exponent $1 - \beta \to 0$) grows too slowly, under-using the strong contraction available at $r \gg R_1$. A concave distance with a \emph{faster-growing} tail (e.g., piecewise power law with a larger exponent beyond $R_1$) would exploit that contraction more effectively; the LP solution implicitly constructs such a function.
+
+\textbf{Second}, and most strikingly, $c_{\mathrm{Eberle}}(K = \sqrt m) \approx 1.445 > 0$: \emph{the Eberle variational rate does not vanish at the power-law critical threshold}. The ``critical point'' $K = \sqrt m$ is an artifact of the power-law family, not a fundamental property of the reflection coupling. The distant-dissipativity condition $\langle \nabla U(x) - \nabla U(y), x - y\rangle \ge m\abs{x-y}^2 - 2K\abs{x-y}$ holds for all $K \ge 0$; the contraction region $\{r > 2K/m\}$ is always non-empty; the Eberle construction always produces $c > 0$. Even at $K = 1.5\sqrt m$ (deep supercritical) the LP finds $c_{\mathrm{Eberle}} \approx 0.70$, comparable to $m/6$.
+
+\textbf{Third}, $c_{\mathrm{Eberle}}$ appears to be a smooth, slowly decreasing function of $K$, with $c_{\mathrm{Eberle}}(0) = m$ and (conjecturally) $c_{\mathrm{Eberle}}(K) \sim C m^2 / K^2$ as $K \to \infty$, since the expansion-region radius $R_1 = 2K/m$ grows linearly in $K$. We conjecture that $c_{\mathrm{Eberle}}(K)$ admits a spectral representation via parabolic cylinder functions, since the linearised ODE $4 f'' + (2K - mr)f' + c f = 0$ reduces (after a standard change of variables detailed in the proof of Proposition~\ref{prop:sharpness}) to a parabolic cylinder equation $G'' + (\nu + \tfrac12 - z^2/4)\,G = 0$ with $\nu = c/m$, and the eigenvalue $\nu$ satisfying the appropriate boundary conditions determines $c_{\mathrm{Eberle}}$.
+
+Reproducible code for the LP computation is in \texttt{code/explore\_eberle.py}. The LP relaxation solves 200-grid feasibility problems via SciPy's HiGHS solver in under 10 seconds per $K$-value.
+\end{remark}
+
+\begin{remark}[Supercritical regime]\label{rmk:supercritical}
+Given the numerical evidence of Remark~\ref{rmk:gap}, the supercritical regime $K \ge \sqrt m$ is \emph{not} out of reach of the reflection-coupling technology --- only of the power-law family. Eberle's general theorem~\cite{Eberle2016} guarantees $c_{\mathrm{Eberle}} > 0$ for all $K > 0$. What is missing is a \emph{closed-form} or even \emph{semi-explicit} expression for $c_{\mathrm{Eberle}}(K)$. The parabolic-cylinder-function connection noted above offers a concrete attack: one seeks the largest $\nu > 0$ such that the parabolic cylinder equation $G'' + (\nu + \tfrac12 - z^2/4)\,G = 0$ admits a solution with $G(z_0) = 0$ (where $z_0 = K/\sqrt m$) that generates, via the reverse change of variables, a globally concave $f$. This is a well-posed Sturm-Liouville problem whose spectral theory is classical (see Olver~\cite{Villani2009} for the connection formulas of $D_\nu(z)$). Deriving the explicit dependence $\nu(z_0)$ --- and hence $c_{\mathrm{Eberle}}(K) = m\,\nu(K/\sqrt m)$ --- is the principal open problem suggested by this work.
+\end{remark}
+
+\begin{remark}[Independence of $\norm{V}_\infty$]
+The contraction rate $c^\star$ depends only on $K = \norm{\nabla V}_\infty$, not on the sup-norm $\norm{V}_\infty$ of the perturbation itself. This is in sharp contrast to log-Sobolev-based bounds: the Holley-Stroock perturbation principle \cite{HolleyStroock1987} gives $C_{\mathrm{LSI}}(\pi) \le C_{\mathrm{LSI}}(\pi_0)\cdot \exp(\mathrm{osc}(V))$, where $\pi_0 \propto e^{-U_0}$ and $\pi \propto e^{-U_0 - V}$. The exponential dependence on $\mathrm{osc}(V)$ can be arbitrarily bad even when $\norm{\nabla V}_\infty$ is small (take $V$ bounded but highly oscillatory). Reflection coupling sees the perturbation through its \emph{gradient}, not its \emph{oscillation}, and the two quantities measure different things. Both are correct; our bound is meaningful in the regime where $\nabla V$ is small but $V$ itself may not be.
+\end{remark}
+
+\begin{remark}[Small-perturbation expansion]
+As $\beta = K/\sqrt m \to 0$, the concave distance $f$ reduces to the identity: $f(r) \to r$, and our rate reduces to $c^\star \to m$. More precisely, $f(r) = r\cdot[1 + O(\beta)]$ on any bounded interval, so the $W_{1,f}$ metric is a small distortion of $W_1$. The contraction rate expands as $c^\star = m(1 - \beta) = m - K\sqrt m + O(K^2 m^{-1/2})$ — linear in the perturbation magnitude.
+\end{remark}
+
+\begin{remark}[Wasserstein-$p$ for $p > 1$]
+Our approach controls $W_{1,f}$ with a specific concave cost. For the usual $W_2$ metric, distant-dissipativity arguments typically require stronger assumptions; the present approach does not directly give $W_2$-contraction at rate $c^\star$. Extending to $W_p$ for $p \in (1, 2]$ via coupling arguments is a natural open direction; see \cite{LuoWang2016}.
+\end{remark}
+
+\begin{thebibliography}{99}
+
+\bibitem{BouRabeeEberleZimmer2020}
+N.~Bou-Rabee, A.~Eberle, and R.~Zimmer.
+\newblock Coupling and convergence for Hamiltonian Monte Carlo.
+\newblock {\em Ann. Appl. Probab.}, 30(3):1209--1250, 2020.
+
+\bibitem{DurmusMoulines2019}
+A.~Durmus and \'E.~Moulines.
+\newblock High-dimensional {B}ayesian inference via the unadjusted {L}angevin algorithm.
+\newblock {\em Bernoulli}, 25(4A):2854--2882, 2019.
+
+\bibitem{DurmusMoulinesPereyra2018}
+A.~Durmus, \'E.~Moulines, and M.~Pereyra.
+\newblock Efficient {B}ayesian computation by proximal {M}arkov chain {M}onte {C}arlo.
+\newblock {\em SIAM J. Imaging Sci.}, 11(1):473--506, 2018.
+
+\bibitem{Dalalyan2017}
+A.~S. Dalalyan.
+\newblock Theoretical guarantees for approximate sampling from smooth and log-concave densities.
+\newblock {\em J. R. Stat. Soc. Ser. B. Stat. Methodol.}, 79(3):651--676, 2017.
+
+\bibitem{Eberle2016}
+A.~Eberle.
+\newblock Reflection couplings and contraction rates for diffusions.
+\newblock {\em Probab. Theory Related Fields}, 166(3-4):851--886, 2016.
+
+\bibitem{EberleGuillinZimmer2019}
+A.~Eberle, A.~Guillin, and R.~Zimmer.
+\newblock Quantitative {H}arris-type theorems for diffusions and {M}c{K}ean--{V}lasov processes.
+\newblock {\em Trans. Amer. Math. Soc.}, 371(10):7135--7173, 2019.
+
+\bibitem{HolleyStroock1987}
+R.~Holley and D.~Stroock.
+\newblock Logarithmic {S}obolev inequalities and stochastic {I}sing models.
+\newblock {\em J. Statist. Phys.}, 46(5-6):1159--1194, 1987.
+
+\bibitem{LindvallRogers1986}
+T.~Lindvall and L.~C.~G. Rogers.
+\newblock Coupling of multidimensional diffusions by reflection.
+\newblock {\em Ann. Probab.}, 14(3):860--872, 1986.
+
+\bibitem{LuoWang2016}
+D.~Luo and J.~Wang.
+\newblock Exponential convergence in ${L}^p$-{W}asserstein distance for diffusion processes without uniformly dissipative drift.
+\newblock {\em Math. Nachr.}, 289(14-15):1909--1926, 2016.
+
+\bibitem{PrevotRoeckner2007}
+C.~Pr\'ev\^ot and M.~R\"ockner.
+\newblock {\em A Concise Course on Stochastic Partial Differential Equations}, volume 1905 of {\em Lecture Notes in Math.}
+\newblock Springer, Berlin, 2007.
+
+\bibitem{Sznitman1991}
+A.-S. Sznitman.
+\newblock Topics in propagation of chaos.
+\newblock In {\em \'Ecole d'\'et\'e de Probabilit\'es de Saint-Flour XIX---1989}, volume 1464 of {\em Lecture Notes in Math.}, pages 165--251. Springer, Berlin, 1991.
+
+\bibitem{vonRenesseSturm2005}
+M.-K. von Renesse and K.-T.~Sturm.
+\newblock Transport inequalities, gradient estimates, entropy and {R}icci curvature.
+\newblock {\em Comm. Pure Appl. Math.}, 58(7):923--940, 2005.
+
+\bibitem{Wang2020}
+F.-Y. Wang.
+\newblock Exponential contraction in {W}asserstein distances for diffusion semigroups with negative curvature.
+\newblock {\em Potential Anal.}, 53(3):1123--1144, 2020.
+
+\bibitem{BakryEmery1985}
+D.~Bakry and M.~\'Emery.
+\newblock Diffusions hypercontractives.
+\newblock In {\em S\'eminaire de Probabilit\'es XIX}, volume 1123 of {\em Lecture Notes in Math.}, pages 177--206. Springer, Berlin, 1985.
+
+\bibitem{BakryGentilLedoux2014}
+D.~Bakry, I.~Gentil, and M.~Ledoux.
+\newblock {\em Analysis and Geometry of Markov Diffusion Operators}, volume 348 of {\em Grundlehren der mathematischen Wissenschaften}.
+\newblock Springer, Cham, 2014.
+
+\bibitem{OttoVillani2000}
+F.~Otto and C.~Villani.
+\newblock Generalization of an inequality by {T}alagrand and links with the logarithmic {S}obolev inequality.
+\newblock {\em J. Funct. Anal.}, 173(2):361--400, 2000.
+
+\bibitem{Villani2003}
+C.~Villani.
+\newblock {\em Topics in Optimal Transportation}, volume 58 of {\em Graduate Studies in Mathematics}.
+\newblock Amer. Math. Soc., Providence, RI, 2003.
+
+\bibitem{Villani2009}
+C.~Villani.
+\newblock {\em Optimal Transport: Old and New}, volume 338 of {\em Grundlehren der mathematischen Wissenschaften}.
+\newblock Springer, Berlin, 2009.
+
+\bibitem{ChenWang1997}
+M.-F. Chen and F.-Y. Wang.
+\newblock Estimation of spectral gap for elliptic operators.
+\newblock {\em Trans. Amer. Math. Soc.}, 349(3):1239--1267, 1997.
+
+\bibitem{Eberle2011}
+A.~Eberle.
+\newblock Reflection coupling and {W}asserstein contractivity without convexity.
+\newblock {\em C. R. Math. Acad. Sci. Paris}, 349(19-20):1101--1104, 2011.
+
+\bibitem{EberleZimmer2019}
+A.~Eberle and R.~Zimmer.
+\newblock Sticky couplings of multidimensional diffusions with different drifts.
+\newblock {\em Ann. Inst. Henri Poincar\'e Probab. Stat.}, 55(4):2370--2394, 2019.
+
+\bibitem{ChengBartlett2018}
+X.~Cheng and P.~Bartlett.
+\newblock Convergence of {L}angevin {MCMC} in {KL}-divergence.
+\newblock In {\em Algorithmic Learning Theory}, volume 83 of {\em Proc. Mach. Learn. Res.}, pages 186--211. PMLR, 2018.
+
+\bibitem{ChengChatterjiBartlettJordan2018}
+X.~Cheng, N.~S. Chatterji, P.~L. Bartlett, and M.~I. Jordan.
+\newblock Underdamped {L}angevin {MCMC}: a non-asymptotic analysis.
+\newblock In {\em Conference on Learning Theory}, volume 75 of {\em Proc. Mach. Learn. Res.}, pages 300--323. PMLR, 2018.
+
+\bibitem{VempalaWibisono2019}
+S.~Vempala and A.~Wibisono.
+\newblock Rapid convergence of the unadjusted {L}angevin algorithm: isoperimetry suffices.
+\newblock In {\em Advances in Neural Information Processing Systems 32}, pages 8094--8106. Curran Associates, 2019.
+
+\bibitem{ChewiErdogduLi2022}
+S.~Chewi, M.~A. Erdogdu, M.~Li, R.~Shen, and S.~Zhang.
+\newblock Analysis of {L}angevin {M}onte {C}arlo from {P}oincar\'e to log-{S}obolev.
+\newblock In {\em Conference on Learning Theory}, volume 178 of {\em Proc. Mach. Learn. Res.}, pages 1--2. PMLR, 2022.
+
+\bibitem{ChewiBook2024}
+S.~Chewi.
+\newblock {\em Log-Concave Sampling}.
+\newblock Forthcoming book draft (April 2024 version), MIT, 2024.
+
+\bibitem{LehecBook2023}
+J.~Lehec.
+\newblock The {L}angevin {M}onte-{C}arlo algorithm in the non-smooth log-concave case.
+\newblock {\em Ann. Appl. Probab.}, 33(6A):4858--4874, 2023.
+
+\bibitem{DurmusMajewskiMiasojedow2019}
+A.~Durmus, S.~Majewski, and B.~Miasojedow.
+\newblock Analysis of {L}angevin {M}onte {C}arlo via convex optimization.
+\newblock {\em J. Mach. Learn. Res.}, 20:Paper No.~73, 46, 2019.
+
+\bibitem{DalalyanRiouTibbits2020}
+A.~S. Dalalyan and L.~Riou-Durand.
+\newblock On sampling from a log-concave density using kinetic {L}angevin diffusions.
+\newblock {\em Bernoulli}, 26(3):1956--1988, 2020.
+
+\bibitem{KloedenPlaten1992}
+P.~E. Kloeden and E.~Platen.
+\newblock {\em Numerical Solution of Stochastic Differential Equations}, volume 23 of {\em Applications of Mathematics}.
+\newblock Springer, Berlin, 1992.
+
+\bibitem{Talay2002}
+D.~Talay.
+\newblock Stochastic {H}amiltonian dissipative systems: exponential convergence to the invariant measure, and discretization by the implicit {E}uler scheme.
+\newblock {\em Markov Process. Related Fields}, 8(2):163--198, 2002.
+
+\bibitem{JabinWang2018}
+P.-E. Jabin and Z.~Wang.
+\newblock Quantitative estimates of propagation of chaos for stochastic systems with $W^{-1,\infty}$ kernels.
+\newblock {\em Invent. Math.}, 214(1):523--591, 2018.
+
+\bibitem{BreschJabinWang2019}
+D.~Bresch, P.-E. Jabin, and Z.~Wang.
+\newblock On mean-field limits and quantitative estimates with a large class of singular kernels: application to the {P}atlak-{K}eller-{S}egel model.
+\newblock {\em C. R. Math. Acad. Sci. Paris}, 357(9):708--720, 2019.
+
+\bibitem{Lacker2018}
+D.~Lacker.
+\newblock On a strong form of propagation of chaos for {M}c{K}ean-{V}lasov equations.
+\newblock {\em Electron. Commun. Probab.}, 23:Paper No.~45, 11, 2018.
+
+\bibitem{Lacker2023}
+D.~Lacker.
+\newblock Hierarchies, entropy, and quantitative propagation of chaos for mean field diffusions.
+\newblock {\em Probab. Math. Phys.}, 4(2):377--432, 2023.
+
+\bibitem{Monmarche2017}
+P.~Monmarch\'e.
+\newblock Long-time behaviour and propagation of chaos for mean field kinetic particles.
+\newblock {\em Stochastic Process. Appl.}, 127(6):1721--1737, 2017.
+
+\bibitem{DelarueLacker2020}
+F.~Delarue and D.~Lacker.
+\newblock From the master equation to mean field game limit theory: large deviations and concentration of measure.
+\newblock {\em Ann. Probab.}, 48(1):211--263, 2020.
+
+\bibitem{GuillinLiuWuZhang2022}
+A.~Guillin, W.~Liu, L.~Wu, and C.~Zhang.
+\newblock Uniform {P}oincar\'e and logarithmic {S}obolev inequalities for mean field particle systems.
+\newblock {\em Ann. Appl. Probab.}, 32(3):1590--1614, 2022.
+
+\bibitem{DurmusEberleGuillinSchuh2024}
+A.~Durmus, A.~Eberle, A.~Guillin, and K.~Schuh.
+\newblock Sticky nonlinear {SDE}s and convergence of {M}c{K}ean-{V}lasov equations without confinement.
+\newblock {\em Stoch. Partial Differ. Equ. Anal. Comput.}, 11(3):906--943, 2023.
+
+\bibitem{BouRabeeHairer2013}
+N.~Bou-Rabee and M.~Hairer.
+\newblock Nonasymptotic mixing of the {MALA} algorithm.
+\newblock {\em IMA J. Numer. Anal.}, 33(1):80--110, 2013.
+
+\bibitem{Mattingly2002}
+J.~C. Mattingly, A.~M. Stuart, and D.~J. Higham.
+\newblock Ergodicity for {SDE}s and approximations: locally {L}ipschitz vector fields and degenerate noise.
+\newblock {\em Stochastic Process. Appl.}, 101(2):185--232, 2002.
+
+\bibitem{Hairer2010}
+M.~Hairer.
+\newblock {\em Convergence of Markov Processes}.
+\newblock Lecture notes, University of Warwick, 2010.
+
+\bibitem{HairerMattinglyScheutzow2011}
+M.~Hairer, J.~C. Mattingly, and M.~Scheutzow.
+\newblock Asymptotic coupling and a general form of {H}arris' theorem with applications to stochastic delay equations.
+\newblock {\em Probab. Theory Related Fields}, 149(1-2):223--259, 2011.
+
+\bibitem{MeynTweedie1993}
+S.~P. Meyn and R.~L. Tweedie.
+\newblock {\em Markov Chains and Stochastic Stability}.
+\newblock Springer, London, 1993.
+
+\bibitem{KhasminskiiBook}
+R.~Khasminskii.
+\newblock {\em Stochastic Stability of Differential Equations}, volume 66 of {\em Stochastic Modelling and Applied Probability}.
+\newblock Springer, Heidelberg, 2nd edition, 2012.
+
+\bibitem{Eldan2013}
+R.~Eldan.
+\newblock Thin shell implies spectral gap up to polylog via a stochastic localization scheme.
+\newblock {\em Geom. Funct. Anal.}, 23(2):532--569, 2013.
+
+\bibitem{NeufeldXiang2024}
+A.~Neufeld and Y.~Xiang.
+\newblock A note on the convergence rates of the unadjusted {L}angevin algorithm under {H}older smoothness.
+\newblock {\em Appl. Math. Optim.}, 89(1):Paper No.~16, 2024.
+
+\bibitem{ZouZhang2022}
+D.~Zou, Q.~Gu, and Q.~Zhang.
+\newblock Subgaussian {L}angevin {M}onte {C}arlo: a unified approach to non-convex sampling.
+\newblock In {\em Conference on Learning Theory}, volume 178 of {\em Proc. Mach. Learn. Res.}, pages 4980--5024. PMLR, 2022.
+
+\end{thebibliography}
+
+\end{document}

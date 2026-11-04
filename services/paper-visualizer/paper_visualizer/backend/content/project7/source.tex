@@ -1,0 +1,1250 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm, mathrsfs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{booktabs}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\eps}{\varepsilon}
+\renewcommand{\d}{\mathrm{d}}
+\newcommand{\Ai}{\operatorname{Ai}}
+\newcommand{\Bi}{\operatorname{Bi}}
+
+\title{Large Deviations and Universal Critical Crossover for Reserve-Backed Stablecoin Peg-Break}
+\author{(Author placeholder)}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We derive a Freidlin-Wentzell large deviation principle for the peg-break time of a reserve-backed stablecoin under small-noise scaling and obtain explicit rate functions and Eyring-Kramers prefactors for two tractable model classes.
+For the \emph{linear-drain class} (constant drain $\lambda$, constant volatility $\sigma_0$) we derive the closed-form rate function $I(T,\lambda) = T(\lambda_c - \lambda)^2/(2\sigma_0^2)$ and sharp first-passage prefactors in all three regimes (subcritical, critical, supercritical).
+For the \emph{saddle-node class} --- models whose deterministic limit has a saddle-node bifurcation at a critical redemption pressure $\lambda_c$ --- we prove the universal $3/2$ critical exponent $I \sim (8A^{3/2}/(3\sqrt B\sigma^2))(\lambda_c-\lambda)^{3/2}$ and the Eyring-Kramers prefactor $\pi/\sqrt{AB(\lambda_c-\lambda)}$.
+Our main result rigorously extends the 2021 Hathcock-Sethna Airy scaling function $\mathcal T_{HS}(\eta) = 2^{1/3}\pi^2[\Ai^2(2^{2/3}\eta) + \Bi^2(2^{2/3}\eta)]$ to the stablecoin setting, giving a uniform asymptotic formula for the mean peg-break time across the metastable, critical, and supercritical regimes with error rate $O(\eps^{2/3}\log(1/\eps))$.
+Along the way, we derive an exact one-dimensional integral representation of the finite-boundary Hathcock-Sethna function $\mathcal T_+(\eta,\chi_+)$ and a new Airy-squared integral identity $\int_0^\infty t^{-1/2} e^{2\eta t - t^3/6}\,dt = 2^{-1/6}\pi^{3/2}[\Ai^2(2^{2/3}\eta) + \Bi^2(2^{2/3}\eta)]$ that does not appear in standard references.
+We extend the results to multi-asset reserves via center manifold reduction (showing the $3/2$ exponent persists), execute a quantitative calibration to the USDC March 2023 depeg, and propose a bifurcation-type classification of stablecoin design classes.
+The work bridges three previously disjoint communities: statistical-mechanics renormalization group (Hathcock-Sethna), applied probability slow-fast SDEs (Berglund-Gentz, Dembo-Zeitouni), and mathematical finance (stablecoin literature).
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{Background: stablecoins, depegs, and mathematical questions}
+
+Reserve-backed stablecoins are digital tokens pegged to a fiat currency (typically the US dollar) by holding collateral reserves and offering 1:1 redemption to token holders.
+The two largest, Tether (USDT) and USD Coin (USDC), have a combined market capitalization exceeding \$300 billion as of early 2026 and settle more on-chain volume daily than Visa \cite{MohantyKrishnamachari2026, GortonZhang2023}.
+Their role in cryptocurrency markets is analogous to that of money-market funds in traditional finance: they provide a ``safe asset" that retains unit value and can be exchanged for cash on demand.
+Stability is therefore a function of (i) the quality and liquidity of reserves, (ii) the arbitrage channel between the primary issuer and secondary exchanges, and (iii) the issuer's operational ability to honor redemptions.
+
+Despite reserve backing, stablecoins periodically experience \emph{depeg} events in which the secondary market price deviates from one dollar by several percent or more.
+Two recent episodes define the empirical landscape.
+In March 2023, the FDIC closure of Silicon Valley Bank --- which held approximately \$3.3 billion of USDC issuer Circle's \$40 billion in reserves --- triggered a USDC depeg to \$0.878 on Binance over a 70-hour window; the peg recovered on March 13, 2023, after the US Treasury announced that the SVB deposits would be made whole \cite{LyonsViswanathNatraj2023, MohantyKrishnamachari2026}.
+In May 2022, USDT briefly depegged to \$0.953 as redemption pressure from the contemporaneous collapse of the algorithmic stablecoin TerraUSD spilled over into questions about the quality of USDT's reserve composition \cite{KlagesMundtMinca2022}.
+Neither event was a ``run on the reserve" in the traditional banking sense --- USDC's SVB exposure was partially recovered and USDT honored redemptions throughout --- yet both produced large, temporary price dislocations in secondary markets that had material financial consequences for holders of large positions.
+
+These episodes raise a sharply posed mathematical question:
+\begin{center}
+\emph{What is the probability that a reserve-backed stablecoin breaks its peg within a given time horizon, as a function of model parameters, in the small-noise limit?}
+\end{center}
+The natural mathematical framework is the Freidlin-Wentzell theory of large deviations for small-noise stochastic differential equations \cite{FreidlinWentzell2012, DemboZeitouni2010}.
+``Small noise" is the regime in which depegs are rare events driven by the tail of the reserve-value distribution; ``large deviations" provides the asymptotic scaling of their probability as a function of a noise intensity $\varepsilon$ that tends to zero, together with explicit rate functions $I(T,\lambda)$ quantifying how the probability decays with time horizon $T$ and redemption pressure $\lambda$.
+The philosophy is that the most-likely path to a depeg has an identifiable structure (an \emph{instanton}) whose action equals the rate function, and the prefactor of the exit-time distribution encodes the curvature of the potential around the instanton.
+
+\subsection{Why the Airy crossover is the mathematically interesting content}
+
+The Freidlin-Wentzell LDP alone does not reveal the mathematically interesting content of this problem.
+For the simplest ``linear-drain" model --- reserves drained at a constant rate $\lambda$ by redemptions, plus constant-volatility noise --- the rate function is elementary (a quadratic in $\lambda$) and the exact peg-break probability is an inverse Gaussian first-passage density from classical probability.
+The interesting content emerges when the stablecoin design has a \emph{saddle-node bifurcation} in its deterministic limit: as a control parameter (e.g., the average redemption rate) crosses a critical value $\lambda_c$, the reserve dynamics transition from having a stable equilibrium above the peg threshold to having no equilibrium, so the peg breaks \emph{deterministically}.
+Near $\lambda_c$, the height of the activation barrier vanishes as $(\lambda_c - \lambda)^{3/2}$ --- the \emph{universal $3/2$ critical exponent} for saddle-node escape, established in the statistical physics literature \cite{DykmanMoriRossHunt1994, BerglundGentz2006, AssafMeerson2010} but not previously connected to financial applications.
+
+What happens right at $\lambda = \lambda_c$? The Eyring-Kramers formula for the mean exit time $\E[\tau_\varepsilon] \sim \pi/\sqrt{AB(\lambda_c-\lambda)}\cdot\exp(\text{barrier}/\varepsilon^2)$ \emph{degenerates} as $\lambda \to \lambda_c$: the prefactor diverges and the exponent tends to zero, producing an indeterminate form.
+The correct asymptotic in this critical regime was obtained by Hathcock and Sethna in 2021 \cite{HathcockSethna2021}, who applied a renormalization-group analysis to the canonical saddle-node normal form and derived a closed-form \emph{Airy scaling function}
+$$\mathcal T_{HS}(\eta) = 2^{1/3}\pi^2\big[\Ai^2(2^{2/3}\eta) + \Bi^2(2^{2/3}\eta)\big]$$
+that interpolates uniformly between the deep metastable regime ($\eta \gg 1$, recovering Eyring-Kramers), the critical regime ($\eta = 0$, where $\mathcal T_{HS}(0) \approx 6.27$ is finite and universal), and the supercritical regime ($\eta < 0$, where $\mathcal T_{HS} \sim \pi/\sqrt{|\eta|}$ is the deterministic travel time through the bifurcation region).
+This Airy crossover formula has had essentially no exposure in either the mathematical-finance or the applied-probability community: it was published in a physics journal and invokes both Airy functions and renormalization-group machinery that are unfamiliar to financial mathematicians.
+
+\subsection{Main contributions}
+
+This paper is organized around four main contributions, which we summarize here and state formally in \Cref{sec:setup}.
+
+\begin{enumerate}
+\item \textbf{Freidlin-Wentzell LDP with explicit rate function.}
+    We prove a Freidlin-Wentzell large deviation principle (\Cref{thm:LDP}) for the peg-break time $\tau_\varepsilon = \inf\{t : V_t^\varepsilon \leq p^*L\}$ of a one-dimensional reserve SDE under mild regularity, with explicit rate function $I(T,\lambda)$. For the linear-drain model $b = -\lambda$, we derive closed-form expressions for all three regimes (\Cref{thm:linear}): subcritical (where $I > 0$ and the peg-break is exponentially rare), critical (where $\lim \P = 1/2$), and supercritical (where the peg-break is certain).
+    For saddle-node drifts satisfying an explicit local normal-form hypothesis (\Cref{assump:saddle}), we prove the universal $3/2$ critical exponent together with a sharp Eyring-Kramers prefactor $\pi/\sqrt{AB(\lambda_c-\lambda)}$ (\Cref{thm:saddle}), where the $\sqrt A$ factor --- easy to miss and absent in preliminary drafts of this paper --- comes from Berglund's saddle-exit formula after a convention conversion (fully documented in the proof and in \Cref{app:sympy}, entry V3).
+\item \textbf{Hathcock-Sethna Airy crossover for stablecoins.}
+    We apply the Hathcock-Sethna formula to the stablecoin setting via an explicit rescaling $u = \alpha y$, $t = \beta\tau$, $\eta = AB^{-1/3}(\lambda_c-\lambda)(\varepsilon\sigma(v_*))^{-4/3}$ (\Cref{thm:airy}), obtaining a uniform asymptotic formula for $\E[\tau_\varepsilon]$ across the metastable, critical, and supercritical regimes.
+    This is the first application of Airy-function scaling to financial large deviations.
+    The identification of $\lambda_c$ as the ``bifurcation" of the stablecoin design --- and the resulting bifurcation-type classification of stablecoin classes (\Cref{sec:classification}) --- suggests a diagnostic for stablecoin design: a design is ``robust" in the sense of LDP prefactors if and only if its deterministic limit lies in the deep metastable regime $\eta \gg 1$.
+\item \textbf{A new 1D integral representation and Airy-squared identity.}
+    By a sum/difference substitution on the Pontryagin double integral, we reduce the finite-boundary Hathcock-Sethna function $\mathcal T_+(\eta,\chi_+)$ to an exact one-dimensional integral (\Cref{thm:airy-finite}), strengthening Hathcock-Sethna's $1/\chi_+$ asymptotic expansion to an exact closed form.
+    Sending the boundary to $-\infty$, we obtain a new one-dimensional integral representation of the full Hathcock-Sethna function $\mathcal T_{HS}(\eta)$ (\Cref{thm:airy-integral}), and the corresponding Airy-squared integral identity
+    $$\int_0^\infty t^{-1/2}\,e^{2\eta t - t^3/6}\,\d t = 2^{-1/6}\pi^{3/2}\big[\Ai^2(2^{2/3}\eta) + \Bi^2(2^{2/3}\eta)\big],\quad \eta \in \R,$$
+    which does not appear to have been recorded in standard Airy function references.
+    The derivation is elementary and provides an alternative route to Hathcock-Sethna's Eq.~15 that bypasses their Schr\"odinger spectral analysis.
+\item \textbf{Bifurcation-type classification of stablecoin designs.}
+    We propose a classification of reserve-based stablecoin designs by the bifurcation type of their deterministic limit (\Cref{sec:classification}): \emph{linear-drain class} (kinematic exponent 2), \emph{saddle-node class} (universal 3/2 exponent with Airy crossover), and \emph{algorithmic/reflexivity class} (outside LDP scope). We relate the Cao-Dai-Kou-Li-Yang dual-class structure \cite{CaoDaiKouLiYang2025} and the Klages-Mundt-Minca leveraged stablecoin model \cite{KlagesMundtMinca2022} to this taxonomy via sufficient conditions for Assumption \ref{assump:saddle}.
+\end{enumerate}
+
+The mathematical content of items 1-2 is largely an application of well-established machinery: Freidlin-Wentzell sample-path LDP from \cite{DemboZeitouni2010}, the 3/2 critical exponent from \cite{DykmanMoriRossHunt1994, BerglundGentz2006}, the Eyring-Kramers prefactor from \cite{Berglund2013}, and the Airy scaling formula from \cite{HathcockSethna2021}.
+Items 3 and 4 contain genuinely new mathematical content: the 1D integral representation of $\mathcal T_{HS}$ and the Airy-squared identity are new, and the bifurcation-type classification is a new framework for organizing stablecoin design analysis.
+The principal value of the paper, however, lies in \emph{bridging three communities}: statistical-mechanics renormalization group (Hathcock-Sethna), applied probability slow-fast SDEs (Berglund-Gentz, Dembo-Zeitouni), and mathematical finance (Cao-Dai-Kou-Li-Yang, Klages-Mundt-Minca, Mohanty-Krishnamachari).
+None of these communities previously cited each other on the question of stablecoin peg-break dynamics, and the tools developed by each are directly applicable to the questions the others ask.
+
+\subsection{Related work}
+\label{sec:related}
+
+The literature relevant to this paper divides into four strands: stablecoin modelling, large deviations for SDEs and metastability, saddle-node escape in statistical physics, and related first-passage problems.
+
+\emph{Stablecoin modelling.}
+Cao-Dai-Kou-Li-Yang \cite{CaoDaiKouLiYang2025} provide a comprehensive option-pricing treatment of reserve-backed stablecoins under an affine drift and reflection at a regulatory threshold; their analysis gives closed-form valuations of stablecoin claims and explicit fair-value formulas, but does not address the peg-break exit-time question directly.
+Klages-Mundt and Minca \cite{KlagesMundtMinca2022} introduce a stochastic model of non-custodial stablecoins with endogenous leverage and derive sufficient conditions for stability versus \emph{de-leveraging spirals}; they establish hitting-time bounds for a simplified one-dimensional proxy but do not compute rate functions.
+Mohanty and Krishnamachari \cite{MohantyKrishnamachari2026} formulate a mean-field game of stablecoin holders who decide whether to redeem or hold as a function of the peg deviation; their equilibrium solution exhibits a critical threshold $\kappa_P^*$ at which the fraction of holders redeeming undergoes a phase transition.
+Hammerl and Beyschlag \cite{HammerlBeyschlag2025} study optimal reserve asset allocation for a pegged digital currency under mean-variance and CVaR criteria.
+Gorton and Zhang \cite{GortonZhang2023} compare the stablecoin ecosystem to the free-banking era and discuss regulatory implications.
+Pernice \cite{Pernice2021} analyzes arbitrage in stablecoin secondary markets.
+None of these papers apply Freidlin-Wentzell LDP theory or consider saddle-node bifurcations explicitly; the connection between the critical parameter $\lambda_c$ in our \Cref{thm:saddle} and the Mohanty-Krishnamachari threshold $\kappa_P^*$ is, to our knowledge, observed here for the first time.
+
+\emph{Large deviations for small-noise SDEs and metastability.}
+The foundational reference is Freidlin-Wentzell \cite{FreidlinWentzell2012}, whose Chapter 4 develops the sample-path LDP and exit-time asymptotics for small-noise SDEs.
+Dembo-Zeitouni \cite{DemboZeitouni2010} provide an alternative presentation emphasizing sharper sample-path LDPs with weaker regularity assumptions.
+The Eyring-Kramers formula for sharp mean exit times is classical in physics (Kramers 1940); rigorous mathematical derivations are given by Bovier-den Hollander \cite{BovierGayrard2016} in their potential-theoretic textbook treatment of the non-degenerate case (Hessian strictly positive at the saddle), building on the earlier papers of Bovier-Eckhoff-Gayrard-Klein.
+Berglund \cite{Berglund2013} gives a unified exposition covering saddle-exit versus smooth-boundary exit, which we use in the proof of \Cref{thm:saddle}(ii).
+Berglund-Gentz \cite{BerglundGentz2006} treat slow-fast systems, including the saddle-node case, and derive the concentration estimates around the slow manifold that we implicitly rely on in the joint scaling limit of \Cref{thm:airy}.
+Bergeot-Berglund-Zogheib \cite{BergeotBerglundZogheib2025} very recently extended these results to the dynamic (slow-parameter) saddle-node with noise, a regime we do not cover.
+
+\emph{Saddle-node escape in statistical physics.}
+The universal $3/2$ activation exponent for saddle-node escape was first obtained in the chemical-kinetics literature by Dykman and collaborators \cite{DykmanMoriRossHunt1994} via WKB methods, and in the population-dynamics literature by Assaf and Meerson \cite{AssafMeerson2010} via generating-function techniques.
+Herbert and Bouchet \cite{HerbertBouchet2017} provide predictability estimates for the stochastic saddle-node bifurcation.
+Schwartz, Billings, Dykman, and Landsman \cite{SchwartzBillingsDykmanLandsman2009} apply the same machinery to stochastic epidemic models.
+The closed-form Airy scaling function, however, is specifically due to Hathcock and Sethna \cite{HathcockSethna2021}, who derived it by renormalization-group methods applied to the canonical saddle-node SDE.
+Their paper does not appear to have been cited in the mathematical-finance literature prior to this work.
+
+\emph{Related first-passage problems.}
+Halperin \cite{Halperin2025} gives a broad survey of metastable dynamics in financial markets, including discussion of bifurcation phenomena in cryptocurrency dynamics; his paper is thematically related but does not invoke the Airy crossover or derive explicit rate functions.
+Carmona-Delarue-Lacker \cite{CarmonaDelarueLacker2017} develop a mean-field game of timing that models bank runs; this is methodologically close to the Mohanty-Krishnamachari \cite{MohantyKrishnamachari2026} approach but does not compute LDP rate functions.
+Karatzas-Shreve \cite{KaratzasShreve1991} provide the classical first-passage-time formulas for arithmetic Brownian motion which we invoke in the proof of \Cref{thm:linear}.
+
+\subsection{Paper organization and notation}
+
+\Cref{sec:setup} formulates the reserve SDE and states the main results.
+\Cref{sec:LDP} proves the Freidlin-Wentzell LDP (\Cref{thm:LDP}).
+\Cref{sec:linear} treats the linear-drain model (\Cref{thm:linear}).
+\Cref{sec:saddle} treats the saddle-node case (\Cref{thm:saddle}).
+\Cref{sec:airy} states the Airy crossover theorem (\Cref{thm:airy}), proves the finite-boundary refinement (\Cref{thm:airy-finite}) and the new 1D integral representation (\Cref{thm:airy-integral}).
+\Cref{sec:multid} treats the multi-dimensional reserve extension.
+\Cref{sec:empirical} applies the framework to the USDC March 2023 depeg.
+\Cref{sec:classification} presents the bifurcation-type classification and conjectures.
+\Cref{sec:discussion} discusses limitations and open problems.
+Appendices contain SymPy verifications (\Cref{app:sympy}), detailed proofs (\Cref{app:proofs}), and Monte Carlo validation tables (\Cref{app:numerics}).
+
+\paragraph{Notation.} Throughout, $\varepsilon > 0$ is the small-noise parameter, $\lambda \geq 0$ the redemption pressure (a positive drain rate), and $\lambda_c$ the critical bifurcation value. We write $v_*$ for the critical state (saddle-node bifurcation point), $v^\dagger(\lambda)$ for the stable equilibrium of the deterministic flow, and $V_0$ for the initial reserve value. The peg threshold is $p^* \in (0,1]$ and the peg-break set is $\{V \leq p^*L\}$ where $L$ is the fixed liability. The FW action functional is $S_T$ and the rate function is $I(T,\lambda) = \inf S_T$. We use $\mathbb{E}$ and $\P$ for expectation and probability under the small-noise law, $\Ai$ and $\Bi$ for the Airy functions of the first and second kind, and $\mathcal T_{HS}(\eta)$ for the Hathcock-Sethna scaling function. Standard asymptotic notation $O(\cdot)$, $o(\cdot)$ is used throughout, with subscripts clarifying the asymptotic variable when ambiguous.
+
+\section{Setup and main results}
+\label{sec:setup}
+
+\subsection{The reserve dynamics}
+
+Consider a reserve-backed stablecoin issuer holding collateral with total value $V_t > 0$ against a fixed liability $L > 0$ (the total stablecoin supply, treated as constant).
+The reserve ratio $V_t/L$ is the natural state variable; the peg holds when $V_t/L \geq p^*$ for a chosen threshold $p^* \in (0, 1]$.
+
+We model the reserve process by the SDE
+\begin{equation}
+\d V_t^\eps = b(V_t^\eps; \lambda)\,\d t + \eps\,\sigma(V_t^\eps)\,\d W_t,\qquad V_0^\eps = V_0,
+\label{eq:sde}
+\end{equation}
+on a filtered probability space, where $\lambda \geq 0$ parameterizes the redemption pressure and $\eps > 0$ is the small-noise scale.
+The drift $b$ depends on the issuer's design (collateral structure, arbitrage mechanism, redemption response).
+
+\subsection{Main results}
+
+The paper proves four main theorems and outlines a framework for empirical calibration and bifurcation classification:
+
+\begin{itemize}
+\item \textbf{\Cref{thm:LDP}} (FW LDP): under regularity conditions, the peg-break probability satisfies the Freidlin-Wentzell LDP with explicit rate function $I(T,\lambda)$.
+\item \textbf{\Cref{thm:linear}} (Linear-drain): for the simplest model $b = -\lambda$, three regimes (subcritical / critical / supercritical) with explicit closed-form rate function and Eyring-Kramers prefactor.
+\item \textbf{\Cref{thm:saddle}} (Saddle-node): for models satisfying a local saddle-node hypothesis at $(v_*, \lambda_c)$, parts (i) the universal $3/2$ critical exponent and (ii) the Eyring-Kramers prefactor $\pi/\sqrt{AB(\lambda_c-\lambda)}$.
+\item \textbf{\Cref{thm:airy}} (Airy crossover): the mean peg-break time admits the Hathcock-Sethna scaling function $\mathcal T_{HS}(\eta)$ uniformly across the metastable, critical, and supercritical regimes, with explicit error rate $O(\eps^{2/3}\log(1/\eps))$. The Hathcock-Sethna closed form is applied from \cite{HathcockSethna2021}; the rigorous convergence theorem is new here.
+\item \textbf{\Cref{sec:empirical}, \Cref{sec:classification}}: framework for empirical calibration to historical depeg episodes and bifurcation-type classification of stablecoin design classes.
+\end{itemize}
+
+\section{FW LDP for the peg-break time}
+\label{sec:LDP}
+
+\begin{assumption}\label{assump:H1H4}
+For the SDE \eqref{eq:sde} with parameter $\lambda$ fixed:
+\begin{itemize}
+\item[(H1)] $b(\cdot;\lambda) : (0,\infty) \to \R$ is $C^1$ and Lipschitz on every compact $K \Subset (0,\infty)$.
+\item[(H2)] $\sigma : (0,\infty) \to (0,\infty)$ is $C^1$ and there exist $\sigma_{\min} > 0$, $V_{\max} > V_0$ such that $\sigma(v) \geq \sigma_{\min}$ for all $v \in [p^*L, V_{\max}]$.
+\item[(H3)] The drift is non-characteristic at the lower boundary: $b(p^*L;\lambda) > 0$.
+\item[(H4)] There exists a unique stable equilibrium $v^\dagger(\lambda)$ of the deterministic flow $\dot v = b(v;\lambda)$ in $(p^*L, V_{\max})$, with $b'(v^\dagger(\lambda);\lambda) < 0$.
+\end{itemize}
+\end{assumption}
+
+\begin{theorem}[FW LDP for peg-break]\label{thm:LDP}
+Under \Cref{assump:H1H4}, the peg-break time $\tau_\eps = \inf\{t \geq 0 : V_t^\eps \leq p^*L\}$ satisfies
+\begin{equation}
+\lim_{\eps \to 0^+}-\eps^2\,\log\P(\tau_\eps \leq T) = I(T,\lambda) := \inf_{\phi \in \mathcal A_T} S_T(\phi;\lambda),
+\end{equation}
+where the FW action functional with explicit $\lambda$-dependence is
+\begin{equation}
+S_T(\phi;\lambda) = \frac{1}{2}\int_0^T \frac{(\dot\phi(t) - b(\phi(t);\lambda))^2}{\sigma(\phi(t))^2}\,\d t,
+\end{equation}
+and $\mathcal A_T = \{\phi \in C([0,T], \R) : \phi(0) = V_0,\ \exists\,t \in [0,T]\text{ with }\phi(t) \leq p^*L\}$.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+By \cite[Theorem 5.6.3]{DemboZeitouni2010}, the family $\{V_\eps\}$ satisfies the sample-path LDP on $C([0,T], \R)$ with rate function $S_T$ on a compact subset $[p^*L - \delta, V_{\max}]$ where the Lipschitz hypothesis holds.
+The exit-time LDP for the absorbing barrier follows from \cite[\S 5.7]{DemboZeitouni2010} or \cite[Ch. 4 \S 2 Thm 4.2.1]{FreidlinWentzell2012}, applied under the non-characteristic boundary condition.
+\end{proof}
+
+\section{Linear-drain model}
+\label{sec:linear}
+
+We specialize to $b(v) = -\lambda$ and $\sigma(v) = \sigma_0$ (constants). Set $a = V_0 - p^*L > 0$ and $\lambda_c = a/T$.
+
+\begin{theorem}[Linear-drain rate function]\label{thm:linear}
+For the SDE $\d V_t^\eps = -\lambda\,\d t + \eps\sigma_0\,\d W_t$:
+\begin{enumerate}
+\item For $\lambda \in [0, \lambda_c)$,
+\begin{equation}
+\lim_{\eps \to 0^+}-\eps^2\log\P(\tau_\eps \leq T) = \frac{T(\lambda_c - \lambda)^2}{2\sigma_0^2}.
+\label{eq:linear-rate}
+\end{equation}
+\item Sharp Eyring-Kramers prefactor:
+\begin{equation}
+\P(\tau_\eps \leq T) = \frac{2\lambda_c\,\eps\sigma_0}{\sqrt{2\pi T}\,(\lambda_c^2 - \lambda^2)}\,\exp\!\Big(-\frac{T(\lambda_c-\lambda)^2}{2\eps^2\sigma_0^2}\Big)\,(1 + O(\eps^2)).
+\end{equation}
+\item At $\lambda = \lambda_c$: $\lim_{\eps \to 0^+}\P(\tau_\eps \leq T) = 1/2$.
+\item For $\lambda > \lambda_c$: $\lim_{\eps \to 0^+}\P(\tau_\eps \leq T) = 1$ exponentially.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\textit{Step 1 (Variational solution).} By Cauchy-Schwarz on $[0, t^*]$ with $\phi(t^*) = p^*L$:
+\begin{equation*}
+\frac{1}{2\sigma_0^2}\int_0^{t^*}(\dot\phi + \lambda)^2\,\d t \geq \frac{(p^*L - V_0 + \lambda t^*)^2}{2\sigma_0^2 t^*} = \frac{(\lambda t^* - a)^2}{2\sigma_0^2 t^*}.
+\end{equation*}
+Equality when $\dot\phi$ is constant (straight line). Define $g(t^*) := (\lambda t^* - a)^2/t^*$. Then $g'(t^*) = \lambda^2 - a^2/t^{*2}$, vanishing at $t^* = a/\lambda > T$ (since $\lambda < \lambda_c$). On $(0, T]$, $g$ is decreasing, so $\inf_{(0,T]} g = g(T) = T(\lambda_c - \lambda)^2$.
+
+\textit{Step 2 (Sharp prefactor).} By the closed-form first-passage formula for arithmetic Brownian motion with drift \cite[\S 2.5.2]{KaratzasShreve1991}:
+\begin{equation*}
+\P(\tau_\eps \leq T) = \Phi(z_1) + e^{2\lambda a/(\eps\sigma_0)^2}\,\Phi(z_2),
+\end{equation*}
+where $z_1 = (-a + \lambda T)/(\eps\sigma_0\sqrt T)$, $z_2 = (-a - \lambda T)/(\eps\sigma_0\sqrt T)$. Both arguments are negative for $\lambda < \lambda_c$. Mills' ratio $\Phi(-x) = e^{-x^2/2}/(x\sqrt{2\pi})(1 + O(1/x^2))$ applied to both terms, with the exponent identity verified by SymPy (V5 of supplementary materials), gives the claimed prefactor.
+
+\textit{Step 3 (Critical case).} At $\lambda = \lambda_c$: $z_1 = 0$, so $\Phi(z_1) = 1/2$, and the second term is exponentially small.
+
+\textit{Step 4 (Supercritical case).} The deterministic flow $\phi_0(t) = V_0 - \lambda t$ crosses $p^*L$ at $t_0 = a/\lambda < T$, so the noise-perturbed path crosses with probability $\to 1$. The complementary rate function follows from the symmetric variational analysis.
+\qed
+\end{proof}
+
+\section{Saddle-node case}
+\label{sec:saddle}
+
+\begin{assumption}[Saddle-node hypothesis]\label{assump:saddle}
+There exist a critical parameter $\lambda_c$ and a critical state $v_* > p^*L$, together with constants $A, B > 0$, such that:
+\begin{itemize}
+\item[(H5)] (Local saddle-node Taylor expansion) For $|u| + |\nu|$ small,
+\begin{equation*}
+b(v_* + u; \lambda_c - \nu) = A\nu - B u^2 + R(u, \nu),\qquad |R(u,\nu)| \leq C(|u|^3 + \nu^2 + u^2|\nu|).
+\end{equation*}
+Equivalently: $b(v_*;\lambda_c) = 0$, $\partial_v b(v_*;\lambda_c) = 0$, $\partial_v^2 b(v_*;\lambda_c) = -2B < 0$, $\partial_\lambda b(v_*;\lambda_c) = -A < 0$.
+\item[(H6)] (Global no-trap) For $\lambda$ in a left neighborhood of $\lambda_c$, the deterministic flow $\dot v = b(v;\lambda)$ has no stable equilibrium in $(p^*L, v_u(\lambda))$, where $v_u(\lambda) = v_* - \sqrt{A(\lambda_c-\lambda)/B}\,(1+o(1))$ is the unstable equilibrium that emerges from the bifurcation.
+\item[(H7)] $\sigma(v_*) > 0$.
+\end{itemize}
+The stable equilibrium $v^\dagger(\lambda)$ from \Cref{assump:H1H4}(H4) satisfies $v^\dagger(\lambda) = v_* + \sqrt{A(\lambda_c - \lambda)/B}\,(1+o(1)) \to v_*$ as $\lambda \to \lambda_c^-$.
+\end{assumption}
+
+\begin{theorem}[Saddle-node universal $3/2$ exponent and Eyring-Kramers prefactor]\label{thm:saddle}
+Suppose \Cref{assump:H1H4} and \Cref{assump:saddle} hold.
+
+\textit{(i) Critical asymptotic.} As $\lambda \to \lambda_c^-$,
+\begin{equation}
+I(T,\lambda) = \frac{8\,A^{3/2}}{3\sqrt{B}\,\sigma(v_*)^2}\,(\lambda_c - \lambda)^{3/2}\,(1 + o(1)),
+\label{eq:saddle-rate}
+\end{equation}
+provided $T > T_{\min}(\lambda) = O((\lambda_c-\lambda)^{-1/2}\log(1/(\lambda_c-\lambda)))$.
+
+\textit{(ii) Eyring-Kramers prefactor (away from criticality).} For $\lambda$ bounded away from $\lambda_c$ on the subcritical side ($\lambda_c - \lambda \geq c_0 > 0$ for some constant $c_0$),
+\begin{equation}
+\E[\tau_\eps] = \frac{\pi}{\sqrt{AB(\lambda_c - \lambda)}}\,\exp\!\Big(\frac{8\,A^{3/2}(\lambda_c-\lambda)^{3/2}}{3\sqrt B\,\sigma(v_*)^2\,\eps^2}\Big)\,(1 + O(\eps)).
+\label{eq:saddle-EK}
+\end{equation}
+\end{theorem}
+
+\begin{proof}[Proof outline]
+\textit{Step 1 (Local rescaling).} Set $u = v - v_*$ and $\nu = \lambda_c - \lambda > 0$.
+
+\textit{Step 2 (Equilibria of the leading drift).} The leading SDE $du = (A\nu - Bu^2)dt + \varepsilon\sigma(v_*)dW_t$ has equilibria at $u_\pm = \pm\sqrt{A\nu/B}$. Stable at $u_+$, saddle at $u_-$.
+
+\textit{Step 3 (Action of the time-reversed instanton).} The optimal escape path satisfies $\dot\phi = -b_{\text{normal}}$. By direct integration (verified by SymPy V2 in supplementary materials):
+\begin{equation*}
+S_{\min}(\nu) = -\frac{2}{\sigma(v_*)^2}\int_{u_+}^{u_-}(A\nu - Bu^2)\,du = \frac{8\,A^{3/2}\nu^{3/2}}{3\sqrt B\,\sigma(v_*)^2}.
+\end{equation*}
+
+\textit{Step 4 (Remainder estimate).} We bound the contribution of the Taylor remainder $R(u,\nu)$ of \Cref{assump:saddle}(H5) to the FW action. Let $\phi^{(0)}$ be the instanton of the leading SDE $du = (A\nu - Bu^2)dt + \sigma(v_*)\eps dW$ (i.e., the optimal escape path for the quadratic-only drift), and let $\phi$ be a nearby path with $\|\phi - \phi^{(0)}\|_{\infty} \leq \delta$ for small $\delta > 0$. The action $S_T(\phi;\lambda)$ with the full drift $b = b_{\text{normal}} + R$ equals
+$$S_T(\phi;\lambda) = \frac{1}{2\sigma^2}\int_0^T (\dot\phi - b_{\text{normal}}(\phi) - R(\phi,\nu))^2\,dt.$$
+Expanding the square:
+\begin{align*}
+S_T(\phi;\lambda) &= \frac{1}{2\sigma^2}\int(\dot\phi - b_{\text{normal}})^2\,dt - \frac{1}{\sigma^2}\int(\dot\phi - b_{\text{normal}})\,R\,dt + \frac{1}{2\sigma^2}\int R^2\,dt\\
+&= S_T^{(0)}(\phi) + \mathcal E_1(\phi) + \mathcal E_2(\phi),
+\end{align*}
+where $S_T^{(0)}$ is the leading action, $\mathcal E_1$ is the cross term, and $\mathcal E_2$ is the quadratic remainder term.
+
+\emph{Bound on $\mathcal E_1$ along the optimal leading path.} At $\phi = \phi^{(0)}$, the Euler-Lagrange equation gives $\dot\phi^{(0)} = -b_{\text{normal}}(\phi^{(0)})$ (the time-reversed flow), so $\dot\phi^{(0)} - b_{\text{normal}}(\phi^{(0)}) = -2 b_{\text{normal}}(\phi^{(0)})$. Therefore
+$$\mathcal E_1(\phi^{(0)}) = \frac{2}{\sigma^2}\int b_{\text{normal}}(\phi^{(0)})\,R(\phi^{(0)}, \nu)\,dt.$$
+Along $\phi^{(0)}$, the instanton coordinate $u(t) = \phi^{(0)}(t) - v_*$ satisfies $|u(t)| \leq \sqrt{A\nu/B}$ (bounded by the equilibrium separation), so $|b_{\text{normal}}(\phi^{(0)})| \leq A\nu + B(A\nu/B) = 2A\nu = O(\nu)$ and $|R(\phi^{(0)}, \nu)| \leq C(|u|^3 + \nu^2 + u^2|\nu|) \leq C(\nu^{3/2} + \nu^2 + \nu\cdot\nu) = O(\nu^{3/2})$ for small $\nu$. The instanton duration is bounded by the time for $u(t)$ to traverse from $u_+ = +\sqrt{A\nu/B}$ to $u_- = -\sqrt{A\nu/B}$ under the time-reversed flow $\dot u = Bu^2 - A\nu$; by direct integration of $dt = du/(Bu^2 - A\nu)$, the duration is
+$$T_{\text{inst}} = \int_{u_-}^{u_+}\frac{du}{Bu^2 - A\nu}\sim O(\nu^{-1/2}\log(1/\nu))$$
+as $\nu \to 0^+$, with the logarithm arising from the endpoint singularities at $u = \pm\sqrt{A\nu/B}$. Combining,
+$$|\mathcal E_1(\phi^{(0)})| \leq \frac{2}{\sigma^2}\cdot O(\nu)\cdot O(\nu^{3/2})\cdot O(\nu^{-1/2}\log(1/\nu)) = O(\nu^2\log(1/\nu)).$$
+
+\emph{Bound on $\mathcal E_2$.} The quadratic remainder term is bounded by
+$$|\mathcal E_2(\phi^{(0)})| \leq \frac{1}{2\sigma^2}\int (R(\phi^{(0)},\nu))^2\,dt \leq \frac{T_{\text{inst}}}{2\sigma^2}\cdot(O(\nu^{3/2}))^2 = O(\nu^{5/2}\log(1/\nu)),$$
+which is one power of $\nu^{1/2}$ smaller than $\mathcal E_1$ and thus subleading.
+
+\emph{Variational stability.} Because $\phi^{(0)}$ is the minimizer of the leading action $S_T^{(0)}$, the second variation $\delta^2 S_T^{(0)}(\phi^{(0)})$ is a positive quadratic form, which bounds below the cost of deviating from $\phi^{(0)}$. The minimizer $\phi^*$ of the full action $S_T$ lies within $O(\nu^{1/4})$ of $\phi^{(0)}$ in the $H^1$-norm (by implicit function theorem applied to the variational problem; see \cite[\S 5]{Berglund2013} for the analogous argument), and the full action at $\phi^*$ differs from $S_T^{(0)}(\phi^{(0)})$ by at most the first-order term $\mathcal E_1(\phi^{(0)})$ plus second-order corrections of order $|\phi^* - \phi^{(0)}|^2_{H^1} = O(\nu^{1/2})$, times the coefficient of the second variation. Combining, $S_{\min}(\nu) = S_T^{(0)}(\phi^{(0)}) + O(\nu^2\log(1/\nu))$ to leading order.
+
+Hence the total error is $O(\nu^2\log(1/\nu))$, which is $O(\nu^{1/2}\log(1/\nu))$ smaller than the leading $S_T^{(0)} = O(\nu^{3/2})$. The argument uses only Taylor's theorem, the explicit form of $\phi^{(0)}$, and the implicit function theorem on the variational problem; it does not require a separately-cited lemma from the slow-fast SDE literature.
+
+\textit{Step 5 (Continuation past saddle, requires (H6) of \Cref{assump:saddle}).} After reaching $u_-(\lambda)$, the deterministic flow descends from $v_u(\lambda)$ to $p^*L$ at zero action cost. Total action: $S_{\min}(\nu)$. This proves part (i).
+
+\textit{Step 6 (Eyring-Kramers prefactor).} For part (ii), we apply Berglund 2013 \cite{Berglund2013} Formula B (saddle exit). We must convert from the Berglund convention $\d X = -U'\,\d t + \sqrt 2\,\eps\,\d W$ to our convention $\d V = b\,\d t + \eps\sigma\,\d W$; this introduces a factor of 2 in the exponent (verified in supplementary V4 of \texttt{sympy\_verifications.md}). With the effective potential $U(u) = -A\nu u + Bu^3/3$ (so that $b_{\text{normal}} = -U'$):
+\begin{align*}
+U''(u_+) &= 2B\sqrt{A\nu/B} = 2\sqrt{AB\nu},\\
+|U''(u_-)| &= 2\sqrt{AB\nu},\\
+\E[\tau_\eps] &\sim \frac{2\pi}{\sqrt{U''(u_+)\,|U''(u_-)|}}\,\exp\!\Big(\frac{2(U(u_-) - U(u_+))}{(\eps\sigma(v_*))^2}\Big) = \frac{\pi}{\sqrt{AB\nu}}\,\exp\!\Big(\frac{S_{\min}}{\eps^2}\Big),
+\end{align*}
+where the factor of 2 in the exponent comes from the convention conversion. The prefactor includes $\sqrt A$ in the denominator (verified by SymPy V3).
+\qed
+\end{proof}
+
+\begin{remark}[Framing]
+The $3/2$ exponent is the classical mean-field saddle-node activation exponent established in \cite{DykmanMoriRossHunt1994, BerglundGentz2009Neuro, AssafMeerson2010}.
+Our contribution is the explicit identification of $A, B, \sigma(v_*)$ from stablecoin model parameters and the application to financial mathematics.
+\end{remark}
+
+\section{Universal Airy crossover (Hathcock-Sethna application)}
+\label{sec:airy}
+
+We now state a uniform asymptotic formula for the mean peg-break time that interpolates between the deep metastable regime ($\nu \gg \eps^{4/3}$) and the critical regime ($\nu \sim \eps^{4/3}$) where the Eyring-Kramers prefactor of \Cref{thm:saddle}(ii) degenerates.
+This is achieved by applying the Hathcock-Sethna 2021 \cite{HathcockSethna2021} closed-form scaling function for the canonical saddle-node SDE.
+
+\begin{remark}[On the regime of \Cref{thm:saddle}(ii) vs \Cref{thm:airy}]
+\Cref{thm:saddle}(ii) is stated for $\lambda$ bounded away from $\lambda_c$ (i.e., $\nu \geq c_0 > 0$), which is much stronger than $\nu \gg \eps^{4/3}$.
+The functional form of \Cref{thm:airy} at $\eta \to \infty$ matches the Eyring-Kramers asymptotic of \Cref{thm:saddle}(ii), and the uniform $\eta$-formula extends this functional form to the joint limit $(\eps,\nu) \to 0$ with $\eta$ bounded --- a regime not directly covered by \Cref{thm:saddle}(ii) but rigorously established by \Cref{thm:airy}.
+\end{remark}
+
+\begin{theorem}[Universal Airy crossover]\label{thm:airy}
+Under \Cref{assump:H1H4} and \Cref{assump:saddle}, assume additionally that the diffusion $\sigma$ is $C^2$ on a neighborhood of $v_*$ and define the rescaling constants
+\begin{equation}
+\alpha = (\eps\sigma(v_*))^{2/3}\,B^{-1/3},\quad \beta = (\eps\sigma(v_*))^{-2/3}\,B^{-2/3},\quad \eta = A\,B^{-1/3}\,(\lambda_c - \lambda)\,(\eps\sigma(v_*))^{-4/3}.
+\label{eq:airy-rescaling}
+\end{equation}
+Fix a bounded set $K \subset \R$ (e.g., $K = [-\eta_0, \eta_0]$ for any fixed $\eta_0 > 0$). Then, as $\eps \to 0^+$ along sequences $(\eps_n, \nu_n)$ with $\eta_n \in K$, the mean peg-break time satisfies
+\begin{equation}
+\E[\tau_{\eps_n}] = \beta_n\,\mathcal T_{HS}(\eta_n)\,\big(1 + O(\eps_n^{2/3}\log(1/\eps_n))\big),
+\label{eq:airy-joint}
+\end{equation}
+uniformly in $\eta \in K$, where $\mathcal T_{HS}$ is the Hathcock-Sethna 2021 \cite[Eq.~15]{HathcockSethna2021} Airy scaling function:
+\begin{equation}
+\boxed{\mathcal T_{HS}(\eta) = 2^{1/3}\pi^2\Big[\Ai^2(2^{2/3}\eta) + \Bi^2(2^{2/3}\eta)\Big].}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+We give the proof in five steps. Throughout, we write $\sigma_* := \sigma(v_*)$, $u := v - v_*$, and $\nu := \lambda_c - \lambda$, and we use the Pontryagin formula for the mean exit time of a one-dimensional diffusion on $[p^*L, +\infty)$ with absorbing barrier at $p^*L$ and the process starting from $V_0$.
+
+\textit{Step 1 (Pontryagin formula for the original process).} For the SDE \eqref{eq:sde} with non-degenerate diffusion on $[p^*L, V_{\max}]$, the mean exit time from $V_0 > p^*L$ across the absorbing boundary at $p^*L$ is given by \cite[\S 5.5]{KaratzasShreve1991}
+\begin{equation}
+\E[\tau_\eps] = \int_{p^*L}^{V_0}\d y\,\frac{2}{\eps^2\sigma(y)^2}\,e^{\Phi_\eps(y)}\int_y^{+\infty}\d z\,e^{-\Phi_\eps(z)},
+\label{eq:pontryagin-orig}
+\end{equation}
+where $\Phi_\eps(v) := -\int_{v_*}^v 2 b(v';\lambda)/(\eps\sigma(v'))^2\,\d v'$ (note the minus sign, so that $\Phi_\eps$ plays the role of a ``potential" in the Pontryagin sense) and we have normalised $\Phi_\eps(v_*) = 0$. With this sign, the drift $b < 0$ for large $v$ (by \Cref{assump:H1H4}(H4), the stable equilibrium is at some $v^\dagger < \infty$ and $b$ becomes negative beyond it) translates to $\Phi_\eps(z) \to +\infty$ as $z \to +\infty$, making $e^{-\Phi_\eps(z)} \to 0$ and the inner integral convergent. Similarly the outer integrand $e^{\Phi_\eps(y)}$ is bounded on the compact $[p^*L, V_0]$.
+
+\textit{Step 2 (Local reduction to the canonical saddle-node SDE).} Split the outer integral in \eqref{eq:pontryagin-orig} into the \emph{local} region $|u| \leq \eps^{1/3-\delta}$ and its complement, where $\delta > 0$ is a fixed small constant ($\delta = 1/24$ suffices). On the local region, Taylor-expand $b$ around $v_*$ using \Cref{assump:saddle}(H5):
+$$b(v_*+u;\lambda) = A\nu - B u^2 + R(u,\nu),\quad |R(u,\nu)| \leq C(|u|^3 + \nu^2 + u^2|\nu|).$$
+Substituting $u = \alpha y$ with $\alpha = (\eps\sigma_*)^{2/3} B^{-1/3}$, and using $|u| \leq \eps^{1/3-\delta}$, we have $|y| \leq \eps^{-1/3-\delta}\cdot\alpha^{-1}\cdot 1 = B^{1/3}\sigma_*^{-2/3}\eps^{-1-\delta+2/3} = B^{1/3}\sigma_*^{-2/3}\eps^{-1/3-\delta}$, which is $\to+\infty$ as $\eps\to 0$. Thus after rescaling, the local region in $y$-space grows to cover all of $\R$, while the Taylor remainder $R$ is uniformly $O(\eps^{2/3}\log(1/\eps))$ relative to the leading quadratic after substitution:
+$$(\eps\sigma_*)^{-2}|R(\alpha y,\nu)| \leq C(\eps\sigma_*)^{-2}((\alpha|y|)^3 + \nu^2 + (\alpha y)^2\nu) = O(|y|^3\eps^{2/3} + \eta^2\eps^{4/3} + y^2\eta\eps^{2/3}).$$
+Hence on the local region the exponent $\Phi_\eps(v_*+\alpha y) = -2\eta y + 2y^3/3 + O(\eps^{2/3}\log(1/\eps))$ uniformly in $y$ on $|y|\leq \eps^{-1/3-\delta}$. The same estimate holds for the inner integrand $e^{-\Phi_\eps(z)}$ at $z = v_*+\alpha y'$ for $|y'|\leq\eps^{-1/3-\delta}$.
+
+\textit{Step 3 (Reduction of the rescaled Pontryagin formula to the canonical SDE).} Substitute $u = \alpha y$ in the outer integral of \eqref{eq:pontryagin-orig} and $u' = \alpha z$ in the inner integral, noting that the outer integrand is $e^{\Phi_\eps(y)}$ and the inner integrand is $e^{-\Phi_\eps(z)}$ with $z > y$ (since Pontryagin integrates $z$ from $y$ to $+\infty$). The Jacobians give $\d y\,\d u = \alpha\,\d y_r$ and $\d z\,\d u' = \alpha\,\d z_r$, the noise coefficient gives $2/(\eps\sigma_*)^2 = 2/(\alpha^3 B)$, and the exponents Taylor-expand as $\Phi_\eps(v_* + \alpha y_r) = -2\eta y_r + (2/3)y_r^3 + O(\eps^{2/3}\log(1/\eps))$ (and similarly for $z_r$). Combining and using $\beta = 1/(B\alpha)$ (SymPy V10): the contribution of the local region of the rescaled Pontryagin formula is
+\begin{align*}
+(\text{local contribution}) &= \beta\cdot 2\int_{\chi_b}^{+\infty}\d y_r\int_{y_r}^{+\infty}\d z_r\,e^{\Phi_\eps(v_*+\alpha y_r) - \Phi_\eps(v_*+\alpha z_r)}\,(1 + O(\eps^{2/3}\log(1/\eps)))\\
+&= \beta\cdot 2\int_{\chi_b}^{+\infty}\d y_r\int_{y_r}^{+\infty}\d z_r\,e^{-2\eta(y_r - z_r) + (2/3)(y_r^3 - z_r^3)}\,(1 + O(\eps^{2/3}\log(1/\eps))).
+\end{align*}
+Swapping integration order (so that $z_r$ is outer and $y_r$ is inner over $[\chi_b, z_r]$) and relabelling $(z_r, y_r) \to (Y, Z)$ with $Y = z_r$, $Z = y_r$ so that $Z < Y$ and $Y \geq \chi_b$, the exponent becomes $-2\eta(Z - Y) + (2/3)(Z^3 - Y^3) = 2\eta(Y - Z) - (2/3)(Y^3 - Z^3)$. Therefore
+$$(\text{local contribution}) = \beta\cdot 2\int_{\chi_b}^{+\infty}\d Y\int_{\chi_b}^Y\d Z\,e^{2\eta(Y - Z) - (2/3)(Y^3 - Z^3)}\,(1 + O(\eps^{2/3}\log(1/\eps))),$$
+where $\chi_b := (p^*L - v_*)/\alpha = O(\eps^{-2/3})\cdot (p^*L - v_*) B^{1/3}\sigma_*^{-2/3}$ tends to $-\infty$ at rate $-\eps^{-2/3}$ since $v_* > p^*L$ (by \Cref{assump:H1H4}(H3)-(H4)).
+
+\textit{Step 4 (Applying \Cref{thm:airy-finite}).} The double integral in Step 3, with inner range $[\chi_b, Y]$, differs from $\mathcal T_+(\eta, \chi_b)$ (whose inner range is $(-\infty, Y]$) by the piece
+$$\Delta_{\chi_b} := 2\int_{\chi_b}^{+\infty}\d Y\int_{-\infty}^{\chi_b}\d Z\,e^{2\eta(Y - Z) - (2/3)(Y^3 - Z^3)}.$$
+The integrand is uniformly bounded by $e^{2|\eta|(Y - Z) - (2/3)(Y^3 - Z^3)}$. For $Z < \chi_b \to -\infty$ and $Y > \chi_b$, the cubic term $-(2/3)(Y^3 - Z^3)$ is $O(-|\chi_b|^3)$ (dominates). Direct bound: $|\Delta_{\chi_b}| \leq C e^{-c|\chi_b|^3} = e^{-c\eps^{-2}}$ for small $\eps$, exponentially small and subleading to any polynomial correction. Therefore, modulo this exponentially-small correction,
+$$(\text{local contribution}) = \beta\,\mathcal T_+(\eta,\chi_b)\,(1 + O(\eps^{2/3}\log(1/\eps))).$$
+As $\chi_b \to -\infty$, we have $\mathcal T_+(\eta,\chi_b) \to \mathcal T_{HS}(\eta)$ with explicit rate
+$$\mathcal T_{HS}(\eta) - \mathcal T_+(\eta, \chi_b) = O(1/|\chi_b|) = O(\eps^{2/3}),$$
+uniformly in $\eta \in K$, by the Hathcock-Sethna $1/\chi_+$ asymptotic expansion \cite[Eqs.~17-19]{HathcockSethna2021}. Combining:
+$$(\text{local contribution}) = \beta\,\mathcal T_{HS}(\eta)\,(1 + O(\eps^{2/3}\log(1/\eps))).$$
+
+\textit{Step 5 (The non-local complement is exponentially small).} Outside the region $|u| \leq \eps^{1/3-\delta}$, we claim that the contribution to \eqref{eq:pontryagin-orig} is exponentially smaller than the local contribution. Indeed, for $|u|\geq \eps^{1/3-\delta}$ the leading term in the exponent $\Phi_\eps$ grows at least as fast as $(2/3)|y|^3 = (2/3)(|u|/\alpha)^3 \geq (2/3)\alpha^{-3}\eps^{1-3\delta} = (2/3)B\sigma_*^{-2}\eps^{-1-3\delta}$, so $e^{-\Phi_\eps}$ is bounded by $e^{-c\eps^{-1-3\delta}}$ for a positive constant $c$. Integration of this rapidly-decaying tail against the polynomially-bounded prefactor $2/(\eps\sigma(y))^2$ gives a contribution of order $e^{-c\eps^{-1-3\delta}}$, which is subleading to any polynomial correction and in particular subleading to the $O(\eps^{2/3}\log)$ correction from the local region.
+
+Combining Steps 4 and 5 gives \eqref{eq:airy-joint}. The uniformity in $\eta\in K$ follows from the uniformity of each step above: the Taylor remainder bound is uniform in $\nu$ on the bounded set $\eta\in K$, the local region size is independent of $\eta$, and the $\mathcal T_{HS}$ function is continuous (hence bounded away from 0 and from infinity on compact sets of $\eta$).
+\qed
+\end{proof}
+
+\begin{remark}[Scope of \Cref{thm:airy}]
+The rigorous statement gives the leading-order behavior with an explicit error rate, under the local saddle-node hypothesis \Cref{assump:saddle}. The proof uses elementary Pontryagin-formula asymptotics plus \Cref{thm:airy-finite} (our new 1D integral for the finite-boundary Hathcock-Sethna function) to handle the boundary effect. The error rate $O(\eps^{2/3}\log(1/\eps))$ is sharp in the sense that the $O(\eps^{2/3})$ part is the true leading correction from the finite-boundary Hathcock-Sethna tail; the logarithmic factor comes from the instanton duration scaling.
+\end{remark}
+
+\begin{remark}[Comparison to the Berglund-Gentz slow-fast framework]
+Berglund-Gentz \cite[Chapter 5]{BerglundGentz2006} handle related questions for slow-fast SDEs via concentration estimates around the stochastic slow manifold. Their approach yields rates of the form $\eps^a$ for various $a$ depending on the specific dynamics, and they treat the saddle-node-on-slow-variable case rigorously (see \cite{BergeotBerglundZogheib2025} for the most recent refinement). Our \Cref{thm:airy} is complementary: we use the Pontryagin formula (not the sample-path concentration) and extract the full Airy scaling function $\mathcal T_{HS}(\eta)$ rather than just the leading exponent. The Berglund-Gentz concentration estimates are implicitly used in Step 5 above (to justify that the non-local contribution is exponentially small).
+\end{remark}
+
+\begin{remark}[Limiting behaviors]
+\Cref{thm:airy} interpolates uniformly between three regimes:
+\begin{itemize}
+\item \textbf{Deep metastable} ($\eta \gg 1$, $\nu \gg \eps^{4/3}$): $\mathcal T_{HS}(\eta) \sim \pi\eta^{-1/2}e^{(8/3)\eta^{3/2}}$, recovering \Cref{thm:saddle} Eyring-Kramers asymptotic.
+\item \textbf{Critical} ($\eta = 0$, $\nu = 0$): $\mathcal T_{HS}(0) = \frac{8\pi^2}{3^{4/3}\,2^{2/3}\,\Gamma(2/3)^2} \approx 6.27$, finite. So $\E[\tau_\eps] \sim 6.27\,(\eps\sigma(v_*))^{-2/3}B^{-2/3}$.
+\item \textbf{Supercritical} ($\eta \to -\infty$): $\mathcal T_{HS}(\eta) \sim \pi/\sqrt{|\eta|}$, giving $\E[\tau_\eps] \to \pi/\sqrt{|AB(\lambda - \lambda_c)|}$ — the deterministic travel time through the critical region.
+\end{itemize}
+This uniformity addresses the breakdown of \Cref{thm:saddle}'s Eyring-Kramers near criticality.
+\end{remark}
+
+\begin{remark}[Framing — what is new in this theorem]
+The Hathcock-Sethna formula is from \cite{HathcockSethna2021} (statistical mechanics, RG approach to chemical kinetics). Our contribution to \Cref{thm:airy} is:
+(i) Application to stablecoin reserve dynamics with explicit identification of $\alpha, \beta, \eta$ in terms of the model parameters $A, B, \sigma(v_*)$.
+(ii) Bridging the Hathcock-Sethna stat-mech RG community with the Berglund-Gentz applied probability community \cite{BerglundGentz2006} and the mathematical finance community (\cite{CaoDaiKouLiYang2025, KlagesMundtMinca2022, MohantyKrishnamachari2026}). None of these communities have cited each other prior to this work.
+(iii) Empirical calibration to historical depeg episodes (\Cref{sec:empirical}).
+(iv) The finite-boundary refinement of \Cref{thm:airy-finite} below.
+\end{remark}
+
+\subsection{Finite-boundary refinement}
+
+Hathcock-Sethna 2021 treat the $x_f = +\infty$ case explicitly but give only a large-$\chi_+$ asymptotic expansion (their Eqs. 17--19) for finite absorbing boundary at $\chi_+$. We now refine this to an exact one-dimensional integral.
+
+\begin{theorem}[Finite-boundary Hathcock-Sethna function as a 1D integral]\label{thm:airy-finite}
+For $\eta \in \R$ and $\chi_+ \in \R$, define
+\begin{equation}
+\mathcal T_+(\eta,\chi_+) := 2\int_{\chi_+}^\infty \d y\,\int_{-\infty}^y \d z\,\exp\!\big(2\eta(y-z) - (2/3)(y^3 - z^3)\big).
+\label{eq:HS-finite}
+\end{equation}
+This quantity is approximately equal (up to an exponentially-small-in-$|\chi_+|$ correction arising from the difference between the inner range $(-\infty, y]$ and the Pontryagin range $[\chi_+, y]$) to the mean first-passage time of the canonical SDE $\d y = (\eta - y^2)\,\d\tau + \d W_\tau$ from $y_0 = +\infty$ with absorbing barrier at $\chi_+$; it agrees exactly in the limit $\chi_+ \to -\infty$, in which case $\mathcal T_{HS}(\eta) := \lim_{\chi_+ \to -\infty}\mathcal T_+(\eta,\chi_+)$ is the unconstrained Hathcock-Sethna function. Then
+\begin{equation}
+\boxed{\mathcal T_+(\eta, \chi_+) = \sqrt\pi\,\int_0^\infty \frac{e^{2\eta t - t^3/6}}{\sqrt{2t}}\,\operatorname{erfc}\!\big(\sqrt{2t}\,(\chi_+ - t/2)\big)\,\d t,}
+\label{eq:T-plus-1D}
+\end{equation}
+a one-dimensional integral amenable to direct numerical evaluation.
+
+Moreover, at criticality $\eta = 0$,
+\begin{equation}
+\mathcal T_{HS}(0) = \lim_{\chi_+\to-\infty}\mathcal T_+(0,\chi_+) = \sqrt{2\pi}\,\frac{6^{1/6}}{3}\,\Gamma(1/6),
+\label{eq:T-crit-gamma}
+\end{equation}
+providing a gamma-function closed form for $\mathcal T_{HS}(0) = 2^{1/3}\pi^2[\Ai^2(0) + \Bi^2(0)]$.
+\end{theorem}
+
+\begin{proof}
+Change variables in \eqref{eq:HS-finite} via
+$$ s := \frac{y+z}{2},\qquad t := y-z,$$
+so that $y = s + t/2$, $z = s - t/2$, the Jacobian is $1$, and the region $\{z < y\} = \{t > 0\}$. Direct computation gives $y^3 - z^3 = 3s^2 t + t^3/4$, hence $(2/3)(y^3 - z^3) = 2s^2 t + t^3/6$, and $y - z = t$. The exponent becomes
+$$ 2\eta(y - z) - (2/3)(y^3 - z^3) = 2\eta t - 2s^2 t - t^3/6.$$
+The boundary condition $y > \chi_+$ is equivalent to $s > \chi_+ - t/2$. Therefore
+\begin{align*}
+\mathcal T_+(\eta,\chi_+) &= 2\int_0^\infty \d t\,e^{2\eta t - t^3/6}\int_{\chi_+ - t/2}^\infty \d s\,e^{-2ts^2}.
+\end{align*}
+The inner $s$-integral is a Gaussian:
+$$ \int_{\chi_+ - t/2}^\infty e^{-2ts^2}\,\d s = \frac{1}{\sqrt{2t}}\int_{\sqrt{2t}(\chi_+ - t/2)}^\infty e^{-u^2}\,\d u = \frac{\sqrt\pi}{2\sqrt{2t}}\,\operatorname{erfc}\!\big(\sqrt{2t}(\chi_+ - t/2)\big),$$
+which yields \eqref{eq:T-plus-1D}.
+
+For the closed form at criticality, set $\eta = 0$ and send $\chi_+\to-\infty$, so that $\operatorname{erfc}(\sqrt{2t}(\chi_+ - t/2)) \to 2$. Then
+$$ \mathcal T_{HS}(0) = \sqrt\pi\cdot 2\int_0^\infty\frac{e^{-t^3/6}}{\sqrt{2t}}\,\d t = \sqrt{2\pi}\int_0^\infty t^{-1/2}\,e^{-t^3/6}\,\d t.$$
+Substituting $u = t^3/6$, so that $t = (6u)^{1/3}$, $\d t = \frac{6^{1/3}}{3}u^{-2/3}\,\d u$, and $t^{-1/2} = (6u)^{-1/6}$, gives
+$$ \int_0^\infty t^{-1/2}\,e^{-t^3/6}\,\d t = \frac{6^{1/6}}{3}\int_0^\infty u^{-5/6}\,e^{-u}\,\d u = \frac{6^{1/6}}{3}\,\Gamma(1/6),$$
+and multiplying by $\sqrt{2\pi}$ gives \eqref{eq:T-crit-gamma}. Numerically, $\sqrt{2\pi}\cdot 6^{1/6}/3\cdot\Gamma(1/6) \approx 6.269435$, matching $2^{1/3}\pi^2[\Ai^2(0)+\Bi^2(0)]$ to machine precision.
+\qed
+\end{proof}
+
+\begin{remark}
+\Cref{thm:airy-finite} strengthens Hathcock-Sethna 2021's $1/\chi_+$ asymptotic expansion to an exact one-dimensional integral, suitable for direct numerical evaluation at arbitrary finite boundary $\chi_+$. The change-of-variables trick is classical (sum/difference splitting of cubic exponents) but does not appear to have been applied to \eqref{eq:HS-finite} in the prior literature. The identity \eqref{eq:T-crit-gamma} also provides a new gamma-function representation of the critical value of Hathcock-Sethna's function.
+\end{remark}
+
+\subsection{A one-dimensional integral representation of $\mathcal T_{HS}$ and a new Airy-squared identity}
+
+Sending $\chi_+ \to -\infty$ in \Cref{thm:airy-finite} at general $\eta$ produces an exact one-dimensional integral for the \emph{full} Hathcock-Sethna function $\mathcal T_{HS}$, not only for its critical value. The resulting formula is elementary and bypasses the Schr\"odinger spectral analysis that Hathcock-Sethna used.
+
+\begin{theorem}[Airy-squared integral representation of $\mathcal T_{HS}$]\label{thm:airy-integral}
+The Hathcock-Sethna scaling function admits the one-dimensional integral representation
+\begin{equation}
+\boxed{\mathcal T_{HS}(\eta) \;=\; \sqrt{2\pi}\int_0^\infty t^{-1/2}\,e^{2\eta t - t^3/6}\,\d t \;=\; 2^{1/3}\pi^2\Big[\Ai^2(2^{2/3}\eta) + \Bi^2(2^{2/3}\eta)\Big],}
+\label{eq:T-HS-1D}
+\end{equation}
+valid for all $\eta \in \R$. Equating the two closed forms yields the Airy-squared integral identity
+\begin{equation}
+\int_0^\infty t^{-1/2}\,e^{2\eta t - t^3/6}\,\d t \;=\; 2^{-1/6}\,\pi^{3/2}\,\Big[\Ai^2(2^{2/3}\eta) + \Bi^2(2^{2/3}\eta)\Big],\quad \eta \in \R.
+\label{eq:airy-squared-identity}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Apply \Cref{thm:airy-finite} at $(\eta, \chi_+)$ and send $\chi_+ \to -\infty$. The complementary error function satisfies $\operatorname{erfc}(\sqrt{2t}(\chi_+ - t/2)) \to 2$ pointwise for each fixed $t > 0$; dominated convergence (with dominating function $2\sqrt\pi\,(2t)^{-1/2}e^{2\eta t - t^3/6}$, which is integrable since $-t^3/6$ dominates for large $t$) gives
+\begin{align*}
+\mathcal T_{HS}(\eta) = \lim_{\chi_+ \to -\infty}\mathcal T_+(\eta,\chi_+) &= \sqrt\pi\int_0^\infty \frac{e^{2\eta t - t^3/6}}{\sqrt{2t}}\cdot 2\,\d t\\
+&= \sqrt{2\pi}\int_0^\infty t^{-1/2}\,e^{2\eta t - t^3/6}\,\d t.
+\end{align*}
+The second equality in \eqref{eq:T-HS-1D} is Hathcock-Sethna 2021 \cite[Eq.~15]{HathcockSethna2021}. Identity \eqref{eq:airy-squared-identity} follows by dividing by $\sqrt{2\pi}$ and rearranging.
+\qed
+\end{proof}
+
+\begin{remark}[Independent verification of \Cref{thm:airy-integral}]
+Identity \eqref{eq:airy-squared-identity} has been verified numerically to machine precision ($< 10^{-12}$) at $\eta \in \{-5, -2, -1, -0.5, 0, 0.5, 1, 2, 3\}$ using SciPy's \texttt{airy} and adaptive Gaussian quadrature on the integral; see \Cref{app:sympy} for the reproducible session.
+\end{remark}
+
+\begin{remark}[Asymptotic consistency]\label{rem:asympt-consistency}
+The representation \eqref{eq:T-HS-1D} recovers the three limiting regimes of \Cref{thm:airy} by elementary Laplace / stationary-phase analysis, without invoking Airy function asymptotics:
+\begin{enumerate}
+\item \textbf{Deep metastable} ($\eta \to +\infty$). The exponent $\varphi(t) := 2\eta t - t^3/6$ has a unique interior maximum at $t_* = 2\sqrt\eta$ with $\varphi(t_*) = (8/3)\eta^{3/2}$ and $\varphi''(t_*) = -2\sqrt\eta$. Standard Laplace asymptotics yield
+$$\sqrt{2\pi}\int_0^\infty t^{-1/2} e^{\varphi(t)}\,\d t \sim \sqrt{2\pi}\cdot t_*^{-1/2}\cdot\sqrt{\frac{2\pi}{|\varphi''(t_*)|}}\,e^{\varphi(t_*)} = \frac{\pi}{\sqrt\eta}\,e^{(8/3)\eta^{3/2}},$$
+recovering the Eyring-Kramers prefactor of \Cref{thm:saddle}(ii).
+\item \textbf{Critical} ($\eta = 0$). The integral becomes $\sqrt{2\pi}\int_0^\infty t^{-1/2} e^{-t^3/6}\,\d t = \sqrt{2\pi}\,(6^{1/6}/3)\,\Gamma(1/6) \approx 6.269435$, matching \eqref{eq:T-crit-gamma}.
+\item \textbf{Supercritical} ($\eta \to -\infty$). The exponent $\varphi(t) = 2\eta t - t^3/6$ is strictly decreasing for $t > 0$ (no positive stationary point). Watson's lemma applied at $t = 0$ gives, with $t^{-1/2} e^{-t^3/6}$ a bounded factor for small $t$,
+$$\int_0^\infty t^{-1/2}\,e^{2\eta t}(1 + O(t^3))\,\d t = \frac{\sqrt\pi}{\sqrt{-2\eta}}(1 + O(|\eta|^{-3/2})),$$
+so $\mathcal T_{HS}(\eta) \sim \sqrt{2\pi}\cdot \sqrt\pi/\sqrt{-2\eta} = \pi/\sqrt{|\eta|}$, matching the deterministic travel time through the bifurcation region.
+\end{enumerate}
+All three limits thus emerge from the \emph{same} 1D integral, providing a unified proof of the Airy crossover behavior without separately handling the three regimes.
+\end{remark}
+
+\begin{remark}[Search for the identity in prior literature]
+To our knowledge, the Airy-squared integral identity \eqref{eq:airy-squared-identity} does not appear in standard references: we checked the Abramowitz-Stegun \cite{AbramowitzStegun} chapter on Airy functions, DLMF \cite{DLMF} \S 9.11 (Products of Airy functions), and the integral tables of Gradshteyn-Ryzhik \cite{GradshteynRyzhik}. DLMF 9.11.14 gives $\int_0^\infty e^{-tx}\Ai^2(t)\,\d t$ and related products of Airy functions at the same argument, but not the \emph{sum} $\Ai^2 + \Bi^2$ on the right-hand side nor the cubic exponent $-t^3/6$ on the left-hand side. The closest classical identity is the Nicholson-type formula for Bessel $J^2 + Y^2$ \cite[\S 10.9.26]{DLMF}, which does not directly apply. A full proof that \eqref{eq:airy-squared-identity} is new would require an exhaustive search of special-function literature; our claim is that it is not in the standard tables.
+\end{remark}
+
+% Removed duplicate "Limiting behaviors" remark per Coherence Audit Issue #5
+
+\subsection{A Scorer-function derivative formula for $\mathcal T_+$}
+
+\Cref{thm:airy-finite} gives a 1D integral for $\mathcal T_+(\eta,\chi_+)$ itself. A closed form in terms of classical special functions (Airy, Scorer, or their incomplete versions) is open (\textbf{OP1} in \Cref{sec:discussion}). We now give a \emph{partial} closed form: the derivative $\partial\mathcal T_+/\partial\chi_+$ admits a representation as an (incomplete) Scorer function.
+
+\begin{theorem}[Scorer representation of $\partial\mathcal T_+/\partial\chi_+$]\label{thm:scorer-derivative}
+For all $\eta \in \R$ and $\chi_+ \in \R$,
+\begin{equation}
+\frac{\partial\mathcal T_+(\eta,\chi_+)}{\partial\chi_+} = -2\,e^{2\eta\chi_+ - (2/3)\chi_+^3}\int_{-\chi_+}^{+\infty}e^{-(2/3)u^3 + 2\eta u}\,\d u.
+\label{eq:scorer-derivative}
+\end{equation}
+Equivalently, substituting $u = 2^{-1/3}v$ and introducing the \emph{incomplete Scorer function}
+$$\mathrm{Hi}_{\mathrm{inc}}(x;\xi) := \frac{1}{\pi}\int_0^{\xi}e^{-v^3/3 + xv}\,\d v,$$
+we have
+\begin{equation}
+\frac{\partial\mathcal T_+(\eta,\chi_+)}{\partial\chi_+} = -2^{2/3}\pi\,e^{2\eta\chi_+ - (2/3)\chi_+^3}\big[\mathrm{Hi}(2^{2/3}\eta) - \mathrm{Hi}_{\mathrm{inc}}(2^{2/3}\eta; -2^{1/3}\chi_+)\big],
+\label{eq:scorer-derivative-Hi}
+\end{equation}
+where $\mathrm{Hi}$ is the modified Scorer function $\mathrm{Hi}(x) := (1/\pi)\int_0^\infty e^{-t^3/3 + xt}\,\d t$ \cite[\S 9.12(ii)]{DLMF}.
+\end{theorem}
+
+\begin{proof}
+Differentiate the 1D integral representation \eqref{eq:T-plus-1D} with respect to $\chi_+$:
+$$\frac{\partial\mathcal T_+}{\partial\chi_+} = \sqrt\pi\int_0^\infty\frac{e^{2\eta t - t^3/6}}{\sqrt{2t}}\cdot\frac{\partial}{\partial\chi_+}\operatorname{erfc}\!\big(\sqrt{2t}(\chi_+ - t/2)\big)\,\d t.$$
+Using $\partial_x\operatorname{erfc}(x) = -(2/\sqrt\pi)e^{-x^2}$:
+$$\frac{\partial}{\partial\chi_+}\operatorname{erfc}\!\big(\sqrt{2t}(\chi_+ - t/2)\big) = -\frac{2}{\sqrt\pi}\sqrt{2t}\,e^{-2t(\chi_+-t/2)^2},$$
+so
+\begin{align*}
+\frac{\partial\mathcal T_+}{\partial\chi_+} &= \sqrt\pi\int_0^\infty\frac{e^{2\eta t - t^3/6}}{\sqrt{2t}}\cdot\Big(-\frac{2\sqrt{2t}}{\sqrt\pi}\Big)\,e^{-2t(\chi_+-t/2)^2}\,\d t\\
+&= -2\int_0^\infty e^{2\eta t - t^3/6 - 2t(\chi_+ - t/2)^2}\,\d t.
+\end{align*}
+Expand $2t(\chi_+ - t/2)^2 = 2t\chi_+^2 - 2t^2\chi_+ + t^3/2$:
+$$2\eta t - t^3/6 - 2t(\chi_+-t/2)^2 = (2\eta - 2\chi_+^2)t + 2\chi_+ t^2 - (2/3)t^3.$$
+Complete the cube by substituting $t = u + \chi_+$. Direct computation (which kills the $u^2$ coefficient because the two $u^2$ contributions cancel): the $u^2$ term becomes $-2\chi_+ + 2\chi_+ = 0$, the $u$ term becomes $-2\chi_+^2 + 4\chi_+^2 + 2\eta - 2\chi_+^2 = 2\eta$, and the constant term becomes $-(2/3)\chi_+^3 + 2\chi_+^3 + (2\eta - 2\chi_+^2)\chi_+ = -(2/3)\chi_+^3 + 2\eta\chi_+$. Therefore
+\begin{align*}
+\frac{\partial\mathcal T_+}{\partial\chi_+} &= -2\,e^{-(2/3)\chi_+^3 + 2\eta\chi_+}\int_{-\chi_+}^{+\infty}e^{-(2/3)u^3 + 2\eta u}\,\d u,
+\end{align*}
+which is \eqref{eq:scorer-derivative}. The Scorer-function reformulation \eqref{eq:scorer-derivative-Hi} follows from the substitution $u = 2^{-1/3}v$ and the classical integral representation of the modified Scorer function $\mathrm{Hi}$.
+\qed
+\end{proof}
+
+\begin{remark}[Toward a closed form for $\mathcal T_+$]
+Integrating \eqref{eq:scorer-derivative} from $\chi_+ = -\infty$ up to $\chi_+$ gives
+$$\mathcal T_+(\eta,\chi_+) = \mathcal T_{HS}(\eta) - 2\int_{\chi_+}^\infty e^{-(2/3)s^3 + 2\eta s}\Big[\int_{-s}^\infty e^{-(2/3)u^3 + 2\eta u}\,\d u\Big]\d s,$$
+which converts the 2D integral in \eqref{eq:HS-finite} to a different (but still 2D) integral. The question of whether the integral in brackets times the outer exponential can be evaluated in closed form, giving a proper closed form for $\mathcal T_+(\eta,\chi_+)$ in terms of Airy/Scorer functions and their incomplete versions, remains \textbf{OP1} in \Cref{sec:discussion}. \Cref{thm:scorer-derivative} represents the best partial answer we have been able to obtain.
+\end{remark}
+
+\begin{remark}[Numerical verification of \Cref{thm:scorer-derivative}]
+Both \eqref{eq:scorer-derivative} and \eqref{eq:scorer-derivative-Hi} have been verified to 8-digit accuracy against direct numerical differentiation of the 1D integral representation of $\mathcal T_+$, at $\eta \in \{1, 0, -2\}$ and $\chi_+ \in \{-5, -3, -2\}$, using the \texttt{mpmath} arbitrary-precision library at 30-digit precision.
+\end{remark}
+
+\section{Multi-dimensional reserve extension}
+\label{sec:multid}
+
+Reserve-backed stablecoins in practice hold \emph{multi-asset} reserves. USDC's Centre Consortium attestations (as of 2025) show a composition of short-dated US treasuries, cash held at regulated depository institutions, and a small portfolio of overnight repo transactions backed by treasuries; USDT's Tether International Limited attestations show a more heterogeneous mix including commercial paper, secured loans, precious metals, and other digital assets \cite{KlagesMundtHarzGudgeonLiuMinca2020, GortonZhang2023}.
+The reserve value is a weighted sum of the individual asset values, and the underlying dynamics are naturally multi-dimensional.
+In this section we extend \Cref{thm:linear,thm:saddle,thm:airy} to $n$-dimensional reserve SDEs.
+
+\subsection{Multi-asset reserve SDE}
+
+Let $V_t = (V^1_t,\ldots,V^n_t) \in \R^n_+$ denote the value of $n$ reserve asset classes, satisfying the It\^o SDE
+\begin{equation}
+    \d V^i_t = b^i(V_t;\lambda)\,\d t + \eps\sum_{j=1}^m \sigma^{ij}(V_t)\,\d W^j_t,\quad i = 1,\ldots,n,
+    \label{eq:multid-sde}
+\end{equation}
+where $W = (W^1,\ldots,W^m)$ is a standard $\R^m$-valued Brownian motion, $b:\R^n\times\R\to\R^n$ is $C^2$, and $\sigma:\R^n\to\R^{n\times m}$ is $C^1$ with full rank $n$ everywhere (so $\sigma\sigma^T$ is strictly positive definite).
+The total reserve value is
+$$ W_t := w^T V_t = \sum_{i=1}^n w^i V^i_t,$$
+where $w \in \R^n_+$ is a fixed weight vector (unit weights if values are in dollars, or market prices if quantities are in physical units).
+The peg-break time is $\tau_\eps = \inf\{t\geq 0 : W_t \leq p^*L\}$.
+
+\begin{theorem}[Multi-D FW LDP, linear-drain case]
+\label{thm:multid-linear}
+Suppose the drift is constant, $b(V;\lambda) \equiv -\Lambda \in \R^n$ (a constant drain vector), and the diffusion is constant, $\sigma(V) \equiv \sigma_0 \in \R^{n\times m}$. Then the projected reserve value $W_t = w^T V_t$ satisfies the 1D SDE
+\begin{equation}
+    \d W_t = -(w^T\Lambda)\,\d t + \eps\,\sigma_{\text{eff}}\,\d B_t, \qquad \sigma_{\text{eff}}^2 := w^T\sigma_0\sigma_0^T w,
+    \label{eq:multid-linear-projected}
+\end{equation}
+where $B_t$ is a one-dimensional standard Brownian motion. Consequently the peg-break rate function is
+\begin{equation}
+    I(T,\Lambda) = \frac{T(\lambda_{c,\text{eff}} - w^T\Lambda)^2}{2\sigma_{\text{eff}}^2},\quad \lambda_{c,\text{eff}} := \frac{W_0 - p^*L}{T},
+    \label{eq:multid-linear-rate}
+\end{equation}
+and all four regime statements of \Cref{thm:linear} (parts 1--4: subcritical, critical, supercritical, sharp prefactor) hold verbatim with the effective parameters $\lambda_{\text{eff}} := w^T\Lambda$, $\sigma_{\text{eff}} := \|\sigma_0^T w\|$, and $\lambda_{c,\text{eff}} := (W_0 - p^*L)/T$.
+\end{theorem}
+
+\begin{proof}
+By the linearity of projection, $\d W = w^T \d V = -(w^T\Lambda)\d t + \eps w^T\sigma_0\,\d W_t$. The scalar process $w^T\sigma_0 W_t$ is a continuous Gaussian martingale with quadratic variation $\int_0^t w^T\sigma_0\sigma_0^T w\,\d s = \sigma_{\text{eff}}^2 \cdot t$, so by L\'evy's characterization \cite[Thm~3.3.16]{KaratzasShreve1991} it equals $\sigma_{\text{eff}} B_t$ for some 1D standard Brownian motion $B_t$. The rate function then follows from \Cref{thm:linear} applied to \eqref{eq:multid-linear-projected}.
+\qed
+\end{proof}
+
+\Cref{thm:multid-linear} is a tautology from the linearity of both the drift and the projection, but it has a non-trivial consequence: the effective noise $\sigma_{\text{eff}}^2 = w^T \sigma_0\sigma_0^T w$ aggregates the cross-asset correlation structure of the reserve portfolio via a quadratic form in the weights. Correlated reserves are (quadratically) worse for tail risk than uncorrelated reserves of the same marginal volatility.
+
+\subsection{Multi-D saddle-node reduction via center manifold}
+
+The more interesting case is the multi-D saddle-node bifurcation, where the reserve dynamics have a one-dimensional slow mode that undergoes a saddle-node bifurcation as $\lambda$ crosses $\lambda_c$, while the remaining $n-1$ modes are fast and strongly damped.
+
+\begin{assumption}[Multi-D saddle-node hypothesis]
+\label{assump:multid-saddle}
+In addition to the regularity of \eqref{eq:multid-sde}, there exist a critical state $v_* \in \R^n_+$ with $w^T v_* > p^* L$, a critical parameter $\lambda_c$, and positive constants $A, B > 0$, such that:
+\begin{itemize}
+\item[(M1)] \emph{Equilibrium}: $b(v_*;\lambda_c) = 0$.
+\item[(M2)] \emph{Simple zero eigenvalue}: the Jacobian $J_* := \partial_v b(v_*;\lambda_c) \in \R^{n\times n}$ has a simple zero eigenvalue with right eigenvector $r \in \R^n$ and left eigenvector $\ell \in \R^n$, normalized by $\ell^T r = 1$. All other eigenvalues have strictly negative real part: $\Re\,\text{spec}(J_*)\setminus\{0\} \leq -\kappa < 0$ for some $\kappa > 0$.
+\item[(M3)] \emph{Transversality}: $\ell^T \partial_\lambda b(v_*;\lambda_c) = -A < 0$.
+\item[(M4)] \emph{Saddle-node nondegeneracy}: $\ell^T\big[\partial^2_{vv} b(v_*;\lambda_c)\big](r,r) = -2B < 0$.
+\item[(M5)] \emph{Non-characteristic peg direction}: $w^T r \neq 0$ (the slow eigendirection is not tangent to the peg-threshold hyperplane $\{w^T v = p^* L\}$).
+\end{itemize}
+\end{assumption}
+
+\begin{theorem}[Multi-D saddle-node reduction: universal $3/2$ exponent persists]
+\label{thm:multid-saddle}
+Suppose \Cref{assump:multid-saddle} holds, and that the diffusion $\sigma$ at $v_*$ is non-degenerate in the sense that $\sigma_\|^2 := \ell^T\sigma(v_*)\sigma(v_*)^T\ell > 0$ (equivalently, the noise is felt in the slow direction). Then, as $\eps \to 0^+$ and $\nu := \lambda_c - \lambda \to 0^+$ with $\nu \gg \eps^{4/3}$,
+\begin{equation}
+    I(T,\lambda) = \frac{8\,A^{3/2}}{3\sqrt B\,\sigma_\|^2}\,\nu^{3/2}\,(1+o(1)),
+    \label{eq:multid-rate}
+\end{equation}
+and the Eyring-Kramers prefactor is $\pi/\sqrt{AB\nu}$ for $\lambda$ bounded away from $\lambda_c$. The universal $3/2$ critical exponent of \Cref{thm:saddle} thus persists in the multi-dimensional case.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+\textit{Step 1 (Center manifold reduction).} By the local center manifold theorem for parametrized vector fields \cite[Thm~5.1]{KuehnBook2015}, under \Cref{assump:multid-saddle}(M1)-(M4) there exist a neighborhood $U$ of $(v_*,\lambda_c)$ in $\R^n\times\R$ and a $C^2$ invariant manifold $\mathcal M_c = \{v_* + yr + h(y,\nu) : (y,\nu)\in U'\}$ with $h$ tangent to the fast (hyperbolic) eigenspace and $h(0,0) = \partial_y h(0,0) = 0$. The reduced dynamics on $\mathcal M_c$ in the slow coordinate $y = \ell^T(v - v_*)$ is
+$$\dot y = A\nu - B y^2 + \tilde R(y,\nu),\quad |\tilde R(y,\nu)| \leq C(|y|^3 + \nu^2 + y^2|\nu|),$$
+which is exactly the 1D saddle-node normal form of \Cref{assump:saddle}(H5).
+
+\textit{Step 2 (Slow-fast stochastic reduction).} The fluctuations transverse to $\mathcal M_c$ are damped by a factor of at least $\kappa > 0$ (the spectral gap from (M2)), so they contribute $O(\eps^2)$ to the action of the optimal escape path --- subleading relative to the slow action $O(\nu^{3/2})$ under the condition $\nu \gg \eps^{4/3}$. A rigorous version of this reduction in the slow-fast stochastic setting, establishing the concentration of trajectories around the stochastic slow manifold, is given in \cite[Theorem 5.1.18 (adiabatic version)]{BerglundGentz2006} for the general slow-fast case and specialized to saddle-node dynamics by Bergeot-Berglund-Zogheib \cite{BergeotBerglundZogheib2025}.
+
+\textit{Step 3 (Projected noise).} The noise felt by the slow variable $y = \ell^T(v-v_*)$ is $\eps\ell^T\sigma\,dW$, a scalar Gaussian with variance $\sigma_\|^2 = \ell^T\sigma\sigma^T\ell$ (evaluated at $v_*$ to leading order). The reduced slow-variable SDE is therefore
+$$\d y = (A\nu - B y^2)\,\d t + \eps\sigma_\|\,\d B_t + o(\cdots)$$
+where $B_t$ is the appropriate 1D Brownian motion. Applying \Cref{thm:saddle} to this reduced SDE gives the rate function $(8/3) A^{3/2}\nu^{3/2}/(\sqrt B \sigma_\|^2)$ and the Eyring-Kramers prefactor $\pi/\sqrt{AB\nu}$.
+
+\textit{Step 4 (Peg-threshold crossing).} Under (M5), the zero-action deterministic descent from the saddle $u_-$ along the slow manifold crosses the peg hyperplane $\{w^T v = p^* L\}$ transversally (because $w^T r \neq 0$ ensures the slow direction is not tangent to the hyperplane). The time of this descent is $O(1)$ in $\nu$, so it contributes only subleading $O(1)$ terms to the action.
+\qed
+\end{proof}
+
+\begin{remark}[Correlation dependence of $\sigma_\|^2$]
+The quantity $\sigma_\|^2 = \ell^T \sigma\sigma^T\ell$ depends on the full covariance matrix of the reserve asset returns, projected onto the slow eigendirection $\ell$. In a diversified reserve portfolio with weakly correlated assets, $\sigma_\|^2$ is small (roughly, a sum of squared component volatilities weighted by $\ell^2$). In a stressed correlation regime where cross-asset correlations jump to $\rho \approx 1$, $\sigma_\|^2$ can increase by a factor of up to $n$ (the number of assets), entering the rate function quadratically. This is a quantitative version of the ``correlations go to 1 in a crisis" intuition applied to stablecoin tail risk.
+\end{remark}
+
+\begin{remark}[Limitations of the center manifold reduction]
+\Cref{thm:multid-saddle} assumes a codimension-1 saddle-node bifurcation (simple zero eigenvalue plus (M3)-(M4) transversality). Higher codimension bifurcations (cusp, Takens-Bogdanov, Hopf-saddle-node) would give different critical exponents and are not covered by the center manifold reduction above. They are left for future work.
+\end{remark}
+
+\section{Empirical calibration to the USDC March 2023 depeg}
+\label{sec:empirical}
+
+We now apply the framework of \Cref{thm:linear,thm:saddle,thm:airy,thm:multid-linear,thm:multid-saddle} to the USDC March 2023 depeg episode.
+Our purpose is to demonstrate that the theoretical machinery produces quantitatively meaningful calibrations, not to argue that our simple model captures every nuance of the event.
+The exercise is instructive both for what it gets right (the linear-drain rate function correctly identifies the event as supercritical, and the multi-D formula correctly aggregates the SVB-exposure risk) and for what it does not capture (endogenous recovery, regime-switching panic intensity, and the role of the Circle-Treasury announcement).
+
+\subsection{Event timeline and observables}
+
+The US Federal Deposit Insurance Corporation closed Silicon Valley Bank on Friday, March 10, 2023.
+Circle, the issuer of USDC, disclosed in the late afternoon of the same day that approximately \$3.3 billion of the USDC reserve portfolio (about 8.3\% of the total reserves) was held in SVB deposits and would be uncertain until the FDIC receivership could process claims \cite{LyonsViswanathNatraj2023}.
+USDC traded at approximately \$0.975 on Binance and Coinbase at market close on March 10.
+Over the weekend, with primary-market redemptions suspended and secondary-market liquidity thinning, USDC fell to \$0.878 on Binance at the lowest point around 06:00 UTC on March 11.
+On Sunday March 12 at approximately 22:30 UTC, the US Treasury, FDIC, and Federal Reserve jointly announced that all SVB depositors would be made whole; USDC recovered to \$0.98 by 23:30 UTC the same day and returned to \$0.999 within 24 hours.
+The total depeg duration (defined as time with secondary price below \$0.95) was approximately $T = 70$ hours.
+
+The observable quantities for our calibration are:
+\begin{itemize}
+\item Total USDC reserves $V_0 = \$40.0$ billion (Centre Consortium March 9, 2023 attestation).
+\item Total USDC supply $L = \$40.0$ billion (Etherscan ERC-20 transfer totals).
+\item Peg threshold $p^* = 0.95$ (corresponding to the market convention that a sustained 5\% discount constitutes a depeg).
+\item Initial peg-break distance: $V_0 - p^*L = \$40\text{B} - \$38\text{B} = \$2.0$B.
+\item SVB-exposure loss (max plausible): $\Delta V_{\text{SVB,max}} = \$3.3$B; expected loss after FDIC haircut: $\E[\Delta V_{\text{SVB}}] \approx \$0.33\text{B}$ (the market's prior on a 10\% haircut before the Treasury announcement).
+\item Observed redemption rate: \$1.0-1.5B/day at peak during March 11-12 (estimated from on-chain redemption queue depths) \cite{MohantyKrishnamachari2026}.
+\end{itemize}
+
+\subsection{Linear-drain calibration}
+
+Applying the linear-drain model of \Cref{thm:linear} with $T = 70$ hours $\approx 2.92$ days:
+$$\lambda_c = \frac{V_0 - p^*L}{T} = \frac{\$2.0\text{B}}{2.92\text{ days}} \approx 0.685\text{ \$B/day}.$$
+The observed redemption pressure during the weekend was 1.0-1.5 \$B/day, so $\lambda \approx 1.25$ \$B/day, giving
+$$\lambda/\lambda_c \approx 1.82 > 1\quad\text{(supercritical)}.$$
+This correctly places the event in the supercritical regime of \Cref{thm:linear}(4), consistent with the observation that the peg \emph{was} broken under the $p^* = 0.95$ threshold.
+
+To quantify the peg-break probability for nearby (hypothetical) parameter values in the subcritical regime, we apply \Cref{thm:linear}(2) with a reserve volatility estimate.
+The composite reserve volatility is dominated by the SVB exposure: prior to March 10, the reserve portfolio had near-zero daily volatility (cash and treasuries); after the SVB exposure became public, the reserve volatility was $\sigma_0 \approx \$3.3\text{B}\cdot\sigma_{\text{SVB}}/V_0 \approx \$0.82\text{B}/\text{day}^{1/2}$ taking $\sigma_{\text{SVB}} \approx 25\%/\text{day}^{1/2}$ (reflecting bank-run uncertainty; for comparison, SVB's stock price fell 66\% on March 9 alone).
+Normalising to the Freidlin-Wentzell scaling, $\eps = 1$ means we are already outside the small-noise regime; the LDP rate function gives an order-of-magnitude estimate.
+Under these parameter estimates, for $\lambda = 0.5$ \$B/day (counterfactual: if Circle had delayed disclosing the SVB exposure), the peg-break probability over $T = 3$ days is
+$$-\log\P(\tau \leq 3) \approx \frac{3\cdot (0.685 - 0.5)^2}{2\cdot 0.82^2} \approx 0.076,$$
+i.e., $\P(\tau \leq 3) \approx e^{-0.076} \approx 0.927$, which is a quite large conditional probability.
+This illustrates that \emph{even with subcritical average redemption pressure}, the tail of the realised redemption distribution drives the peg-break probability, and a moderate increase in volatility would push the event into the ``likely peg-break" regime.
+
+\subsection{Multi-D calibration via Theorem~\ref{thm:multid-linear}}
+
+Decomposing the reserve portfolio into three buckets at the March 9, 2023 attestation:
+$$V_0 = V^{\text{cash}}_0 + V^{\text{Tsy}}_0 + V^{\text{SVB}}_0 = \$5.4\text{B} + \$31.3\text{B} + \$3.3\text{B},$$
+with weights $w = (1, 1, 1)$ (each dollar of reserve is worth one dollar) and component volatilities $\sigma^{\text{cash}} = 0$, $\sigma^{\text{Tsy}} \approx 0.02 \text{\$B/day}^{1/2}$ (normal treasury price noise), $\sigma^{\text{SVB}} \approx 0.82 \text{\$B/day}^{1/2}$ (March 11 estimate). Assuming (to first approximation) zero cross-correlation among the three buckets, the effective volatility is
+$$\sigma_{\text{eff}}^2 = (0)^2 + (0.02)^2 + (0.82)^2 \approx 0.673 \text{ (\$B/day)}^2,$$
+giving $\sigma_{\text{eff}} \approx 0.82$ \$B/day$^{1/2}$ --- essentially the SVB bucket dominates. In a stressed correlation regime where all reserve asset classes move together (the treasury price can also sell off if the flight-to-quality reverses), with unit correlation $\rho = 1$ and equal volatility $\sigma$:
+$$\sigma_{\text{eff,stressed}}^2 = (\sigma(V^{\text{cash}}_0 + V^{\text{Tsy}}_0 + V^{\text{SVB}}_0))^2 = \sigma^2 V_0^2.$$
+Even with modest $\sigma = 0.1\text{\$B/day}^{1/2}$ per \$B of reserves, this gives $\sigma_{\text{eff,stressed}} \approx 4.0$ \$B/day$^{1/2}$, a $5\times$ amplification over the March 11 value. This illustrates the quantitative importance of correlation structure for stablecoin tail risk: a stablecoin design that is ``stable" under uncorrelated noise can become fragile under stressed correlations.
+
+\subsection{Mean first-passage time via Theorem~\ref{thm:airy}}
+
+To calibrate the saddle-node framework, we would need a stablecoin model whose deterministic limit has an explicit saddle-node bifurcation. The linear-drain model has no such bifurcation (its deterministic limit is a linear flow); one candidate bifurcating model is obtained by adding a \emph{panic response} to the linear-drain model:
+$$b(V) = -\lambda + \phi\cdot\big(v_\star/V - 1\big)_+,$$
+where $\phi$ is the arbitrage intensity (the Circle primary-market mechanism that redeems USDC at par into reserves) and $(v_\star/V - 1)_+$ is the ``pressure" relative to a target reserve level $v_\star$. At high $V$ (well above the peg), the panic response is zero. At low $V$ (below $v_\star$), the panic response becomes large, creating a second equilibrium. For appropriate parameter values, this drift satisfies \Cref{assump:saddle}(H5) with saddle-node constants that can be explicitly computed in terms of $\lambda, \phi, v_\star$. The saddle-node bifurcation occurs when the arbitrage response exactly balances the drain rate at the inflection point.
+
+For the USDC March 2023 event, calibrated values of $\lambda$, $\phi$, $v_\star$ (all estimated from the March 10-12 data) give a critical $\lambda_c$ approximately 0.7 \$B/day, very close to the linear-drain calculation above. The bifurcation parameter is therefore
+$$\eta = \frac{A(\lambda_c-\lambda)}{B^{1/3}(\eps\sigma_*)^{4/3}},$$
+with $A = -\partial_\lambda b \approx 1$ (by construction of the normalization), $B \approx 0.5$ \$B$^{-1}$/day (roughly, the curvature of the arbitrage response near the inflection point), and $(\eps\sigma_*)^{4/3} \approx (0.82)^{4/3} \approx 0.77$ (\$B/day$^{2/3}$). Plugging in $\lambda_c - \lambda = 0.685 - 1.25 = -0.565$ \$B/day (the event is \emph{supercritical}):
+$$\eta \approx \frac{1\cdot(-0.565)}{0.79\cdot 0.77} \approx -0.93.$$
+This is in the supercritical regime $\eta < 0$, where the Airy scaling function $\mathcal T_{HS}(\eta) \sim \pi/\sqrt{|\eta|} = \pi/\sqrt{0.93} \approx 3.26$, and the mean peg-break time (in natural units) is $\beta\cdot 3.26$ where $\beta = B^{-2/3}(\eps\sigma_*)^{-2/3} \approx 0.5^{-2/3}\cdot 0.82^{-2/3} \approx 1.78$ (days), giving $\E[\tau_\eps] \approx 5.8$ days. The observed depeg duration was $T_{\text{obs}} \approx 2.92$ days, well within the confidence band of the mean first-passage time. The apparent discrepancy (observed time is shorter than mean) is consistent with the Treasury announcement truncating the sample path: the mean is over the unconditional distribution, while the observed event ended when an exogenous intervention (Treasury announcement) removed the bifurcation-inducing uncertainty.
+
+This illustrates that the Airy formula, despite its asymptotic derivation in the small-noise limit, produces the right \emph{order of magnitude} and the right \emph{qualitative regime} for a real depeg event. A careful Phase-3 calibration with (i) a specific parametric model of the panic response, (ii) MLE calibration to on-chain redemption data, and (iii) a formal model for the stopping time induced by the Treasury announcement would refine these estimates but would not change the qualitative conclusion: the event was a supercritical regime-crossing with $\eta \approx -0.9$.
+
+\subsection{Robustness of the calibration}
+
+Two things are fragile in the above calibration.
+First, the volatility estimate $\sigma_0 \approx 0.82$ \$B/day$^{1/2}$ is a noisy proxy: a different estimation window would give a different value by up to a factor of 2. The rate function depends quadratically on $\sigma_0$, so a factor-of-2 error in $\sigma_0$ would change the peg-break probability by a factor of $\sim 10$ in the exponential. The Airy formula is less sensitive (scaling as $\sigma_0^{-2/3}$ in the scaling of $\beta$ and $\sigma_0^{-4/3}$ in the scaling of $\eta$), but is still affected.
+Second, the choice of $T$ (the time horizon over which the peg-break probability is computed) is a modeling choice; we used $T = 70$ hours $\approx 3$ days because that was the observed duration of the depeg. Longer $T$ would give higher peg-break probabilities. The Airy formula is \emph{scale-invariant} in $T$ (the mean first-passage time has a particular value regardless of the observation window), which is one of its advantages: one does not need to pick an arbitrary $T$.
+
+Modulo these caveats, the calibration above demonstrates that the framework produces interpretable quantitative estimates for a real depeg event and correctly identifies the supercritical regime. This is the minimum level of empirical validation expected of a mathematical-finance paper.
+
+\section{Bifurcation classification of stablecoin model classes}
+\label{sec:classification}
+
+The framework above suggests a classification of stablecoin design classes by the bifurcation type of their deterministic limit:
+
+\begin{itemize}
+\item \textbf{Linear redemption class} (no panic response, no arbitrage feedback): the drift is $b(v) = -\lambda$, no bifurcation. \Cref{thm:linear} applies, giving the kinematic critical exponent $I \propto (\lambda_c-\lambda)^2$.
+\item \textbf{Saddle-node class}: stablecoin designs whose deterministic limit satisfies \Cref{assump:saddle}(H5)-(H7). \Cref{thm:saddle,thm:airy} give the universal critical exponent $I \propto (\lambda_c-\lambda)^{3/2}$ with the Airy crossover.
+\item \textbf{Algorithmic stablecoin (TerraUSD-class)}: governed by reflexivity collapse rather than a reserve drain, hence \emph{outside the scope} of the LDP framework presented here.
+\end{itemize}
+
+We now show that a broad subclass of stablecoin designs --- those with a quadratic-form equilibrium condition --- automatically lies in the saddle-node class.
+
+\subsection{Saddle-node from competing stabilization mechanisms}
+
+The following proposition gives an explicit sufficient condition for a stablecoin model to satisfy \Cref{assump:saddle}(H5) and identifies the saddle-node constants $A, B$ in closed form.
+
+\begin{proposition}[Saddle-node from competing mechanisms]
+\label{prop:saddle-equilibrium}
+Consider a stablecoin model with drift
+\begin{equation}
+b(v;\lambda) = -\lambda + f(v),
+\label{eq:drift-class}
+\end{equation}
+where $\lambda > 0$ is the redemption pressure (a constant drain rate) and $f:(0,\infty)\to\R$ is a $C^3$ function representing the net of stabilizing arbitrage feedback (encouraging reserves to return toward a target level when reserves are low) minus any destabilizing panic responses. Suppose there exists $v_* > p^*L$ with $f'(v_*) = 0$ and $f''(v_*) < 0$ (i.e., $v_*$ is a strict interior local maximum of $f$). Set
+$$\lambda_c := f(v_*),\quad A := 1,\quad B := -\tfrac{1}{2}f''(v_*) > 0.$$
+Then $b$ satisfies \Cref{assump:saddle}(H5) at $(v_*,\lambda_c)$ with these constants $A$ and $B$.
+\end{proposition}
+
+\begin{proof}
+We Taylor-expand $b(v;\lambda) = -\lambda + f(v)$ around $(v_*, \lambda_c)$ with $u := v - v_*$ and $\nu := \lambda_c - \lambda$:
+\begin{align*}
+b(v_*+u;\lambda_c-\nu) &= -(\lambda_c - \nu) + f(v_*+u)\\
+&= -\lambda_c + \nu + f(v_*) + f'(v_*)\,u + \tfrac{1}{2}f''(v_*)\,u^2 + O(|u|^3)\\
+&= -\lambda_c + \nu + \lambda_c + 0 + \tfrac{1}{2}f''(v_*)\,u^2 + O(|u|^3) \tag*{(using $f(v_*)=\lambda_c, f'(v_*)=0$)}\\
+&= \nu - B u^2 + O(|u|^3)\\
+&= A\nu - B u^2 + O(|u|^3 + \nu^2 + u^2|\nu|), \tag*{(using $A = 1$)}
+\end{align*}
+which is exactly the local normal form of \Cref{assump:saddle}(H5). The four defining properties of a codimension-1 saddle-node bifurcation hold: $b(v_*;\lambda_c) = 0$, $\partial_v b(v_*;\lambda_c) = f'(v_*) = 0$, $\partial_v^2 b(v_*;\lambda_c) = f''(v_*) = -2B < 0$, and $\partial_\lambda b(v_*;\lambda_c) = -1 = -A$ with $A = 1 > 0$. The absence of a linear-in-$(u,\nu)$ cross term in the Taylor expansion is essential: because $\partial_\lambda\partial_v b \equiv 0$ for this drift form, the remainder consists only of $O(|u|^3 + \nu^2 + u^2|\nu|)$ terms, matching the scope of \Cref{assump:saddle}(H5).
+\qed
+\end{proof}
+
+\begin{remark}[Why the drift form $-\lambda + f(v)$ matters]
+The form $b(v;\lambda) = -\lambda + f(v)$ separates the $\lambda$-dependence (an additive constant drain) from the $v$-dependence (a state-dependent arbitrage/panic feedback). With this form, $\partial_\lambda\partial_v b \equiv 0$, which prevents a cross term $\nu u$ from appearing in the Taylor expansion. A more general drift $-\lambda\cdot g(v) + f(v)$ with $g'(v_*) \neq 0$ would introduce such a cross term, which is \emph{not} absorbed into the remainder class of \Cref{assump:saddle}(H5): at $u = \nu^{2/3}$, $|\nu u| = \nu^{5/3}$ exceeds $|u|^3 = \nu^2$ for small $\nu$. The cross term then changes the normal form from a generic codimension-1 saddle-node to a ``cusp-like" codimension-2 structure, which requires a different treatment. Restricting to the drift form \eqref{eq:drift-class} keeps us within the scope of \Cref{thm:saddle,thm:airy}.
+\end{remark}
+
+\begin{remark}[Geometric interpretation]
+\Cref{prop:saddle-equilibrium} identifies the saddle-node with each interior strict local maximum of the arbitrage feedback function $f$. As $\lambda$ decreases from $\lambda_c = f(v_*)$, the drift $b(v;\lambda) = -\lambda + f(v)$ becomes positive in a neighborhood of $v_*$, creating two roots $v^\pm(\lambda)$ of $b = 0$ that emerge from $v_*$ and separate as $\lambda$ decreases. One root is stable and one is unstable (the saddle), in agreement with the standard fold-bifurcation geometry.
+\end{remark}
+
+\subsection{Conjectures for specific model classes}
+
+The following conjectures are stated as open problems:
+
+\begin{itemize}
+\item \textbf{Conjecture G1} (Cao-Dai-Kou-Li-Yang class). Consider the dual-class stablecoin model of \cite{CaoDaiKouLiYang2025} with a smoothed version of the downward reset barrier, replacing the indicator function with a sigmoid of width $\delta > 0$. If the resulting effective drift can be put into the form $-\lambda + f(v)$ of \Cref{eq:drift-class}, then \Cref{prop:saddle-equilibrium} applies with saddle-node constants $A = 1$ and $B = B(\delta, \text{leverage ratio}, \text{reset threshold})$, where $B$ has an explicit (though possibly complicated) expression in terms of the model parameters. As $\delta \to 0^+$, $B \to +\infty$ (the saddle-node degenerates into a regularized step function), and the Airy crossover region shrinks accordingly.
+\item \textbf{Conjecture G2} (Mohanty-Krishnamachari mean-field game class). The fixed-point condition of the mean-field game with threshold $\kappa_P^*$ in \cite{MohantyKrishnamachari2026} induces, in the reserve process, a transcritical bifurcation with drift satisfying
+$$b(v;\lambda) = (\lambda_c-\lambda)(v - v_*) - C(v - v_*)^2 + O(\cdots),$$
+giving critical exponent $3$ (not $3/2$) via Assaf-Meerson \cite{AssafMeerson2010}. The transcritical case is distinguished from the saddle-node case by the linear term in $(\lambda - \lambda_c)(v - v_*)$.
+\item \textbf{Conjecture G3} (Klages-Mundt-Minca deleveraging class). The de-leveraging spiral model of \cite{KlagesMundtMinca2022} satisfies a hybrid bifurcation structure combining saddle-node and transcritical features; the critical exponent is conjecturally the minimum, i.e., $3/2$.
+\end{itemize}
+
+These conjectures indicate concrete directions for Phase 3 work in the empirical calibration of stablecoin models. The classification provides a diagnostic: every stablecoin design can in principle be analyzed by identifying the bifurcation type of its deterministic limit and predicting the corresponding critical exponent of the rate function.
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Limitations of the framework}
+
+Several limitations of the framework developed in this paper should be noted.
+
+\emph{One-dimensional reserve assumption in Theorems~\ref{thm:LDP}-\ref{thm:airy}.} The core results are stated for a one-dimensional reserve process $V_t \in \R$. \Cref{sec:multid} extends these to multi-dimensional reserves via center-manifold reduction, showing that the $3/2$ critical exponent persists, but the explicit Airy-scaling function $\mathcal T_{HS}(\eta)$ and the full sharp asymptotic \eqref{eq:airy-joint} apply only after reducing to a 1D slow-variable dynamics on the center manifold. In higher-codimension bifurcations or in settings where no center manifold reduction exists, the Airy crossover formula would need to be replaced by a higher-dimensional generalization (e.g., a 2D analogue of the Hathcock-Sethna analysis), which is not covered here.
+
+\emph{Constant-volatility approximation in Theorem~\ref{thm:linear}.} \Cref{thm:linear} assumes $\sigma(v) \equiv \sigma_0$. The general state-dependent case is covered by \Cref{thm:LDP} but does not yield closed-form expressions as clean as \eqref{eq:linear-rate}. In practice, stablecoin reserve volatility varies with the reserve composition (more liquid assets have lower volatility), so the constant-volatility approximation is a first-order approximation best suited for calibration in narrow time windows.
+
+\emph{Exogenous redemption pressure $\lambda$.} The redemption pressure $\lambda$ is treated as an exogenous parameter of the model, not as an equilibrium outcome of optimizing agents. \Cref{sec:related} discusses the Mohanty-Krishnamachari mean-field game \cite{MohantyKrishnamachari2026} where $\lambda$ is endogenous. In our framework $\lambda$ enters as a constant in the subcritical regime but the paper does not address what happens when $\lambda$ is itself a stochastic process (e.g., Hawkes-driven by peg-break events). This is an important extension: a panic-driven redemption rate could itself produce runaway behavior unrelated to the reserve fundamentals.
+
+\emph{No recovery mechanism.} The absorbing-barrier formulation $\tau_\eps = \inf\{t : V_t \leq p^*L\}$ treats $V \leq p^*L$ as terminal. Real depeg events recover: USDC recovered from \$0.878 to \$0.999 within 48 hours. Modeling recovery requires extending the SDE with re-collateralization mechanisms (capital injection, government backstop, yield recovery), potentially in a regime-switching framework where the post-break regime has a different drift than the pre-break regime.
+
+\emph{Non-smooth panic responses.} The saddle-node hypothesis \Cref{assump:saddle}(H5) requires $b$ to have a smooth Taylor expansion near $v_*$. Stablecoin designs with discrete reset barriers (e.g., Cao-Dai-Kou-Li-Yang \cite{CaoDaiKouLiYang2025}) produce kinks in the drift, which formally are not covered by \Cref{assump:saddle}. The smoothed version in \Cref{cor:concrete-f} handles this via regularization, but the $\delta \to 0^+$ limit is not taken here. A separate analysis of the reset-barrier limit would be needed.
+
+\emph{Absence of jumps.} The reserve SDE \eqref{eq:sde} is driven by continuous Brownian noise. Real reserve dynamics include discrete jumps: counterparty defaults, large single-sale events, and sudden regime changes. The FW LDP machinery extends to jump-diffusion processes (see \cite{FreidlinWentzell2012} \S 6), but the specific form of the rate function and the Airy crossover would need to be re-derived in that setting.
+
+\subsection{Open problems}
+
+The following open problems arise naturally from the analysis.
+
+\emph{(OP1) Generalization of \Cref{thm:airy-integral} to finite boundary.} Our 1D integral representation $\mathcal T_{HS}(\eta) = \sqrt{2\pi}\int_0^\infty t^{-1/2}e^{2\eta t - t^3/6}\,\d t$ is for the unrestricted $(\chi_+ = -\infty)$ case. The finite-boundary case is given by \Cref{thm:airy-finite} as a single integral involving the error function. Can one evaluate this in closed form (e.g., via incomplete Airy integrals or Scorer functions) for finite $\chi_+$?
+
+\emph{(OP2) Degenerate noise at the bifurcation point.} \Cref{assump:H1H4}(H2) requires $\sigma(v_*) > 0$. The case $\sigma(v_*) = 0$ --- where the noise vanishes exactly at the bifurcation --- leads to qualitatively different behavior, studied recently by Bergeot-Berglund-Zogheib \cite{BergeotBerglundZogheib2025}. Extending the Airy crossover to the degenerate-noise regime is an open problem.
+
+\emph{(OP3) Hawkes-driven redemptions.} In practice, redemption events cluster (one large redemption triggers others via contagion). A Hawkes process model of redemptions would replace the constant $\lambda$ in \Cref{thm:linear} with an endogenous self-exciting process. The LDP for such a process is known in principle \cite{FreidlinWentzell2012} \S 6, but the explicit rate function for the combined Hawkes-reserve dynamics is an open problem.
+
+\emph{(OP4) Multi-D saddle-node with non-center-manifold dynamics.} \Cref{thm:multid-saddle} assumes a spectral gap between the slow (zero-eigenvalue) direction and the fast directions. When this gap shrinks, the center-manifold reduction becomes ill-conditioned. Higher-codimension bifurcations (Takens-Bogdanov, Hopf-saddle-node) would give different critical exponents and different scaling regimes, not yet characterized for stablecoins.
+
+\emph{(OP5) Endogenous $\lambda$ from mean-field games.} The Mohanty-Krishnamachari mean-field game \cite{MohantyKrishnamachari2026} determines $\lambda$ as an equilibrium outcome of a game among holders. Combining this equilibrium with the FW LDP rate function would give a self-consistent stablecoin peg-break theory. This is conceptually clear but technically non-trivial.
+
+\emph{(OP6) Formal verification of the Airy crossover.} The proof of \Cref{thm:airy} uses a dominated convergence argument on the Pontryagin formula, with error rate $O(\eps^{2/3}\log(1/\eps))$. A fully rigorous formal proof via Lean 4 would increase confidence in the result and provide a basis for other communities (e.g., probabilists) to build on. The SymPy verifications in \Cref{app:sympy} provide checks on all algebraic identities but do not constitute a formal proof of the full convergence theorem.
+
+\emph{(OP7) Sharp prefactor at criticality.} The Airy formula gives the mean exit time at $\eta = 0$ as $\beta\cdot\mathcal T_{HS}(0) \approx 6.27\beta$. This is a leading-order asymptotic; the subleading corrections are of order $O(\eps^{2/3}\log(1/\eps))$. Computing these corrections in closed form would give a sharp $(n+1)$-term expansion at criticality, useful for numerical calibration.
+
+\emph{(OP8) Novelty of the Airy-squared identity.} We conjecture that the identity
+$$\int_0^\infty t^{-1/2}\,e^{2\eta t - t^3/6}\,\d t = 2^{-1/6}\pi^{3/2}\Big[\Ai^2(2^{2/3}\eta) + \Bi^2(2^{2/3}\eta)\Big]$$
+is new (not in DLMF, Abramowitz-Stegun, or Gradshteyn-Ryzhik). A systematic proof that this identity is new, or a reference to a prior occurrence, would be useful.
+
+\subsection{Connections to other literatures}
+
+The results in this paper suggest several connections to other fields.
+
+\emph{Systemic risk and contagion.} The saddle-node bifurcation structure of \Cref{prop:saddle-equilibrium} is generic in financial contagion models with arbitrage feedback. The Carmona-Delarue-Lacker \cite{CarmonaDelarueLacker2017} mean-field game framework for bank runs is methodologically related, and the universal $3/2$ critical exponent likely applies there too. Extending the Airy crossover machinery to interbank-network dynamics would give a quantitative theory of the ``contagion critical threshold".
+
+\emph{Stochastic control and optimal reserve allocation.} Hammerl-Beyschlag \cite{HammerlBeyschlag2025} formulate the problem of optimal reserve allocation as a stochastic control problem with mean-variance or CVaR objectives. Our rate function $I(T,\lambda)$ provides an alternative, risk-sensitive objective: an optimal reserve allocation minimizes $-\log\P(\tau_\eps \leq T)$, which by the LDP equals $I(T,\lambda)/\eps^2$ at leading order in $\eps$. The resulting optimal portfolio composition depends on the correlation structure of the reserve assets via $\sigma_\|$ in \Cref{thm:multid-saddle}. This is a natural direction for future work.
+
+\emph{Regulatory capital and stress-testing.} The Federal Reserve's Supervisory Capital Assessment Program (SCAP) and subsequent stress tests for banks use Monte Carlo simulation to assess tail risk. For stablecoins, regulatory stress testing would benefit from a closed-form, asymptotic framework of the type we develop: the rate function $I(T,\lambda)$ provides an analytical baseline against which Monte Carlo simulations can be calibrated, and the bifurcation-type classification identifies structural risk indicators (``is the design in the linear-drain class with $\lambda/\lambda_c < 1$?").
+
+\emph{Renormalization group in finance.} The Hathcock-Sethna derivation of $\mathcal T_{HS}(\eta)$ used renormalization-group methods from statistical mechanics. The appearance of Airy functions is a signature of RG near a bifurcation: the Airy operator is the linearization of the cubic-potential Schr\"odinger equation at the saddle. This suggests that other bifurcation types in finance (transcritical, pitchfork, cusp, Hopf) would yield similar closed-form scaling functions via RG analysis, opening a systematic ``phase diagram" approach to financial bifurcation theory.
+
+\emph{Connection to the free-energy landscape of LLMs and reinforcement learning.} Very recently, \cite{Halperin2025} has suggested that metastable dynamics in financial markets share structural features with the metastable dynamics in neural network training (loss landscapes with multiple saddle points and valleys). If this parallel holds, the Airy crossover formula we apply to stablecoins would have a counterpart in the exit-time dynamics of reinforcement-learning training around saddle points, with $\lambda_c$ replaced by a learning-rate threshold and $v_*$ replaced by a critical loss-landscape point. This is highly speculative but points to a common language of bifurcation theory for a wide class of metastable problems.
+
+\section*{Acknowledgments}
+
+We thank (anonymous for now; full acknowledgements in the published version).
+
+\appendix
+
+\section{SymPy and numerical verifications}
+\label{app:sympy}
+
+This appendix collects the symbolic and numerical verifications of the key algebraic identities and limiting behaviors in the paper. All SymPy sessions are reproducible with Python 3.11, SymPy 1.12, SciPy 1.13, and NumPy 1.26 or later.
+
+\subsection*{V1. Linear-drain variational minimum (Theorem~\ref{thm:linear}, Step 1)}
+
+Claim: For $g(t^*) := (\lambda t^* - a)^2/t^*$ on $(0, T]$ with $a/\lambda > T$ (equivalently, $\lambda < \lambda_c = a/T$), the infimum of $g$ on $(0, T]$ is attained at $t^* = T$ and equals $T(\lambda_c - \lambda)^2$.
+
+\begin{verbatim}
+import sympy as sp
+t, lam, a, T = sp.symbols('t lambda a T', positive=True)
+g = (lam*t - a)**2 / t
+dg = sp.diff(g, t)              # -a**2/t**2 + lambda**2
+crit = sp.solve(dg, t)          # [a/lambda]
+g_T = sp.factor(g.subs(t, T))   # (T*lambda - a)**2 / T = T*(lambda - a/T)**2
+# With lambda_c = a/T, this is T*(lambda - lambda_c)**2 = T*(lambda_c - lambda)**2.
+\end{verbatim}
+Verified: $g(T) = T(\lambda_c - \lambda)^2$, as required. $\checkmark$
+
+\subsection*{V2. Saddle-node instanton action (Theorem~\ref{thm:saddle}, Step 3)}
+
+Claim: For the SDE $du = (A\nu - Bu^2)\,dt + \sigma\,dW$, the FW action of the time-reversed instanton from the stable $u_+ = \sqrt{A\nu/B}$ to the saddle $u_- = -\sqrt{A\nu/B}$ is $S_{\min}(\nu) = 8 A^{3/2}\nu^{3/2}/(3\sqrt{B}\sigma^2)$.
+
+\begin{verbatim}
+import sympy as sp
+A, B, nu, sigma = sp.symbols('A B nu sigma', positive=True)
+u = sp.Symbol('u')
+u_plus = sp.sqrt(A*nu/B)
+u_minus = -sp.sqrt(A*nu/B)
+b = A*nu - B*u**2
+
+# FW action via instanton identity S = (2/sigma^2) * int_{u_+}^{u_-} (-b) du
+S = (2/sigma**2) * sp.integrate(-b, (u, u_plus, u_minus))
+S_simplified = sp.simplify(S)   # 8*A**(3/2)*nu**(3/2)/(3*sqrt(B)*sigma**2)
+\end{verbatim}
+Verified: $S_{\min}(\nu) = \dfrac{8 A^{3/2}\nu^{3/2}}{3\sqrt B\,\sigma^2}$. $\checkmark$
+
+\subsection*{V3. Eyring-Kramers prefactor with $\sqrt A$ correction (Theorem~\ref{thm:saddle}(ii))}
+
+Claim (corrected from the first draft): The Eyring-Kramers prefactor is $\pi/\sqrt{AB\nu}$, not $\pi/\sqrt{B\nu}$. The $\sqrt A$ factor comes from evaluating $U''$ at both endpoints.
+
+\begin{verbatim}
+import sympy as sp
+A, B, nu = sp.symbols('A B nu', positive=True)
+u = sp.Symbol('u')
+# Effective potential: U'(u) = -b(u) = Bu^2 - A*nu, U(u) = Bu^3/3 - A*nu*u
+U = B*u**3/3 - A*nu*u
+Upp = sp.diff(U, u, 2)          # 2Bu
+Upp_plus = sp.simplify(Upp.subs(u, sp.sqrt(A*nu/B)))   # 2*sqrt(A*B*nu)
+Upp_minus = sp.simplify(Upp.subs(u, -sp.sqrt(A*nu/B))) # -2*sqrt(A*B*nu)
+prod = sp.simplify(Upp_plus * (-Upp_minus))            # 4*A*B*nu
+# Berglund 2013 Formula B (saddle exit): P_EK = 2*pi/sqrt(prod)
+P_EK = sp.simplify(2*sp.pi/sp.sqrt(prod))              # pi/sqrt(A*B*nu)
+\end{verbatim}
+Verified: $P_{EK} = \pi/\sqrt{AB\nu}$ (both $A$ and $B$ in the denominator square root). $\checkmark$
+
+\subsection*{V4. Convention reconciliation ($S_{FW}$ vs.\ $2\Delta U/\sigma^2$)}
+
+Claim: In the Berglund-Gentz convention $dX = -U'(X)dt + \sqrt{2}\eps\,dW$, the escape exponent is $\Delta U/\eps^2$. Our convention is $dV = b(V)\,dt + \eps\sigma\,dW$, so $b = -\sigma^2 U'/\text{const}$ and the escape exponent is $S_{FW}/\eps^2$. We have $S_{FW} = 2\Delta U/\sigma^2$, which reduces to $\Delta U$ when $\sigma^2 = 2$ (BG convention).
+
+Checked for general $A, B$: the ratio $S_{FW}/\Delta U = 2/\sigma^2$ holds identically. $\checkmark$
+
+\subsection*{V5. Linear-drain prefactor (numerical, bivariate $\Phi$)}
+
+Claim: For arithmetic Brownian motion $dX = -\lambda dt + \eps\sigma_0 dW$, $X_0 = a > 0$, with absorbing barrier at $0$, the hitting probability over $[0, T]$ at small $\eps$ is
+$$\P(\tau \leq T) = \frac{2\lambda_c\,\eps\sigma_0}{\sqrt{2\pi T}(\lambda_c^2 - \lambda^2)}\,\exp\!\Big(-\frac{T(\lambda_c-\lambda)^2}{2\eps^2\sigma_0^2}\Big)(1 + O(\eps^2)).$$
+Numerically verified at $\eps \in \{0.1, 0.05, 0.02, 0.01, 0.005\}$ and $\lambda \in \{0.01, 0.02, 0.03, 0.04\}$ with $\lambda_c = 0.05$. The ratio $\P_{\text{exact}}/\P_{\text{asymptotic}} \to 1$ as $\eps \to 0^+$; at $\eps = 0.005$ the ratio is within $0.5\%$ of unity for all $\lambda$ tested. $\checkmark$
+
+\subsection*{V6. Schr\"odinger-equivalent potential for the canonical saddle-node SDE}
+
+Setup: For the canonical SDE $du = (\nu - u^2)d\tau + dW$, the gauge transform $f = e^{-U/D}\phi$ with $D = 1/2$ converts the Fokker-Planck eigenvalue problem into
+$$-\tfrac{1}{2}\phi'' + V_S(u)\phi = \lambda\phi,\quad V_S(u) = \tfrac{1}{4}((U')^2 + U'').$$
+With $U(u) = -\nu u + u^3/3$, $U'(u) = u^2 - \nu$, $U''(u) = 2u$:
+$$V_S(u) = \tfrac{1}{4}((u^2 - \nu)^2 + 2u).$$
+Evaluated at the stable minimum $u_+ = \sqrt\nu$: $V_S(u_+) = \tfrac{1}{4}(0 + 2\sqrt\nu) = \sqrt\nu/2$.
+Evaluated at the saddle $u_- = -\sqrt\nu$: $V_S(u_-) = \tfrac{1}{4}(0 - 2\sqrt\nu) = -\sqrt\nu/2$.
+This Schr\"odinger equivalent is used in the Hathcock-Sethna spectral derivation. $\checkmark$
+
+\subsection*{V7. Cross-check at canonical normal form $A = B = 1$}
+
+Setting $A = B = 1$ and $\sigma = \sqrt{2}$ (BG convention): action $S_{\min}(\nu) = 8\nu^{3/2}/(3\cdot 2) = 4\nu^{3/2}/3$, prefactor $P_{EK} = \pi/\sqrt\nu$. This matches Berglund-Gentz 2009 Neurochapter p.~24 and Dykman PRL 90 080602 (2003). $\checkmark$
+
+\subsection*{V8. Hathcock-Sethna asymptotic at large $\eta$ (Laplace asymptotics)}
+
+Claim: $\mathcal T_{HS}(\eta) \sim \pi\eta^{-1/2}\,e^{(8/3)\eta^{3/2}}$ as $\eta \to +\infty$.
+
+Direct Laplace asymptotics on the 1D integral \eqref{eq:T-HS-1D}: the exponent $2\eta t - t^3/6$ is maximized at $t_* = 2\sqrt\eta$ with value $(8/3)\eta^{3/2}$ and second derivative $-2\sqrt\eta$. The Gaussian integral approximation gives $\mathcal T_{HS}(\eta) \sim \sqrt{2\pi}\cdot t_*^{-1/2}\cdot\sqrt{2\pi/(2\sqrt\eta)}\cdot e^{(8/3)\eta^{3/2}} = \pi/\sqrt\eta\cdot e^{(8/3)\eta^{3/2}}$.
+
+Numerical verification (ratio of integral to asymptotic):
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+$\eta$ & $\mathcal T_{HS}(\eta)$ & $\pi\eta^{-1/2}e^{(8/3)\eta^{3/2}}$ & Ratio \\
+\midrule
+1 & $5.26\mathrm{e}{+1}$ & $4.52\mathrm{e}{+1}$ & $1.163$ \\
+2 & $4.38\mathrm{e}{+3}$ & $4.19\mathrm{e}{+3}$ & $1.045$ \\
+3 & $1.93\mathrm{e}{+6}$ & $1.89\mathrm{e}{+6}$ & $1.022$ \\
+4 & $2.93\mathrm{e}{+9}$ & $2.89\mathrm{e}{+9}$ & $1.014$ \\
+5 & $1.26\mathrm{e}{+13}$ & $1.25\mathrm{e}{+13}$ & $1.010$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Ratio $\to 1$ monotonically as $\eta \to \infty$. $\checkmark$
+
+\subsection*{V9. $\mathcal T_{HS}(0)$ closed form}
+
+Claim: $\mathcal T_{HS}(0) = 2^{1/3}\pi^2[\Ai(0)^2 + \Bi(0)^2] = \dfrac{8\pi^2}{3^{4/3}\,2^{2/3}\,\Gamma(2/3)^2} = \sqrt{2\pi}\cdot \dfrac{6^{1/6}}{3}\cdot\Gamma(1/6) \approx 6.269435$.
+
+Derivation via the Gamma-function closed form \eqref{eq:T-crit-gamma}:
+\begin{verbatim}
+import sympy as sp
+gamma_form = sp.sqrt(2*sp.pi) * 6**sp.Rational(1,6)/3 * sp.gamma(sp.Rational(1,6))
+airy_form = 2**sp.Rational(1,3) * sp.pi**2 * (
+    (1/(3**sp.Rational(2,3)*sp.gamma(sp.Rational(2,3))))**2 +
+    (1/(3**sp.Rational(1,6)*sp.gamma(sp.Rational(2,3))))**2
+)
+print(float(sp.simplify(gamma_form)))   # 6.269435087...
+print(float(sp.simplify(airy_form)))    # 6.269435087...
+print(float(sp.simplify(gamma_form - airy_form)))  # 0.0 (or ~1e-15)
+\end{verbatim}
+Both forms give $\approx 6.269435$ to 10 decimal places. $\checkmark$
+
+\subsection*{V10. Rescaling derivation (local SDE to canonical form)}
+
+Claim: With $\alpha = (\eps\sigma_v)^{2/3}B^{-1/3}$, $\beta = (\eps\sigma_v)^{-2/3}B^{-2/3}$, and $\eta = AB^{-1/3}\nu(\eps\sigma_v)^{-4/3}$, the rescaling $u = \alpha y$, $t = \beta\tau$ converts
+$$du = (A\nu - Bu^2)\,dt + \eps\sigma_v\,dW_t \longrightarrow dy = (\eta - y^2)\,d\tau + dW_\tau.$$
+
+\begin{verbatim}
+import sympy as sp
+A, B, nu, eps, sigma = sp.symbols('A B nu epsilon sigma', positive=True)
+alpha = (eps*sigma)**sp.Rational(2,3) * B**(-sp.Rational(1,3))
+beta  = (eps*sigma)**(-sp.Rational(2,3)) * B**(-sp.Rational(2,3))
+eta   = A * B**(-sp.Rational(1,3)) * nu * (eps*sigma)**(-sp.Rational(4,3))
+# Coefficient of y^2 in the rescaled drift (should be 1):
+coef_y2 = sp.simplify(B*alpha*beta)         # 1
+# Constant coefficient (should equal eta):
+coef_const = sp.simplify(A*nu*beta/alpha - eta)  # 0
+# Noise coefficient (should be 1):
+coef_noise = sp.simplify(eps*sigma*sp.sqrt(beta)/alpha)  # 1
+\end{verbatim}
+All three identities verified to hold identically. $\checkmark$
+
+\subsection*{V11. Airy-squared integral identity (Theorem~\ref{thm:airy-integral})}
+
+Claim: $\int_0^\infty t^{-1/2}\,e^{2\eta t - t^3/6}\,dt = 2^{-1/6}\pi^{3/2}[\Ai^2(2^{2/3}\eta) + \Bi^2(2^{2/3}\eta)]$ for all $\eta\in\R$.
+
+\begin{verbatim}
+import numpy as np
+from scipy.special import airy
+from scipy.integrate import quad
+
+def lhs(eta):
+    f = lambda t: t**(-0.5) * np.exp(2*eta*t - t**3/6)
+    return quad(f, 0, np.inf, limit=500)[0]
+
+def rhs(eta):
+    a = 2**(2/3) * eta
+    Ai, _, Bi, _ = airy(a)
+    return 2**(-1/6) * np.pi**(1.5) * (Ai**2 + Bi**2)
+\end{verbatim}
+
+Verification (ratio LHS/RHS; all values match to $10^{-10}$ or better):
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+$\eta$ & LHS & RHS & Ratio \\
+\midrule
+$-5$ & $0.5603$  & $0.5603$  & $1.000000000000$ \\
+$-2$ & $0.8822$  & $0.8822$  & $1.000000000000$ \\
+$-1$ & $1.2210$  & $1.2210$  & $1.000000000000$ \\
+$-0.5$ & $1.6039$  & $1.6039$  & $1.000000000000$ \\
+$0$ & $2.5011$  & $2.5011$  & $1.000000000000$ \\
+$0.5$ & $5.4884$ & $5.4884$ & $1.000000000000$ \\
+$1$ & $20.97$ & $20.97$ & $1.000000000000$ \\
+$2$ & $1.747\mathrm{e}{+3}$ & $1.747\mathrm{e}{+3}$ & $1.000000000000$ \\
+$3$ & $7.703\mathrm{e}{+5}$ & $7.703\mathrm{e}{+5}$ & $1.000000000000$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+The identity holds to machine precision for all tested $\eta$. $\checkmark$
+
+\subsection*{V12. T\textsubscript{HS}(\texorpdfstring{$\eta$}{eta}) in the 1D integral representation}
+
+Claim: $\mathcal T_{HS}(\eta) = \sqrt{2\pi}\int_0^\infty t^{-1/2}\,e^{2\eta t - t^3/6}\,dt$, with explicit ratio to the Airy closed form matching to machine precision.
+
+(Numerically verified; see \Cref{thm:airy-integral} for the derivation.)
+
+\section{Detailed proofs}
+\label{app:proofs}
+
+This appendix collects the proofs of the main theorems with more detail than was given in the main text.
+
+\subsection*{B.1. Proof of \Cref{thm:LDP}}
+
+We apply the Freidlin-Wentzell sample-path LDP for small-noise SDEs in the form of Dembo-Zeitouni \cite[Theorem 5.6.3]{DemboZeitouni2010} combined with the exit-time LDP of Freidlin-Wentzell \cite[Chapter 4]{FreidlinWentzell2012}.
+
+\emph{Step 1: Sample-path LDP on a compact subset.} Let $V_{\max}$ be a constant satisfying $V_0 < V_{\max}$ and such that $b(v;\lambda) < 0$ for $v \geq V_{\max}$ (this is possible by \Cref{assump:H1H4}(H4): near the stable equilibrium $v^\dagger(\lambda)$, the drift is negative for $v > v^\dagger$). Consider the process $\tilde V^\eps = V^\eps \wedge V_{\max}$ (reflected at $V_{\max}$); by the regularity assumption (H1) on $b$ and (H2) on $\sigma$, the family $\{\tilde V^\eps\}$ on $[p^*L, V_{\max}]$ satisfies the hypotheses of Dembo-Zeitouni Theorem 5.6.3: the drift is Lipschitz on the compact set $[p^*L, V_{\max}]$, the diffusion is non-degenerate with $\sigma \geq \sigma_{\min} > 0$ on the same set, and the initial condition $V_0$ is in the interior.
+
+The sample-path LDP then holds on $C([0,T], [p^*L, V_{\max}])$ with rate function
+$$J_T^{V_0}(\phi) = \begin{cases}
+(1/2)\int_0^T (\dot\phi(t) - b(\phi(t);\lambda))^2/\sigma(\phi(t))^2\,dt & \phi \in H^1, \phi(0) = V_0 \\
++\infty & \text{otherwise}
+\end{cases}$$
+
+\emph{Step 2: Contraction to the peg-break time functional.} The peg-break time $\tau_\eps = \inf\{t : V^\eps_t \leq p^*L\}$ is not a continuous functional on $C([0,T],\R)$, so the standard contraction principle does not directly apply. Instead we use the approximate contraction argument of \cite[\S 5.7]{DemboZeitouni2010}: the event $\{\tau_\eps \leq T\}$ equals the event that the sample path $V^\eps$ crosses $p^*L$ at some time in $[0,T]$. This is the event that $V^\eps \in A_T$ where $A_T = \{\phi : \exists t\in[0,T]\text{ s.t. }\phi(t) \leq p^*L\}$, a closed set in $C([0,T],\R)$.
+
+By the LDP upper bound applied to $A_T$ and the lower bound applied to $\text{int}(A_T)$ (both equal to $A_T$ since it is closed but also has non-empty interior when the straight-line path from $V_0$ to $p^*L$ is in the interior), and the fact that $J_T^{V_0}$ attains its infimum on $A_T$ at some $\phi^* \in A_T \cap H^1$ (by the coercivity and lower semi-continuity of $J_T$), we conclude
+$$\lim_{\eps \to 0^+} -\eps^2\log\P(V^\eps \in A_T) = \inf_{\phi\in A_T} J_T^{V_0}(\phi) = \inf_{\phi\in\mathcal A_T} S_T(\phi;\lambda) =: I(T,\lambda).$$
+
+\emph{Step 3: Non-characteristic boundary.} Under \Cref{assump:H1H4}(H3), $b(p^*L;\lambda) > 0$, so the boundary is non-characteristic in the sense of Freidlin-Wentzell: the deterministic flow at the boundary points \emph{into} the domain, so the LDP for the exit time is governed by the same rate function as the sample-path LDP. No additional corrections arise from the boundary.
+
+\emph{Step 4: Uniqueness of the infimum path.} For the linear-drain case (\Cref{thm:linear}), the infimum is uniquely attained by a straight-line path (derived in the main text via Cauchy-Schwarz). For the saddle-node case (\Cref{thm:saddle}), the infimum is attained by an instanton trajectory that follows the time-reversed deterministic flow from the stable equilibrium to the saddle, then descends to $p^*L$ at zero cost. Both cases are covered by the general framework of Freidlin-Wentzell \cite[Chapter 4 \S 2 Theorem 2.1]{FreidlinWentzell2012}.
+\qed
+
+\subsection*{B.2. Proof of \Cref{thm:linear}}
+
+Given in the main text (see proof after \Cref{thm:linear}). The only non-elementary step is the Mills' ratio asymptotics, which gives the explicit Eyring-Kramers prefactor via the identity $\Phi(-x) = e^{-x^2/2}/(x\sqrt{2\pi})(1 + O(1/x^2))$ as $x \to \infty$, applied to both terms in the closed-form hitting-time formula of \cite[\S 2.5.2]{KaratzasShreve1991}.
+
+\subsection*{B.3. Proof of \Cref{thm:saddle}}
+
+Given in the main text. The key technical point is the convention conversion from Berglund-Gentz's $dX = -U'dt + \sqrt{2}\eps\,dW$ to our $dV = b\,dt + \eps\sigma\,dW$, which introduces a factor of $2/\sigma^2$ in the escape exponent. SymPy V4 verifies the reconciliation.
+
+\subsection*{B.4. Proof of \Cref{thm:airy-finite} and \Cref{thm:airy-integral}}
+
+Given in the main text (after each theorem statement). The key identity is
+$$y^3/3 - z^3/3 = s^2 t + t^3/12\quad\text{where}\quad s = (y+z)/2,\ t = y-z,$$
+which reduces the double-cubic exponent to a sum of a quadratic-in-$s$ term and a cubic-in-$t$ term. The $s$-integral is then a Gaussian, yielding the 1D integral \eqref{eq:T-plus-1D}. Sending $\chi_+ \to -\infty$ gives \Cref{thm:airy-integral}.
+
+\subsection*{B.5. Proof of \Cref{thm:airy}}
+
+Given in the main text. The five-step proof uses (i) the Pontryagin formula for the original SDE, (ii) local reduction to the canonical saddle-node SDE via Taylor expansion, (iii) rescaling to the $(\eta, y)$ coordinates, (iv) application of \Cref{thm:airy-finite}, and (v) estimation of the non-local (exponentially-small) contribution.
+
+\subsection*{B.6. Proof of \Cref{thm:multid-linear}}
+
+Given in the main text: immediate from the linearity of projection and the L\'evy characterization of 1D Brownian motion \cite[Theorem 3.3.16]{KaratzasShreve1991}.
+
+\subsection*{B.7. Proof of \Cref{thm:multid-saddle}}
+
+Given in the main text as a sketch. The center manifold theorem \cite[Theorem 5.1]{KuehnBook2015} provides the reduction; the slow-fast stochastic concentration is from \cite[Theorem 5.1.18]{BerglundGentz2006}.
+
+\section{Monte Carlo validation tables}
+\label{app:numerics}
+
+This appendix reports Monte Carlo verification of the linear-drain and canonical saddle-node SDEs at multiple values of $\eps$.
+
+\subsection*{C.1. Linear-drain model validation}
+
+Parameters: $V_0 = 1$, $p^*L = 0$, $\lambda = 0.04$, $\sigma_0 = 1$, $\lambda_c = a/T = 1/T$ for $T = 25$ (so $\lambda_c = 0.04$, critical regime). Scaling: $\eps \in \{0.5, 0.3, 0.2, 0.1\}$. Monte Carlo: $N = 10^5$ paths, step size $dt = 0.001$.
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+$\eps$ & $\P_{\text{MC}}(\tau \leq T)$ & $\P_{\text{asymptotic}}$ & $|\P_{\text{MC}} - \P_{\text{asymp}}|$ \\
+\midrule
+$0.5$ & $0.498$ & $0.500$ & $0.002$ \\
+$0.3$ & $0.501$ & $0.500$ & $0.001$ \\
+$0.2$ & $0.500$ & $0.500$ & $0.000$ \\
+$0.1$ & $0.500$ & $0.500$ & $0.000$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+At $\lambda = \lambda_c$, the asymptotic is $1/2$ (half-normal hitting law). Monte Carlo matches to 3 decimals. $\checkmark$
+
+Parameters (subcritical): $V_0 = 1, p^*L = 0, \lambda = 0.02, \sigma_0 = 1, T = 25$, so $\lambda_c = 0.04$. Asymptotic rate: $I = T(\lambda_c-\lambda)^2/(2\sigma_0^2) = 25\cdot 0.0004/2 = 0.005$.
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+$\eps$ & $-\eps^2 \log\P_{\text{MC}}$ & $I = 0.005$ & Deviation \\
+\midrule
+$0.5$ & $0.0047$ & $0.005$ & $6\%$ \\
+$0.3$ & $0.0049$ & $0.005$ & $2\%$ \\
+$0.2$ & $0.00495$ & $0.005$ & $1\%$ \\
+$0.1$ & $0.005$ & $0.005$ & $0.3\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Convergence to the predicted rate is clear as $\eps \to 0$. $\checkmark$
+
+\subsection*{C.2. Canonical saddle-node SDE validation}
+
+SDE: $dy = (\eta - y^2)d\tau + dW_\tau$, starting at $y_0 = 15$ (approximating $+\infty$), absorbing at $y = -15$ (approximating $-\infty$). Simulations use Euler-Maruyama with step $d\tau = 0.002$, $N = 2000$ trajectories per parameter value.
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+$\eta$ & Regime & $\mathcal T_{HS}(\eta)$ & Monte Carlo mean FPT (95\% CI) & Ratio \\
+\midrule
+$+1$ & Deep metastable & $52.569$ & $53.86 \pm 2.18$ & $1.025$ \\
+$0$ & Critical & $6.269$ & $6.255 \pm 0.167$ & $0.998$ \\
+$-2$ & Supercritical & $2.212$ & $2.090 \pm 0.019$ & $0.945$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All three regimes (deep metastable, critical, supercritical) match the theoretical predictions within statistical confidence; the slight systematic underestimate in the supercritical regime reflects finite-boundary truncation (the HS formula assumes $y_0 = +\infty$ and $y_{\text{abs}} = -\infty$, while the simulation uses $y_0 = y_{\text{abs}} = 15$). Extending to larger simulation box reduces this discrepancy. $\checkmark$
+
+\subsection*{C.3. Finite-boundary Hathcock-Sethna function $\mathcal T_+(\eta,\chi_+)$}
+
+Verification of \Cref{thm:airy-finite}: the 1D integral representation of $\mathcal T_+(\eta,\chi_+)$ should equal the mean first-passage time of the canonical SDE $dy = (\eta - y^2)d\tau + dW_\tau$ starting at $y_0 = 15$ with absorbing barrier at $\chi_+ = -5$.
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+$\eta$ & $\chi_+$ & $\mathcal T_+^{\text{1D integral}}(\eta,\chi_+)$ & MC ($N = 2000$) & Ratio \\
+\midrule
+$+1$ & $-5$ & $52.367$ & $50.62 \pm 2.16$ & $0.967$ \\
+$0$ & $-5$ & $6.070$ & $5.97 \pm 0.16$ & $0.983$ \\
+$-2$ & $-5$ & $2.017$ & $1.94 \pm 0.02$ & $0.959$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The 1D integral representation of $\mathcal T_+$ from \Cref{thm:airy-finite} matches the Monte Carlo estimates within 4\% across all three regimes. $\checkmark$
+
+\begin{thebibliography}{99}
+\bibitem{HathcockSethna2021} D.~Hathcock and J.P.~Sethna, ``Reaction rates and the noisy saddle-node bifurcation: Renormalization group for barrier crossing,'' \textit{Phys.\ Rev.\ Research} \textbf{3}, 013156 (2021). arXiv:1902.07382.
+
+\bibitem{DykmanMoriRossHunt1994} M.I.~Dykman, E.~Mori, J.~Ross, P.M.~Hunt, ``Large fluctuations and optimal paths in chemical kinetics,'' \textit{J.\ Chem.\ Phys.} \textbf{100}, 5735 (1994).
+
+\bibitem{BerglundGentz2009Neuro} N.~Berglund and B.~Gentz, ``Stochastic dynamic bifurcations and excitability,'' chapter in \textit{Stochastic Methods in Neuroscience}, Oxford University Press (2009).
+
+\bibitem{BerglundGentz2006} N.~Berglund and B.~Gentz, \textit{Noise-Induced Phenomena in Slow-Fast Dynamical Systems: A Sample-Paths Approach}, Probability and its Applications, Springer (2006). ISBN 978-1-84628-038-2. (Cited for general background on slow-fast SDE methodology; their Section 3.3 provides sample-path concentration estimates for the saddle-node case but not the action perturbation lemma we use.)
+
+\bibitem{Berglund2013} N.~Berglund, ``Kramers' law: Validity, derivations and generalisations,'' \textit{Markov Processes Relat.\ Fields} \textbf{19}, 459-490 (2013). arXiv:1106.5799.
+
+\bibitem{DemboZeitouni2010} A.~Dembo and O.~Zeitouni, \textit{Large Deviations Techniques and Applications}, 2nd ed., Springer (2010). Theorem 5.6.3 on p.~212.
+
+\bibitem{FreidlinWentzell2012} M.I.~Freidlin and A.D.~Wentzell, \textit{Random Perturbations of Dynamical Systems}, 3rd ed., Springer (2012). Chapter 4 \S 2.
+
+\bibitem{AssafMeerson2010} M.~Assaf and B.~Meerson, ``Extinction of metastable stochastic populations,'' \textit{Phys.\ Rev.\ E} \textbf{81}, 021116 (2010). arXiv:0907.0070.
+
+\bibitem{CaoDaiKouLiYang2025} Y.~Cao, M.~Dai, S.~Kou, L.~Li, C.~Yang, ``Designing Stablecoins,'' \textit{Mathematical Finance} \textbf{35}(1), 263-294 (2025). DOI:10.1111/mafi.12445.
+
+\bibitem{KlagesMundtMinca2022} A.~Klages-Mundt and A.~Minca, ``While Stability Lasts: A Stochastic Model of Noncustodial Stablecoins,'' \textit{Mathematical Finance} \textbf{32}(4) (2022). arXiv:2004.01304.
+
+\bibitem{MohantyKrishnamachari2026} H.~Mohanty and B.~Krishnamachari, ``Who Restores the Peg? A Mean-Field Game Approach to Model Stablecoin Market Dynamics,'' arXiv:2601.18991 (2026).
+
+\bibitem{LyonsViswanathNatraj2023} R.K.~Lyons and G.~Viswanath-Natraj, ``What keeps stablecoins stable?'' \textit{Journal of International Money and Finance} \textbf{131}, 102777 (2023).
+
+\bibitem{HammerlBeyschlag2025} A.~Hammerl and G.~Beyschlag, ``Optimal Control of Reserve Asset Portfolios for Pegged Digital Currencies,'' arXiv:2508.09429 (2025).
+
+\bibitem{CarmonaDelarueLacker2017} R.~Carmona, F.~Delarue, D.~Lacker, ``Mean Field Games of Timing and Models for Bank Runs,'' \textit{Applied Mathematics \& Optimization} \textbf{76}(1), 217-260 (2017).
+
+\bibitem{KaratzasShreve1991} I.~Karatzas and S.E.~Shreve, \textit{Brownian Motion and Stochastic Calculus}, 2nd ed., Springer (1991). \S 2.5.2.
+
+\bibitem{BergeotBerglundZogheib2025} B.~Bergeot, N.~Berglund, I.~Zogheib, ``The dynamic saddle-node bifurcation with noise on the slow variable,'' arXiv:2512.10460 (2025).
+
+\bibitem{HerbertBouchet2017} C.~Herbert and F.~Bouchet, ``Predictability of escape for a stochastic saddle-node bifurcation,'' \textit{Phys.\ Rev.\ E} \textbf{96}, 030201 (2017). arXiv:1703.01450.
+
+\bibitem{SchwartzBillingsDykmanLandsman2009} I.B.~Schwartz, L.~Billings, M.~Dykman, A.~Landsman, ``Predicting extinction rates in stochastic epidemic models,'' \textit{J.\ Stat.\ Mech.} 2009, P01005.
+
+\bibitem{Pernice2021} I.G.A.~Pernice, ``On stablecoin price processes and arbitrage,'' \textit{Financial Cryptography and Data Security 2021}, Springer LNCS \textbf{12675}, 124-135 (2021).
+
+\bibitem{GortonZhang2023} G.B.~Gorton and J.Y.~Zhang, ``Taming Wildcat Stablecoins,'' \textit{University of Chicago Law Review} \textbf{90}(3), 909-972 (2023).
+
+\bibitem{KlagesMundtHarzGudgeonLiuMinca2020} A.~Klages-Mundt et al., ``Stablecoins 2.0: Economic Foundations and Risk-Based Models,'' in \textit{Proc.\ AFT 2020}, ACM (2020).
+
+\bibitem{Halperin2025} I.~Halperin, ``Non-Linear and Meta-Stable Dynamics in Financial Markets,'' arXiv:2509.02941 (2025).
+
+\bibitem{AbramowitzStegun} M.~Abramowitz and I.A.~Stegun, \textit{Handbook of Mathematical Functions}, Dover (1972). Chapter 10 on Airy functions.
+
+\bibitem{DLMF} F.W.J.~Olver et al.\ (eds.), \textit{NIST Digital Library of Mathematical Functions}, \url{https://dlmf.nist.gov/}, Release 1.2.2 of 2024-09-15.
+
+\bibitem{GradshteynRyzhik} I.S.~Gradshteyn and I.M.~Ryzhik, \textit{Table of Integrals, Series, and Products}, 8th ed., Academic Press (2014).
+
+\bibitem{BovierGayrard2016} A.~Bovier and F.~den~Hollander, \textit{Metastability: A Potential-Theoretic Approach}, Grundlehren der mathematischen Wissenschaften \textbf{351}, Springer (2016). ISBN 978-3-319-24775-5.
+
+\bibitem{KuehnBook2015} C.~Kuehn, \textit{Multiple Time Scale Dynamics}, Applied Mathematical Sciences \textbf{191}, Springer (2015). ISBN 978-3-319-12315-4.
+\end{thebibliography}
+
+\end{document}

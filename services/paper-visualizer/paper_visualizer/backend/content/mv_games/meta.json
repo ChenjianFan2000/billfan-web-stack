@@ -1,0 +1,474 @@
+{
+  "slug": "mv_games",
+  "source": {
+    "tex_path": "output/mv_games/main_v2.tex",
+    "pdf_path": "output/mv_games/main_v2.pdf",
+    "source_hash": "sha256:77ce78c56ef177d7dc95dde35d66cc1f1c939303b93760ea9b00fa004daf8a63",
+    "ingested_at": "2026-04-16T01:25:35.637812+00:00"
+  },
+  "title": {
+    "en": "First Passage Times in Mean-Variance Games: The Risk Reversal of Partial Information",
+    "zh": "均值方差博弈中的首达时间：部分信息的风险反转"
+  },
+  "short_title": {
+    "zh": "均值方差博弈首达时",
+    "en": "First Passage Times in Mean-Variance Games"
+  },
+  "author": "%\n  Author Name\\thanks{School of Mathematical Sciences, Fudan University.\n  Email: \\texttt{email@fudan.edu.cn}.}",
+  "date": "April 2026",
+  "status": "draft",
+  "abstract": {
+    "tex": "We study first passage times in symmetric mean-variance portfolio games\nunder full and partial information, extending the framework of\n\\citet{HuangSun2025}.\nOur main finding is a \\emph{risk reversal}: the direction of the\nfirst passage comparison between full information~(FI) and partial\ninformation~(PI) investors depends on the unobserved state.\nUnder the good state ($\\mu = \\mu_1$), the PI investor is dramatically\nsafer---her ruin probability is bounded above by the FI infinite-horizon\nruin probability. Our theoretical lower bound gives a Lundberg exponent\nratio of $\\mu_1/\\theta(p) \\approx 1.82$; Monte Carlo estimates suggest\nthe true ratio is $5$--$6$ times, with the gap attributable to the\nhedging component of the PI strategy.\nUnder the bad state ($\\mu = \\mu_2$), the comparison reverses: the PI\ninvestor over-invests by a factor of up to $5.5\\times$, amplifying ruin\nprobability by up to $300\\times$ in the infinite-horizon limit.\nThe sensitivity of ruin probability to competition intensity~$\\lambda$\nis $5$--$7$ times greater under partial information, providing a precise\ncharacterization of the ``downward amplification'' conjectured by\n\\citet{HuangSun2025}.\nWe establish these results through four theorems---an exponential\nsupermartingale bound, a Dubins--Schwarz quadratic variation comparison\nunder the martingale measure, a bad-state amplification inequality via\n$L^2$ coupling, and a $\\lambda$-sensitivity comparison---complemented\nby comprehensive Monte Carlo analysis and a perturbation expansion for\nheterogeneous investors.",
+    "en": "This paper studies first passage times in symmetric mean-variance portfolio games under full and partial information, revealing a risk reversal: under the good state, partial information investors are dramatically safer, while under the bad state the comparison reverses with ruin probability amplified up to 300x. Four main theorems establish these results via exponential supermartingale bounds, Dubins-Schwarz comparisons, and L2 coupling, complemented by Monte Carlo analysis.",
+    "zh": "本文研究完全信息与部分信息下对称均值方差投资组合博弈中的首达时间，发现了\"风险反转\"现象：好状态下部分信息投资者的破产概率显著低于完全信息投资者，坏状态下则反转并被放大数百倍。通过指数上鞅界、Dubins-Schwarz二次变差比较等四个定理建立了严格的理论界，并辅以蒙特卡洛数值分析。"
+  },
+  "domain": [
+    "portfolio_games",
+    "systemic_risk"
+  ],
+  "math_tools": [
+    "dubins_schwarz",
+    "monte_carlo",
+    "perturbation_expansion",
+    "fixed_point_theory",
+    "large_deviations"
+  ],
+  "prerequisites": [
+    {
+      "topic_id": "stochastic_control",
+      "level": "advanced",
+      "why": "Nash equilibria in continuous-time portfolio games require HJB and stochastic control theory"
+    },
+    {
+      "topic_id": "filtering_theory",
+      "level": "intermediate",
+      "why": "Partial information regime requires Bayesian filtering of hidden Markov drift"
+    },
+    {
+      "topic_id": "first_passage_times",
+      "level": "intermediate",
+      "why": "Core object of study is ruin probability and first passage of wealth processes"
+    },
+    {
+      "topic_id": "martingale_theory",
+      "level": "advanced",
+      "why": "Exponential supermartingale bounds and measure changes are central proof tools"
+    }
+  ],
+  "main_theorems": [
+    {
+      "id": "thm:wealth",
+      "env": "theorem",
+      "statement_tex": "Under $\\Prob_{\\mu_1}$ with $p \\in (0,1)$:\n\\begin{enumerate}[label=(\\roman*)]\n\\item The expected terminal wealth under PI is strictly less than\n  under FI:\n  $\\E_{\\mu_1}[X^{\\PI}(T)] < \\E_{\\mu_1}[X^{\\FI}(T)]$.\n\\item The expected wealth gap has the integral representation\n  \\begin{equation}\\label{eq:gap_repr}\n    G(\\lambda, T) = \\frac{\\mu_1}{\\gamma(1-\\lambda)}\n      \\int_0^T \\biggl[\\frac{\\mu_1}{\\sigma^2}\n      - \\E_{\\mu_1}\\bigl[g\\bigl(t, P(t)\\bigr)\\bigr]\\biggr]\\,dt.\n  \\end{equation}\n\\item The gap is strictly increasing in $\\lambda$:\n  $\\partial G / \\partial\\lambda = G(\\lambda,T)/(1-\\lambda) > 0$.\n\\end{enumerate}",
+      "section_number": "3.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:expo_bound",
+      "env": "theorem",
+      "statement_tex": "Under $\\Prob_{\\mu_1}$, for any $T > 0$:\n\\begin{equation}\\label{eq:expo_bound}\n  \\Prob_{\\mu_1}\\bigl(\\tau^{\\PI} \\le T\\bigr)\n  \\;\\le\\;\n  \\exp\\!\\biggl(-\\frac{2\\mu_1\\,a}{\\pi_1^{\\FI}\\,\\sigma^2}\\biggr)\n  \\;=\\;\n  \\Prob_{\\mu_1}\\bigl(\\tau_1^{\\FI} < \\infty\\bigr).\n\\end{equation}\nThat is, the PI finite-horizon ruin probability is bounded above by the\nFI \\emph{infinite-horizon} ruin probability.",
+      "section_number": "3.2",
+      "label": {
+        "zh": "指数安全界",
+        "en": "Exponential Safety Bound"
+      },
+      "key_ideas": {
+        "zh": [
+          "上鞅界",
+          "Lundberg指数"
+        ],
+        "en": [
+          "supermartingale bound",
+          "Lundberg exponent"
+        ]
+      }
+    },
+    {
+      "id": "thm:Q_comparison",
+      "env": "theorem",
+      "statement_tex": "Define $Q$ by the Radon--Nikodym density\n\\begin{equation}\\label{eq:Q_density}\n  \\frac{dQ}{d\\Prob_{\\mu_1}}\\bigg|_{\\mathcal{F}_T}\n  = \\exp\\!\\biggl(-\\frac{\\mu_1}{\\sigma}\\,W(T)\n    - \\frac{\\mu_1^2}{2\\sigma^2}\\,T\\biggr).\n\\end{equation}\nUnder $Q$, both FI and PI wealth processes are continuous local\nmartingales, and $\\widetilde{W}(t) := W(t) + (\\mu_1/\\sigma)\\,t$ is a\nstandard $Q$-Brownian motion.\nThen:\n\\begin{equation}\\label{eq:Q_comp}\n  Q\\bigl(\\tau^{\\PI} \\le T\\bigr) \\;\\le\\; Q\\bigl(\\tau_1^{\\FI} \\le T\\bigr),\n\\end{equation}\nwith equality if and only if\n$\\pi^*(t, P(t)) = \\pi_1^{\\FI}$ for Lebesgue-a.e.\\ $t \\in [0,T]$,\n$Q$-a.s.",
+      "section_number": "3.2",
+      "label": {
+        "zh": "鞅测度比较",
+        "en": "Martingale Measure Comparison"
+      },
+      "key_ideas": {
+        "zh": [
+          "Dubins-Schwarz",
+          "二次变差"
+        ],
+        "en": [
+          "Dubins-Schwarz",
+          "quadratic variation"
+        ]
+      }
+    },
+    {
+      "id": "cor:constant",
+      "env": "corollary",
+      "statement_tex": "If $\\pi^*(t) \\equiv c$ for a constant $c \\in (0, \\pi_1^{\\FI})$, then\n\\begin{equation}\\label{eq:const_comp}\n  \\Prob_{\\mu_k}\\bigl(\\tau^{\\PI} \\le T\\bigr)\n  \\;\\le\\;\n  \\Prob_{\\mu_k}\\bigl(\\tau_1^{\\FI} \\le T\\bigr)\n\\end{equation}\nfor $k = 1$, for all $T > 0$, under \\emph{any} probability measure\nequivalent to $\\Prob_{\\mu_1}$.",
+      "section_number": "3.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:over_invest",
+      "env": "proposition",
+      "statement_tex": "Under $\\Prob_{\\mu_2}$, for any $p \\in (0,1)$ and $t > 0$:\n\\begin{equation}\\label{eq:over_invest_exp}\n  \\E_{\\mu_2}\\bigl[\\pi^*(t)\\bigr] > \\pi_2^{\\FI}.\n\\end{equation}\nMoreover, the initial over-investment ratio is\n$\\pi^*(0)/\\pi_2^{\\FI} = 1 + \\delta p/\\mu_2$, and the expected PI\nportfolio converges to $\\pi_2^{\\FI}$ as $t \\to \\infty$.",
+      "section_number": "3.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:bad_state",
+      "env": "theorem",
+      "statement_tex": "Under $\\Prob_{\\mu_2}$, let\n$\\bar{\\pi} := \\pi^*(0) = \\theta(p)/[\\sigma^2\\gamma(1-\\lambda)]$.\nThen:\n\n\\begin{enumerate}[label=(\\roman*)]\n\\item (Infinite-horizon comparison.)\n  For all $a > 0$ and $p \\in (0,1)$:\n  \\begin{equation}\\label{eq:bad_inf}\n    \\Prob_{\\mu_2}\\bigl(\\tau^{\\PI} < \\infty\\bigr)\n    > \\Prob_{\\mu_2}\\bigl(\\tau_2^{\\FI} < \\infty\\bigr).\n  \\end{equation}\n\n\\item (Quantitative bound.)\n  For any $\\epsilon \\in (0, \\delta p/\\mu_2)$ and $h > 0$:\n  \\begin{equation}\\label{eq:bad_quant}\n    \\Prob_{\\mu_2}\\bigl(\\tau^{\\PI} \\le h\\bigr)\n    \\;\\ge\\;\n    \\mathfrak{p}\\!\\bigl((1+\\epsilon)a,\\; \\bar{\\pi}\\mu_2,\\;\n      \\bar{\\pi}\\sigma,\\; h\\bigr)\n    - \\frac{K\\,h^2}{\\epsilon^2\\,a^2}\\,,\n  \\end{equation}\n  where $\\mathfrak{p}(a', b, c, T)$ denotes the Bachelier--L\\'evy ruin\n  probability for a Brownian motion with drift~$b$ and diffusion~$c$\n  to reach level~$-a'$ by time~$T$, and\n  $K = K(\\delta, \\sigma, \\gamma, \\lambda, p)$ is the explicit constant\n  \\begin{equation}\\label{eq:K_constant}\n    K = \\frac{2\\delta^4 p^2(1-p)^2}{\\sigma^6\\gamma^2(1-\\lambda)^2}\\,\n    (4\\sigma^2 + \\mu_2^2).\n  \\end{equation}\n\\end{enumerate}",
+      "section_number": "3.3",
+      "label": {
+        "zh": "坏状态放大",
+        "en": "Bad-State Amplification"
+      },
+      "key_ideas": {
+        "zh": [
+          "过度投资",
+          "破产概率放大"
+        ],
+        "en": [
+          "over-investment",
+          "ruin amplification"
+        ]
+      }
+    },
+    {
+      "id": "cor:asymmetric",
+      "env": "corollary",
+      "statement_tex": "The bad-state amplification is exponentially larger than the good-state\ndampening.\nSpecifically:\n\\begin{enumerate}[label=(\\roman*)]\n\\item The good-state ruin ratio satisfies\n  $\\Prob_{\\mu_1}(\\tau^{\\PI} \\le T)\\big/\n   \\Prob_{\\mu_1}(\\tau_1^{\\FI} \\le T) \\to 0$\n  as $a \\to \\infty$.\n\\item The bad-state ruin ratio satisfies, for $\\epsilon < \\delta p/\\mu_2$:\n  \\begin{equation}\\label{eq:bad_ratio_bound}\n    \\frac{\\Prob_{\\mu_2}(\\tau^{\\PI} < \\infty)}\n         {\\Prob_{\\mu_2}(\\tau_2^{\\FI} < \\infty)}\n    \\;\\ge\\;\n    C\\,\\exp\\!\\biggl(2\\gamma(1-\\lambda)\\,a\\,\n      \\frac{\\delta p}{\\delta p + \\mu_2}\\biggr)\n  \\end{equation}\n  for an explicit constant $C \\in (0,1)$.\n  The amplification grows exponentially in the safety margin~$a$.\n\\end{enumerate}\nAt the \\citeauthor{HuangSun2025} parameters\n($\\mu_1 = 0.2$, $\\mu_2 = 0.02$, $\\sigma = 0.1$, $\\gamma = 5$,\n$x = 3$, $D = 2$, $p = 0.5$, $\\lambda = 0$):\n\\begin{align*}\n  \\text{Good state:} \\quad\n  & \\Prob_{\\mu_1}(\\tau^{\\PI})/\\Prob_{\\mu_1}(\\tau_1^{\\FI})\n    \\approx 0 \\quad (\\text{PI essentially ruin-free}), \\\\\n  \\text{Bad state:} \\quad\n  & \\Prob_{\\mu_2}(\\tau^{\\PI} < \\infty)/\\Prob_{\\mu_2}(\\tau_2^{\\FI} < \\infty)\n    \\approx 307.\n\\end{align*}",
+      "section_number": "3.3",
+      "label": {
+        "zh": "非对称风险反转",
+        "en": "Asymmetric Risk Reversal"
+      },
+      "key_ideas": {
+        "zh": [
+          "指数放大",
+          "好坏状态对比"
+        ],
+        "en": [
+          "exponential amplification",
+          "good vs bad state"
+        ]
+      }
+    },
+    {
+      "id": "prop:critical_prior",
+      "env": "proposition",
+      "statement_tex": "Define the mixture measure $\\Prob_p := p\\,\\Prob_{\\mu_1} + (1-p)\\,\\Prob_{\\mu_2}$\nand set\n\\[\n  A := \\Prob_{\\mu_1}(\\tau^{\\PI} \\le T) - \\Prob_{\\mu_1}(\\tau_1^{\\FI} \\le T) \\le 0\n  \\quad\\text{(PI safer under good state)},\n\\]\n\\[\n  B := \\Prob_{\\mu_2}(\\tau^{\\PI} \\le T) - \\Prob_{\\mu_2}(\\tau_2^{\\FI} \\le T) \\ge 0\n  \\quad\\text{(PI riskier under bad state)}.\n\\]\nThen the critical prior at which the mixture comparison reverses is\n\\begin{equation}\\label{eq:critical_prior}\n  p^* := \\frac{B}{B + |A|} \\;\\in\\; (0,1).\n\\end{equation}\n\\textup{(i)} If $p > p^*$: $\\Prob_p(\\tau^{\\PI} \\le T) < \\Prob_p(\\tau^{\\FI} \\le T)$\n  \\textup{(PI safer under the mixture)}.\n\\textup{(ii)} If $p < p^*$: the inequality reverses \\textup{(PI riskier)}.\nThe Lundberg approximation gives\n$p^* \\approx 1/\\bigl(1 + e^{(\\psi^{\\PI} - \\psi^{\\FI})\\,a}\\bigr) \\approx 0$\nsince $\\psi^{\\PI} \\approx 5$--$6\\times\\psi^{\\FI}$,\nconfirming that PI is safer under the mixture for essentially any non-degenerate prior.\nMonte Carlo yields $p^* < 0.07$ across all $(D,\\lambda)$ tested~\\textup{(}Table~\\ref{tab:bad_state}\\textup{)}.",
+      "section_number": "3.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:sensitivity",
+      "env": "theorem",
+      "statement_tex": "The FI ruin probability under $\\Prob_{\\mu_k}$ satisfies\n\\begin{equation}\\label{eq:FI_logP}\n  -\\log \\Prob_{\\mu_k}\\bigl(\\tau_k^{\\FI} < \\infty\\bigr)\n  = 2\\gamma(1-\\lambda)\\,a,\n\\end{equation}\nso that\n$\\frac{d}{d\\lambda}\\bigl[-\\log \\Prob_{\\mu_k}(\\tau_k^{\\FI} < \\infty)\\bigr]\n= -2\\gamma\\,a$.\n\nThe PI exponential bound (Theorem~\\ref{thm:expo_bound}) gives\n$-\\log \\Prob_{\\mu_1}(\\tau^{\\PI} \\le T) \\ge 2\\gamma(1-\\lambda)\\,a$,\nwith the effective PI Lundberg exponent satisfying the myopic lower bound\n$\\psi^{\\PI} \\geq 2\\gamma(1-\\lambda)\\mu_1/\\theta(p)$, giving a\nsensitivity ratio $\\psi^{\\PI}/\\psi^{\\FI} \\geq \\mu_1/\\theta(p)$.\nSince $\\pi^*(t) = g(t,P(t))/[\\gamma(1-\\lambda)]$ and $g$ is\n$\\lambda$-independent (Remark~\\ref{rem:g_indep}), the PI portfolio\nscales as $1/(1-\\lambda)$, and the PI Lundberg exponent scales as\n\\begin{equation}\\label{eq:PI_psi}\n  \\psi^{\\PI}(\\lambda) = \\psi^{\\PI}(0)\\,(1-\\lambda)\\,,\n  \\qquad\n  \\frac{d\\psi^{\\PI}}{d\\lambda} = -\\psi^{\\PI}(0).\n\\end{equation}\nBecause $\\psi^{\\PI}(0) \\gg \\psi^{\\FI}(0) = 2\\gamma$, the absolute\n$\\lambda$-sensitivity of the log-ruin probability is larger for PI.\nMore precisely, for the exponential ruin probability\n$\\Prob \\approx e^{-\\psi a}$:\n\\begin{equation}\\label{eq:sensitivity_ratio}\n  \\frac{d/d\\lambda\\bigl[-\\log \\Prob(\\tau^{\\PI} \\le T)\\bigr]}\n       {d/d\\lambda\\bigl[-\\log \\Prob(\\tau_k^{\\FI} < \\infty)\\bigr]}\n  \\;\\approx\\;\n  \\frac{\\psi^{\\PI}(0)}{\\psi^{\\FI}(0)}\n  \\;\\approx\\; 5\\text{--}6.\n\\end{equation}",
+      "section_number": "3.4",
+      "label": {
+        "zh": "敏感性放大",
+        "en": "Sensitivity Amplification"
+      },
+      "key_ideas": {
+        "zh": [
+          "竞争强度",
+          "Lundberg指数比较"
+        ],
+        "en": [
+          "competition intensity",
+          "Lundberg exponent comparison"
+        ]
+      }
+    },
+    {
+      "id": "prop:heterogeneous",
+      "env": "proposition",
+      "statement_tex": "Consider the two-type game with $N_A$ investors of risk aversion\n$\\gamma_A = \\gamma + \\varepsilon$ and $N_B$ investors of risk aversion\n$\\gamma_B = \\gamma - \\varepsilon$, where $\\varepsilon \\in (-\\gamma, \\gamma)$\nis the heterogeneity parameter.\nLet $\\alpha_A = N_A/N$ and $\\alpha_B = N_B/N$ be the population\nfractions.\nThen:\n\n\\begin{enumerate}[label=(\\roman*)]\n\\item ($\\lambda$-dependence at first order.)\n  The PI strategy function $g_k(t,q;\\lambda)$ for type~$k$ satisfies\n  \\begin{equation}\\label{eq:g_hetero}\n    g_k(t,q;\\lambda) = g_0(t,q) + \\varepsilon\\,g_1^k(t,q;\\lambda)\n      + O(\\varepsilon^2),\n  \\end{equation}\n  where $g_0$ is the symmetric (and $\\lambda$-independent) function\n  from~\\eqref{eq:g_decomp}, and $g_1^k$ depends on $\\lambda$ through\n  the linearized Cauchy problem\n  \\begin{equation}\\label{eq:cauchy_linearized}\n    \\partial_t c_1^k + \\frac{\\beta^2}{2}\\,\\partial_{qq} c_1^k\n    - \\frac{\\beta}{\\sigma}\\bigl[\\theta - \\sigma^2 \\bar{g}_0\\bigr]\n      \\partial_q c_1^k\n    + \\beta\\sigma\\,\\bar{g}_1\\,\\partial_q c_0\n    + \\Delta\\kappa_k\\,\\frac{\\theta^2}{\\sigma^2} = 0,\n  \\end{equation}\n  with $c_1^k(T,q) = 0$,\n  $\\bar{g}_0 = g_0/[\\gamma(1-\\lambda)]$,\n  $\\Delta\\kappa_A = -(1-\\lambda/N)/\\gamma^2$, and $\\bar{g}_1$ is the\n  first-order correction to the aggregate function depending on\n  $g_1^A$, $g_1^B$, and $\\lambda$.\n\n\\item (Wealth gap correction.)\n  The expected wealth gap for type~$A$ satisfies\n  \\begin{equation}\\label{eq:gap_hetero}\n    \\frac{\\partial G_A}{\\partial\\lambda}\n    = \\frac{G_A(\\lambda, T)}{1-\\lambda}\n    + \\varepsilon\\,\\Phi(\\lambda, T) + O(\\varepsilon^2),\n  \\end{equation}\n  where $\\Phi(\\lambda, T)$ captures the heterogeneity correction and\n  is determined by the first-order Cauchy problem~\\eqref{eq:cauchy_linearized}.\n\n\\item (Decorrelation effect.)\n  Under PI, heterogeneity $\\varepsilon \\neq 0$ implies\n  $\\pi_A^*(t) \\neq \\pi_B^*(t)$ at first order.\n  The wealth correlation between types satisfies\n  $\\rho_{AB} = 1 - O(\\varepsilon^2)$, so the co-drawdown probability\n  for a mixed population is strictly less than for the symmetric case.\n\\end{enumerate}",
+      "section_number": "3.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:filter_modulus",
+      "env": "lemma",
+      "statement_tex": "Under either $\\Prob_{\\mu_k}$, the filter satisfies\n\\[\n  \\E\\bigl[|P(s) - P(t)|^2 \\,\\big|\\, \\mathcal{F}_t\\bigr]\n  \\;\\le\\; \\frac{\\delta^2}{16\\sigma^2}\\,(s-t),\n  \\qquad 0 \\le t \\le s,\n\\]\nand consequently\n$\\E\\bigl[\\sup_{s \\in [t,t+h]} |P(s) - P(t)|^2\\bigr]\n  \\le \\delta^2 h/(4\\sigma^2)$.",
+      "section_number": "4.4",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:BL_mono",
+      "env": "lemma",
+      "statement_tex": "For a constant portfolio $\\pi > 0$ and the process\n$Z_\\pi(t) := \\pi(\\mu_2 t + \\sigma B(t))$, the ruin probability\n$\\mathfrak{p}(a, \\pi\\mu_2, \\pi\\sigma, T)$\nis strictly increasing in~$\\pi$ for each $a > 0$ and $T > 0$.",
+      "section_number": "4.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    }
+  ],
+  "sections": [
+    {
+      "number": "1",
+      "title_tex": "Introduction"
+    },
+    {
+      "number": "2",
+      "title_tex": "Model"
+    },
+    {
+      "number": "2.1",
+      "title_tex": "Financial market"
+    },
+    {
+      "number": "2.2",
+      "title_tex": "Investors and objectives"
+    },
+    {
+      "number": "2.3",
+      "title_tex": "Information regimes"
+    },
+    {
+      "number": "2.4",
+      "title_tex": "Nash equilibria"
+    },
+    {
+      "number": "2.4.1",
+      "title_tex": "Full information equilibrium"
+    },
+    {
+      "number": "2.4.2",
+      "title_tex": "Partial information equilibrium"
+    },
+    {
+      "number": "2.5",
+      "title_tex": "Wealth processes under both measures"
+    },
+    {
+      "number": "2.6",
+      "title_tex": "Definitions"
+    },
+    {
+      "number": "3",
+      "title_tex": "Main Results"
+    },
+    {
+      "number": "3.1",
+      "title_tex": "Expected wealth comparison (recap)"
+    },
+    {
+      "number": "3.2",
+      "title_tex": "Good-state first passage safety"
+    },
+    {
+      "number": "3.3",
+      "title_tex": "Bad-state amplification"
+    },
+    {
+      "number": "3.4",
+      "title_tex": "Sensitivity amplification"
+    },
+    {
+      "number": "3.5",
+      "title_tex": "Heterogeneous investors"
+    },
+    {
+      "number": "4",
+      "title_tex": "Proofs"
+    },
+    {
+      "number": "4.1",
+      "title_tex": "Proof of Theorem~\\ref{thm:expo_bound}\n  (Exponential safety bound)"
+    },
+    {
+      "number": "4.2",
+      "title_tex": "Proof of Theorem~\\ref{thm:Q_comparison}\n  (Martingale measure comparison)"
+    },
+    {
+      "number": "4.3",
+      "title_tex": "Proof of Corollary~\\ref{cor:constant}\n  (Constant damping)"
+    },
+    {
+      "number": "4.4",
+      "title_tex": "Proof of Proposition~\\ref{prop:over_invest}"
+    },
+    {
+      "number": "4.5",
+      "title_tex": "Proof of Theorem~\\ref{thm:bad_state}"
+    },
+    {
+      "number": "4.6",
+      "title_tex": "Proof of Theorem~\\ref{thm:sensitivity}"
+    },
+    {
+      "number": "4.7",
+      "title_tex": "Proof of Proposition~\\ref{prop:heterogeneous}"
+    },
+    {
+      "number": "5",
+      "title_tex": "Numerical Analysis"
+    },
+    {
+      "number": "5.1",
+      "title_tex": "Simulation setup"
+    },
+    {
+      "number": "5.2",
+      "title_tex": "Good-state safety"
+    },
+    {
+      "number": "5.3",
+      "title_tex": "Bad-state amplification"
+    },
+    {
+      "number": "5.4",
+      "title_tex": "Sensitivity analysis"
+    },
+    {
+      "number": "5.5",
+      "title_tex": "Effective Lundberg exponents"
+    },
+    {
+      "number": "5.6",
+      "title_tex": "Boundary behavior"
+    },
+    {
+      "number": "5.7",
+      "title_tex": "Phase diagram"
+    },
+    {
+      "number": "5.8",
+      "title_tex": "Robustness: alternative parameter calibrations"
+    },
+    {
+      "number": "6",
+      "title_tex": "Discussion"
+    },
+    {
+      "number": "6.1",
+      "title_tex": "Economic interpretation of the risk reversal"
+    },
+    {
+      "number": "6.2",
+      "title_tex": "Connection to Huang--Sun's amplification observation"
+    },
+    {
+      "number": "6.3",
+      "title_tex": "Implications for systemic risk"
+    },
+    {
+      "number": "6.4",
+      "title_tex": "Open problems"
+    },
+    {
+      "number": "7",
+      "title_tex": "Conclusion"
+    }
+  ],
+  "related_papers": [
+    {
+      "slug": "mv_games",
+      "relation": "shared_mechanism",
+      "note": "Directly extends the Huang-Sun mean-variance game framework to first passage analysis"
+    },
+    {
+      "slug": "sr_p001",
+      "relation": "shared_domain",
+      "note": "Both study systemic risk amplification under competitive investor dynamics"
+    },
+    {
+      "slug": "sr_p005",
+      "relation": "shared_domain",
+      "note": "Shared focus on ruin and amplification under partial information in financial systems"
+    }
+  ],
+  "figures": [
+    {
+      "path": "width=0.7\\textwidth",
+      "caption_tex": ""
+    },
+    {
+      "path": "width=0.7\\textwidth",
+      "caption_tex": ""
+    },
+    {
+      "path": "width=0.7\\textwidth",
+      "caption_tex": ""
+    },
+    {
+      "path": "width=0.7\\textwidth",
+      "caption_tex": ""
+    }
+  ],
+  "generation": {
+    "model": "claude-sonnet-4-6",
+    "generated_at": "2026-04-16T01:29:38.176906+00:00",
+    "prompt_version": "v1",
+    "langs": []
+  },
+  "repo": "realresearch",
+  "repo_root": "E:/Anaconda/Realresearch",
+  "project_id": null,
+  "quality": {
+    "tier": "B",
+    "significance_score": 11,
+    "significance_max": 16,
+    "critic_verdict": "PASS_WITH_MAJOR",
+    "dimensions": {
+      "correctness": "acceptable",
+      "rigor": "acceptable",
+      "novelty": "acceptable",
+      "framing": "strong",
+      "coherence": "acceptable"
+    },
+    "assessed_by": "unified_critic"
+  }
+}

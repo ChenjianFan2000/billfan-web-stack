@@ -1,0 +1,480 @@
+{
+  "slug": "sr_p006",
+  "source": {
+    "tex_path": "projects/p006/output/main.tex",
+    "pdf_path": "projects/p006/output/main.pdf",
+    "source_hash": "sha256:e62fdcf3f13896d62aead4d459cb0d686a1d5d98386455795325301e33c0ec1e",
+    "ingested_at": "2026-04-16T01:25:51.175811+00:00"
+  },
+  "title": {
+    "en": "Quantitative Wasserstein-1 Contraction for Overdamped Langevin Dynamics under a Bounded Lipschitz Perturbation of a Strongly Convex Potential: An Explicit Rate via Reflection Coupling",
+    "zh": "强凸势的有界Lipschitz扰动下超阻尼Langevin动力学的定量Wasserstein-1收缩：基于反射耦合的显式速率"
+  },
+  "short_title": {
+    "zh": "Langevin收缩率",
+    "en": "Wasserstein Contraction for Langevin Dynamics"
+  },
+  "author": "MATHPROVER (structural\\_research platform, project p006)",
+  "date": "April 11, 2026",
+  "status": "draft",
+  "abstract": {
+    "tex": "We prove an explicit, closed-form Wasserstein contraction rate for overdamped Langevin dynamics $dX_t = -\\nabla U(X_t)\\,dt + \\sqrt{2}\\,dB_t$ in $\\R^d$, in the specific but widely used setting where the potential decomposes as $U = U_0 + V$ with $U_0$ being $m$-strongly convex and $V$ a $C^{1,1}$ perturbation with $\\norm{\\nabla V}_\\infty \\le K$. In the subcritical regime $K < \\sqrt{m}$, we construct an explicit concave distance function $f$, a one-parameter power law with exponent determined by the dimensionless ratio $K/\\sqrt m$, and show that two solutions coupled by the Eberle reflection coupling contract at rate\n\\[\nc^\\star \\;=\\; m\\bigl(1 - K/\\sqrt{m}\\bigr) \\;=\\; m - K\\sqrt{m}\n\\]\nin the corresponding Wasserstein-$1$ metric. The rate is dimension-free, independent of $\\norm{V}_\\infty$, and depends on the perturbation only through its gradient sup-norm $K$. The construction specialises Eberle's variational contraction theorem \\cite{Eberle2016} to a numerically concrete bound that can be inserted directly into discretisation error analyses for the unadjusted Langevin algorithm (ULA) and into propagation-of-chaos estimates for mean-field systems.",
+    "en": "This paper proves an explicit, dimension-free Wasserstein-1 contraction rate for overdamped Langevin dynamics where the potential decomposes into a strongly convex part and a bounded Lipschitz perturbation. Using Eberle's reflection coupling and a power-law concave distance function, the contraction rate c*=m-K√m is derived in the subcritical regime. The result is applied to discretization error bounds for the unadjusted Langevin algorithm and propagation-of-chaos for mean-field systems.",
+    "zh": "本文对超阻尼Langevin动力学证明了显式的Wasserstein-1收缩率，势函数分解为强凸部分与有界Lipschitz扰动之和。在亚临界条件下，通过Eberle反射耦合构造显式凹距离函数，得到维度无关的收缩率c*=m-K√m。该结果可直接应用于无调整Langevin算法的离散化误差分析和均场系统的混沌传播估计。"
+  },
+  "domain": [
+    "portfolio_games"
+  ],
+  "math_tools": [
+    "fixed_point_theory",
+    "monte_carlo",
+    "perturbation_expansion",
+    "large_deviations"
+  ],
+  "prerequisites": [
+    {
+      "topic_id": "stochastic_differential_equations",
+      "level": "advanced",
+      "why": "Core dynamics are SDEs analyzed via Itô calculus"
+    },
+    {
+      "topic_id": "optimal_transport",
+      "level": "intermediate",
+      "why": "Wasserstein metrics are central to the contraction results"
+    },
+    {
+      "topic_id": "convex_analysis",
+      "level": "intermediate",
+      "why": "Strong convexity assumptions drive the contraction mechanism"
+    },
+    {
+      "topic_id": "coupling_methods",
+      "level": "advanced",
+      "why": "Reflection coupling is the main probabilistic tool"
+    }
+  ],
+  "main_theorems": [
+    {
+      "id": "lem:distant",
+      "env": "lemma",
+      "statement_tex": "Under Assumptions~\\ref{A1}--\\ref{A2}, for all $x, y \\in \\R^d$,\n\\[\n\\langle \\nabla U(x) - \\nabla U(y),\\, x-y \\rangle \\;\\ge\\; m\\,\\abs{x-y}^2 \\;-\\; 2K\\,\\abs{x-y}.\n\\]\nIn particular, for $\\abs{x-y} \\ge R_1 := 2K/m$, the left-hand side is non-negative and the dynamics contract synchronously.",
+      "section_number": "2",
+      "label": {
+        "zh": "远距漂移引理",
+        "en": "Distant Points Drift Lemma"
+      },
+      "key_ideas": {
+        "zh": [
+          "强凸性",
+          "同步收缩"
+        ],
+        "en": [
+          "strong convexity",
+          "synchronous contraction"
+        ]
+      }
+    },
+    {
+      "id": "lem:rt-sde",
+      "env": "lemma",
+      "statement_tex": "Let $r_t := \\abs{X_t - X'_t}$ for $t < \\tau$. Then there exists a one-dimensional standard Brownian motion $(W_t)_{t\\ge 0}$ (on the same probability space) such that\n\\begin{equation}\\label{eq:rt-sde}\ndr_t \\;=\\; -e_t \\cdot \\bigl(\\nabla U(X_t) - \\nabla U(X'_t)\\bigr)\\,dt \\;+\\; 2\\sqrt{2}\\,dW_t, \\qquad t < \\tau.\n\\end{equation}\nMoreover, the drift satisfies\n\\begin{equation}\\label{eq:drift-bound}\n-e_t \\cdot \\bigl(\\nabla U(X_t) - \\nabla U(X'_t)\\bigr) \\;\\le\\; 2K - m\\,r_t.\n\\end{equation}",
+      "section_number": "3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:f-basic",
+      "env": "lemma",
+      "statement_tex": "The function $f$ defined in \\eqref{eq:fdef} is $C^\\infty$ on $[0,\\infty)$, satisfies $f(0) = 0$, $f'(0) = 1$, $f$ is strictly concave and strictly increasing, $f(r) \\to \\infty$ as $r \\to \\infty$, and\n\\[\nf'(r) = \\bigl(1 + r/R_0\\bigr)^{-\\beta}, \\qquad f''(r) = -\\frac{\\beta}{R_0}\\bigl(1 + r/R_0\\bigr)^{-\\beta-1}.\n\\]\nIn particular, $f$ is bi-Lipschitz equivalent to the identity on any bounded interval: for $r \\in [0, R]$,\n\\[\n(1 + R/R_0)^{-\\beta}\\cdot r \\;\\le\\; f(r) \\;\\le\\; r,\n\\]\nso $f(r)/r \\in [(1 + R/R_0)^{-\\beta},\\,1]$.",
+      "section_number": "4.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:key",
+      "env": "lemma",
+      "statement_tex": "Under Assumptions~\\ref{A1}--\\ref{A3}, with $f$, $\\beta$, $c^\\star$, and $R_0$ as in \\eqref{eq:params}--\\eqref{eq:fdef}, the function $f$ satisfies, for every $r \\ge 0$,\n\\begin{equation}\\label{eq:key-ineq}\n(2K - m r)\\, f'(r) \\;+\\; 4\\, f''(r) \\;+\\; c^\\star\\, f(r) \\;\\le\\; 0,\n\\end{equation}\nwith equality if and only if $r = 0$.",
+      "section_number": "4.2",
+      "label": {
+        "zh": "关键不等式引理",
+        "en": "Key Algebraic Inequality"
+      },
+      "key_ideas": {
+        "zh": [
+          "凹函数条件",
+          "漂移界"
+        ],
+        "en": [
+          "concavity condition",
+          "drift bound"
+        ]
+      }
+    },
+    {
+      "id": "thm:main",
+      "env": "theorem",
+      "statement_tex": "Assume \\ref{A1}--\\ref{A3}. Let $(X_t)_{t\\ge 0}$, $(X'_t)_{t\\ge 0}$ be two solutions of \\eqref{eq:langevin} coupled via the Eberle reflection coupling \\eqref{eq:refl-coupling}, with (possibly different) initial laws $\\mu_0,\\nu_0$. Then for all $t \\ge 0$,\n\\begin{equation}\\label{eq:main}\n\\E\\bigl[f(\\abs{X_t - X'_t})\\bigr] \\;\\le\\; e^{-c^\\star t}\\, \\E\\bigl[f(\\abs{X_0 - X'_0})\\bigr],\n\\end{equation}\nwhere $f$ is defined in \\eqref{eq:fdef} and $c^\\star = m - K\\sqrt m$. Consequently, writing $W_{1,f}(\\mu,\\nu) := \\inf_{\\pi}\\int f(\\abs{x-y})\\,d\\pi(x,y)$ for the Kantorovich-Rubinstein transport with cost $f(\\abs{x-y})$,\n\\begin{equation}\\label{eq:W1f-contraction}\nW_{1,f}\\bigl(\\Law(X_t),\\Law(X'_t)\\bigr) \\;\\le\\; e^{-c^\\star t}\\, W_{1,f}(\\mu_0,\\nu_0).\n\\end{equation}",
+      "section_number": "4.3",
+      "label": {
+        "zh": "主收缩定理",
+        "en": "Main Wasserstein Contraction Theorem"
+      },
+      "key_ideas": {
+        "zh": [
+          "反射耦合",
+          "凹距离函数",
+          "指数收缩"
+        ],
+        "en": [
+          "reflection coupling",
+          "concave distance",
+          "exponential contraction"
+        ]
+      }
+    },
+    {
+      "id": "cor:W1f-from-W1",
+      "env": "corollary",
+      "statement_tex": "Under Assumptions~\\ref{A1}--\\ref{A3}, for any initial laws $\\mu_0, \\nu_0$ with $W_1(\\mu_0,\\nu_0) < \\infty$,\n\\[\nW_{1,f}\\bigl(\\Law(X_t),\\Law(X'_t)\\bigr) \\;\\le\\; e^{-c^\\star t}\\,W_1(\\mu_0,\\nu_0), \\qquad t \\ge 0,\n\\]\nwhere $c^\\star = m - K\\sqrt m$.",
+      "section_number": "5.1",
+      "label": {
+        "zh": "W1推论",
+        "en": "W1 Bound Corollary"
+      },
+      "key_ideas": {
+        "zh": [
+          "Wasserstein界",
+          "初始分布"
+        ],
+        "en": [
+          "Wasserstein bound",
+          "initial distribution"
+        ]
+      }
+    },
+    {
+      "id": "lem:moment",
+      "env": "lemma",
+      "statement_tex": "Under Assumptions~\\ref{A1}--\\ref{A3}, any two solutions of \\eqref{eq:langevin} coupled via the Eberle reflection coupling satisfy\n\\[\n\\E\\bigl[\\abs{X_t - X'_t}^2\\bigr] \\;\\le\\; e^{-m t}\\,\\E\\bigl[\\abs{X_0 - X'_0}^2\\bigr] \\;+\\; \\frac{4(K^2 + 2 m)}{m^2}, \\qquad t \\ge 0,\n\\]\nprovided $\\E[\\abs{X_0 - X'_0}^2] < \\infty$. Consequently, with $M_2^\\star := \\E[\\abs{X_0-X'_0}^2] + 4(K^2+2m)/m^2$,\n\\[\n\\sup_{t \\ge 0}\\E[\\abs{X_t - X'_t}^2] \\;\\le\\; M_2^\\star < \\infty.\n\\]",
+      "section_number": "5.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:ula",
+      "env": "theorem",
+      "statement_tex": "Assume \\ref{A1}--\\ref{A4}. There exists an absolute constant $C_1 > 0$ (independent of $d, m, K, L, \\nu_0$) such that, for every step size $h$ satisfying\n\\begin{equation}\\label{eq:h0}\nh \\;\\le\\; h_0 \\;:=\\; \\min\\!\\left(\\frac{m}{2 L^2},\\; \\frac{1}{L},\\; \\frac{1}{c^\\star}\\right),\n\\end{equation}\nevery initial law $\\nu_0$ with $M_0 := \\E_{\\nu_0}[\\abs{X - x^\\star}^2] < \\infty$, and every $N \\ge 1$,\n\\begin{equation}\\label{eq:ula-bound}\nW_{1,f}\\bigl(\\nu_0 P_h^N, \\pi\\bigr) \\;\\le\\; e^{-c^\\star N h / 2}\\,W_{1,f}(\\nu_0, \\pi) \\;+\\; \\frac{C_1\\, L^2\\,\\sqrt{M^\\star + d}\\,\\sqrt h}{c^\\star},\n\\end{equation}\nwhere $x^\\star$ is the minimiser of $U$, $M^\\star := M_0 + 4(2K^2 + md)/m^2$ is the uniform second-moment bound from Lemma~\\ref{lem:ula-moment}, $c^\\star = m - K\\sqrt m$, and $f$ is the concave distance \\eqref{eq:fdef}.",
+      "section_number": "6.1",
+      "label": {
+        "zh": "ULA离散收缩",
+        "en": "ULA Discrete Contraction"
+      },
+      "key_ideas": {
+        "zh": [
+          "离散化误差",
+          "混合时间"
+        ],
+        "en": [
+          "discretization error",
+          "mixing time"
+        ]
+      }
+    },
+    {
+      "id": "lem:onestep-strong",
+      "env": "lemma",
+      "statement_tex": "Assume \\ref{A4}. Let $x_0 \\in \\R^d$ and let $X_t$ be the solution of \\eqref{eq:langevin} with $X_0 = x_0$, driven by Brownian motion $B$. Let $\\bar X_1 := x_0 - h\\,\\nabla U(x_0) + \\sqrt{2h}\\,\\xi$ where $\\xi := (B_h - B_0)/\\sqrt h$, so that $(B, \\xi)$ are coupled to the same noise. Then, for every $h \\le 1/L$,\n\\[\n\\E\\bigl[\\abs{X_h - \\bar X_1}^2\\bigr] \\;\\le\\; C_0\\, L^2\\, h^3 \\cdot \\bigl(\\abs{\\nabla U(x_0)}^2 + d\\bigr),\n\\]\nwhere $C_0 := 2\\, e^4$ is an absolute constant. In particular,\n\\[\n\\E\\bigl[\\abs{X_h - \\bar X_1}\\bigr] \\;\\le\\; \\sqrt{C_0}\\, L\\, h^{3/2}\\,\\sqrt{\\abs{\\nabla U(x_0)}^2 + d}.\n\\]",
+      "section_number": "6.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:onestep",
+      "env": "lemma",
+      "statement_tex": "Assume \\ref{A1}--\\ref{A4}. For every probability measure $\\mu$ on $\\R^d$ with finite second moment and every $h \\le 1/L$,\n\\[\nW_{1,f}(\\mu P_h,\\, \\mu T_h) \\;\\le\\; \\sqrt{C_0}\\, L\\, h^{3/2}\\,\\sqrt{\\E_\\mu[\\abs{\\nabla U(X)}^2] + d},\n\\]\nwhere $C_0 = 4 e^2$ is the constant from Lemma~\\ref{lem:onestep-strong}.",
+      "section_number": "6.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:ula-moment",
+      "env": "lemma",
+      "statement_tex": "Under Assumptions~\\ref{A1}--\\ref{A4}, for every $h \\le \\min(1/L,\\, m/(2L^2))$, the ULA iterates satisfy\n\\[\n\\E\\bigl[\\abs{\\bar X_k - x^\\star}^2\\bigr] \\;\\le\\; \\E\\bigl[\\abs{\\bar X_0 - x^\\star}^2\\bigr] \\;+\\; \\frac{4(2 K^2 + m d)}{m^2}, \\qquad k \\ge 0.\n\\]",
+      "section_number": "6.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "cor:mix",
+      "env": "corollary",
+      "statement_tex": "Under the hypotheses of Theorem~\\ref{thm:ula}, for any target accuracy $\\varepsilon > 0$, the ULA iterates satisfy $W_{1,f}(\\nu_0 P_h^N, \\pi) \\le \\varepsilon$ provided\n\\[\nh \\;\\le\\; \\min\\!\\left(h_0,\\; \\frac{(c^\\star)^2\\,\\varepsilon^2}{4 C_1^2 L^4 (M^\\star + d)}\\right), \\qquad N \\;\\ge\\; \\frac{2}{c^\\star h}\\,\\log\\!\\left(\\frac{2\\,W_{1,f}(\\nu_0, \\pi)}{\\varepsilon}\\right).\n\\]\nHiding only absolute constants, the total number of gradient evaluations needed to reach $W_{1,f}$-accuracy $\\varepsilon$ scales as\n\\[\nN \\;=\\; \\mathcal{O}\\!\\left(\\frac{L^4\\,(M^\\star + d)}{(c^\\star)^3\\,\\varepsilon^2}\\,\\log\\!\\left(\\frac{W_{1,f}(\\nu_0, \\pi)}{\\varepsilon}\\right)\\right).\n\\]",
+      "section_number": "6.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:poc",
+      "env": "theorem",
+      "statement_tex": "Assume \\ref{A1}, \\ref{A5}, and $K < \\sqrt m$. Assume the initial data are i.i.d.: $X^{i,N}_0 \\sim \\mu_0$ i.i.d., and let $Y^i_t$ denote the McKean-Vlasov solution with $Y^i_0 = X^{i,N}_0$. Then there exists an absolute constant $C_2 > 0$ such that for every $N \\ge 2$, every $t \\ge 0$, and every $i \\in \\{1, \\dots, N\\}$,\n\\begin{equation}\\label{eq:poc}\nW_{1,f}\\bigl(\\Law(X^{i,N}_t),\\, \\mu_t\\bigr) \\;\\le\\; \\frac{C_2\\, K}{\\sqrt{N - 1}\\cdot c^\\star}, \\qquad c^\\star = m - K\\sqrt m.\n\\end{equation}\nIn particular, the bound is \\emph{uniform in time} and \\emph{dimension-free}: the RHS does not depend on $t$ or $d$.",
+      "section_number": "7.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:sharpness",
+      "env": "proposition",
+      "statement_tex": "Consider the two-parameter family\n\\[\nf_{R, \\beta}(r) \\;:=\\; \\frac{R}{1 - \\beta}\\bigl[(1 + r/R)^{1-\\beta} - 1\\bigr], \\qquad R > 0,\\ \\beta \\in [0, 1),\n\\]\nand the supermartingale-inequality contraction rate associated to $f_{R,\\beta}$:\n\\[\nc(R, \\beta) \\;:=\\; \\sup\\Bigl\\{c \\ge 0 :\\; 4 f_{R,\\beta}''(r) + (2K - m r) f_{R,\\beta}'(r) + c\\, f_{R,\\beta}(r) \\le 0 \\ \\ \\forall r \\ge 0\\Bigr\\}.\n\\]\nThen, under Assumption \\ref{A3} ($K < \\sqrt m$),\n\\[\n\\sup_{R > 0,\\, \\beta \\in [0,1)} c(R, \\beta) \\;=\\; m - K\\sqrt m,\n\\]\nand this supremum is attained uniquely at $(R, \\beta) = (2/\\sqrt m,\\, K/\\sqrt m)$.",
+      "section_number": "8",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:critical",
+      "env": "proposition",
+      "statement_tex": "Set $\\varepsilon := \\sqrt m - K \\in (0, \\sqrt m]$ (so $K = \\sqrt m - \\varepsilon$ corresponds to the subcritical interior). With $c^\\star$, $\\beta$, $R_0$ as in \\eqref{eq:params}:\n\\begin{enumerate}\n  \\item[(i)] (Linear rate vanishing) $c^\\star = \\sqrt m\\,\\varepsilon$, exactly. In particular $c^\\star \\downarrow 0$ \\emph{linearly} in $\\varepsilon = \\sqrt m - K$, with prefactor $\\sqrt m$.\n  \\item[(ii)] (Bounded distance distortion) The exponent $\\beta = 1 - \\varepsilon/\\sqrt m$ approaches $1$, and the concave distance $f$ becomes \\emph{logarithmically} large at infinity:\n  \\[\n  f(r) \\;=\\; \\frac{R_0}{1 - \\beta}\\bigl[(1 + r/R_0)^{1-\\beta} - 1\\bigr] \\;\\xrightarrow[\\varepsilon \\to 0]{}\\; R_0\\,\\log(1 + r/R_0).\n  \\]\n  Convergence is uniform on compact subsets of $[0, \\infty)$.\n  \\item[(iii)] (Bi-Lipschitz prefactor on bounded sets) For any $R > 0$ and $\\varepsilon \\in (0, \\sqrt m]$, the inequality\n  \\[\n  \\bigl(1 + R/R_0\\bigr)^{-\\beta}\\,r \\;\\le\\; f(r) \\;\\le\\; r, \\qquad r \\in [0, R],\n  \\]\n  holds. The prefactor $(1 + R/R_0)^{\\beta}$ converges to $(1 + R\\sqrt m/2)^1 = 1 + R\\sqrt m/2$ as $\\varepsilon \\to 0$, which is \\emph{bounded} (no blow-up). Hence the bi-Lipschitz constant relating $W_{1,f}$ and $W_1$ on $\\{|x-y| \\le R\\}$ remains bounded as the contraction rate vanishes.\n  \\item[(iv)] (Effective relaxation time) Combining (i) and (iii), the time scale to halve $W_{1,f}$ from any bounded initial coupling diverges as $1/c^\\star = 1/(\\sqrt m\\,\\varepsilon)$, i.e., $\\Theta(\\varepsilon^{-1})$. This is the precise quantitative meaning of the breakdown at the critical point.\n\\end{enumerate}",
+      "section_number": "9",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    }
+  ],
+  "sections": [
+    {
+      "number": "1",
+      "title_tex": "Introduction"
+    },
+    {
+      "number": "1.1",
+      "title_tex": "Setting"
+    },
+    {
+      "number": "1.2",
+      "title_tex": "Prior art"
+    },
+    {
+      "number": "1.3",
+      "title_tex": "Main contributions"
+    },
+    {
+      "number": "1.4",
+      "title_tex": "Main result (informal)"
+    },
+    {
+      "number": "1.5",
+      "title_tex": "Outline"
+    },
+    {
+      "number": "2",
+      "title_tex": "Setup and assumptions"
+    },
+    {
+      "number": "3",
+      "title_tex": "Reflection coupling"
+    },
+    {
+      "number": "4",
+      "title_tex": "The concave distance and the main theorem"
+    },
+    {
+      "number": "4.1",
+      "title_tex": "The concave distance"
+    },
+    {
+      "number": "4.2",
+      "title_tex": "The key algebraic identity"
+    },
+    {
+      "number": "4.3",
+      "title_tex": "The main theorem"
+    },
+    {
+      "number": "5",
+      "title_tex": "Corollaries"
+    },
+    {
+      "number": "5.1",
+      "title_tex": "Bound on \\texorpdfstring{$W_{1,f}$}{W1f} in terms of the Euclidean \\texorpdfstring{$W_1$}{W1}"
+    },
+    {
+      "number": "5.2",
+      "title_tex": "A uniform second-moment bound"
+    },
+    {
+      "number": "6",
+      "title_tex": "Discrete-time contraction for the unadjusted Langevin algorithm"
+    },
+    {
+      "number": "6.1",
+      "title_tex": "Setup and the main discrete bound"
+    },
+    {
+      "number": "6.2",
+      "title_tex": "One-step discretisation error"
+    },
+    {
+      "number": "6.3",
+      "title_tex": "A moment bound along the ULA trajectory"
+    },
+    {
+      "number": "6.4",
+      "title_tex": "Proof of Theorem~\\ref{thm:ula}"
+    },
+    {
+      "number": "6.5",
+      "title_tex": "Mixing-time consequence"
+    },
+    {
+      "number": "7",
+      "title_tex": "Uniform-in-time propagation of chaos for the mean-field system"
+    },
+    {
+      "number": "7.1",
+      "title_tex": "Setup"
+    },
+    {
+      "number": "7.2",
+      "title_tex": "Proof of Theorem~\\ref{thm:poc}"
+    },
+    {
+      "number": "8",
+      "title_tex": "Sharpness of the exponent"
+    },
+    {
+      "number": "9",
+      "title_tex": "The critical threshold $K \\uparrow \\sqrt m$"
+    },
+    {
+      "number": "10",
+      "title_tex": "Numerical experiments"
+    },
+    {
+      "number": "10.1",
+      "title_tex": "Setup"
+    },
+    {
+      "number": "10.2",
+      "title_tex": "E1: Contraction rate vs. theoretical $c^\\star = m - K\\sqrt m$"
+    },
+    {
+      "number": "10.3",
+      "title_tex": "E2: Dimension freeness"
+    },
+    {
+      "number": "10.4",
+      "title_tex": "E3: ULA discretisation bias scaling"
+    },
+    {
+      "number": "10.5",
+      "title_tex": "E4: Bayesian logistic regression posterior"
+    },
+    {
+      "number": "10.6",
+      "title_tex": "E5: Critical relaxation time as $K \\uparrow \\sqrt m$"
+    },
+    {
+      "number": "10.7",
+      "title_tex": "Discussion of empirical rates"
+    },
+    {
+      "number": "11",
+      "title_tex": "Remarks"
+    }
+  ],
+  "related_papers": [
+    {
+      "slug": "sr_p001",
+      "relation": "shared_tool",
+      "note": "Both use coupling methods to derive quantitative convergence rates"
+    }
+  ],
+  "figures": [],
+  "generation": {
+    "model": "claude-sonnet-4-6",
+    "generated_at": "2026-04-16T01:35:38.713145+00:00",
+    "prompt_version": "v1",
+    "langs": [
+      "en"
+    ]
+  },
+  "repo": "structural",
+  "repo_root": "E:/Anaconda/structural_research",
+  "project_id": "p006",
+  "quality": {
+    "tier": "A",
+    "target_venues": [
+      "venues"
+    ],
+    "phase": 4.6,
+    "project_status": "completed_tier_a",
+    "significance_max": 16,
+    "significance_score": 7,
+    "critic_verdict": "PASS_WITH_MAJOR",
+    "dimensions": {
+      "correctness": "acceptable",
+      "rigor": "acceptable",
+      "novelty": "weak",
+      "framing": "strong",
+      "coherence": "acceptable"
+    },
+    "assessed_by": "unified_critic"
+  }
+}

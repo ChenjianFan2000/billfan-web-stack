@@ -1,0 +1,299 @@
+{
+  "domains": {
+    "market_microstructure": {
+      "label": {
+        "zh": "market microstructure",
+        "en": "market microstructure"
+      },
+      "papers": [
+        "cross_impact",
+        "uniswap_tick_correction"
+      ]
+    },
+    "derivatives": {
+      "label": {
+        "zh": "derivatives",
+        "en": "derivatives"
+      },
+      "papers": [
+        "cross_impact",
+        "discrete_vs_rough",
+        "sr_p001",
+        "sr_p005",
+        "variance_options"
+      ]
+    },
+    "rough_volatility": {
+      "label": {
+        "zh": "rough volatility",
+        "en": "rough volatility"
+      },
+      "papers": [
+        "discrete_vs_rough",
+        "sr_p005",
+        "variance_options"
+      ]
+    },
+    "variance_options": {
+      "label": {
+        "zh": "variance options",
+        "en": "variance options"
+      },
+      "papers": [
+        "discrete_vs_rough",
+        "sr_p005",
+        "variance_options"
+      ]
+    },
+    "portfolio_games": {
+      "label": {
+        "zh": "portfolio games",
+        "en": "portfolio games"
+      },
+      "papers": [
+        "mv_games",
+        "sr_p001",
+        "sr_p006"
+      ]
+    },
+    "systemic_risk": {
+      "label": {
+        "zh": "systemic risk",
+        "en": "systemic risk"
+      },
+      "papers": [
+        "mv_games",
+        "project8",
+        "var_ratio"
+      ]
+    },
+    "stablecoins": {
+      "label": {
+        "zh": "stablecoins",
+        "en": "stablecoins"
+      },
+      "papers": [
+        "project7"
+      ]
+    },
+    "credit_risk": {
+      "label": {
+        "zh": "credit risk",
+        "en": "credit risk"
+      },
+      "papers": [
+        "project7",
+        "project8",
+        "var_ratio"
+      ]
+    },
+    "random_matrix_theory": {
+      "label": {
+        "zh": "random matrix theory",
+        "en": "random matrix theory"
+      },
+      "papers": [
+        "project8"
+      ]
+    },
+    "defi": {
+      "label": {
+        "zh": "defi",
+        "en": "defi"
+      },
+      "papers": [
+        "uniswap_tick_correction"
+      ]
+    }
+  },
+  "math_tools": {
+    "fourier_analysis": {
+      "label": {
+        "zh": "fourier analysis",
+        "en": "fourier analysis"
+      },
+      "papers": [
+        "cross_impact",
+        "discrete_vs_rough",
+        "project7",
+        "uniswap_tick_correction"
+      ]
+    },
+    "large_deviations": {
+      "label": {
+        "zh": "large deviations",
+        "en": "large deviations"
+      },
+      "papers": [
+        "cross_impact",
+        "discrete_vs_rough",
+        "mv_games",
+        "project7",
+        "sr_p005",
+        "sr_p006",
+        "uniswap_tick_correction",
+        "variance_options"
+      ]
+    },
+    "perturbation_expansion": {
+      "label": {
+        "zh": "perturbation expansion",
+        "en": "perturbation expansion"
+      },
+      "papers": [
+        "cross_impact",
+        "discrete_vs_rough",
+        "mv_games",
+        "project7",
+        "sr_p001",
+        "sr_p005",
+        "sr_p006",
+        "uniswap_tick_correction",
+        "var_ratio",
+        "variance_options"
+      ]
+    },
+    "linear_spectral_statistics": {
+      "label": {
+        "zh": "linear spectral statistics",
+        "en": "linear spectral statistics"
+      },
+      "papers": [
+        "cross_impact",
+        "project8"
+      ]
+    },
+    "malliavin_calculus": {
+      "label": {
+        "zh": "malliavin calculus",
+        "en": "malliavin calculus"
+      },
+      "papers": [
+        "discrete_vs_rough"
+      ]
+    },
+    "monte_carlo": {
+      "label": {
+        "zh": "monte carlo",
+        "en": "monte carlo"
+      },
+      "papers": [
+        "discrete_vs_rough",
+        "mv_games",
+        "project7",
+        "sr_p001",
+        "sr_p005",
+        "sr_p006",
+        "uniswap_tick_correction",
+        "var_ratio",
+        "variance_options"
+      ]
+    },
+    "dubins_schwarz": {
+      "label": {
+        "zh": "dubins schwarz",
+        "en": "dubins schwarz"
+      },
+      "papers": [
+        "mv_games"
+      ]
+    },
+    "fixed_point_theory": {
+      "label": {
+        "zh": "fixed point theory",
+        "en": "fixed point theory"
+      },
+      "papers": [
+        "mv_games",
+        "project8",
+        "sr_p001",
+        "sr_p005",
+        "sr_p006",
+        "var_ratio",
+        "variance_options"
+      ]
+    },
+    "freidlin_wentzell": {
+      "label": {
+        "zh": "freidlin wentzell",
+        "en": "freidlin wentzell"
+      },
+      "papers": [
+        "project7"
+      ]
+    },
+    "random_matrix_theory": {
+      "label": {
+        "zh": "random matrix theory",
+        "en": "random matrix theory"
+      },
+      "papers": [
+        "project8"
+      ]
+    },
+    "tracy_widom": {
+      "label": {
+        "zh": "tracy widom",
+        "en": "tracy widom"
+      },
+      "papers": [
+        "project8"
+      ]
+    },
+    "bai_silverstein": {
+      "label": {
+        "zh": "bai silverstein",
+        "en": "bai silverstein"
+      },
+      "papers": [
+        "project8"
+      ]
+    },
+    "chebyshev_expansion": {
+      "label": {
+        "zh": "chebyshev expansion",
+        "en": "chebyshev expansion"
+      },
+      "papers": [
+        "project8"
+      ]
+    },
+    "bsde": {
+      "label": {
+        "zh": "bsde",
+        "en": "bsde"
+      },
+      "papers": [
+        "sr_p001"
+      ]
+    },
+    "euler_maclaurin": {
+      "label": {
+        "zh": "euler maclaurin",
+        "en": "euler maclaurin"
+      },
+      "papers": [
+        "sr_p005",
+        "uniswap_tick_correction"
+      ]
+    },
+    "berry_esseen": {
+      "label": {
+        "zh": "berry esseen",
+        "en": "berry esseen"
+      },
+      "papers": [
+        "var_ratio"
+      ]
+    },
+    "ermakov_pinney": {
+      "label": {
+        "zh": "ermakov pinney",
+        "en": "ermakov pinney"
+      },
+      "papers": [
+        "variance_options"
+      ]
+    }
+  }
+}

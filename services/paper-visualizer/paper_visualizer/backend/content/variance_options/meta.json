@@ -1,0 +1,837 @@
+{
+  "slug": "variance_options",
+  "source": {
+    "tex_path": "output/variance_options/main_v2.tex",
+    "pdf_path": "output/variance_options/main_v2.pdf",
+    "source_hash": "sha256:50c1b20090363fee3f9d95699ef546242f8009bb3b2cc0177ad1e4f0d2e5ef1e",
+    "ingested_at": "2026-04-16T01:25:47.880836+00:00"
+  },
+  "title": {
+    "en": "Perturbation expansion of the rate function for short-maturity variance options in local-stochastic volatility models: analyticity, explicit Heston solutions, and the Alo\\`s connection",
+    "zh": "局部随机波动率模型中短期方差期权速率函数的微扰展开：解析性、显式Heston解与Aloş联系"
+  },
+  "short_title": {
+    "zh": "短期方差期权展开",
+    "en": "Rate Function Expansion for Short-Maturity Variance Options"
+  },
+  "author": "First Author\\thanks{Affiliation. Email.}",
+  "date": "\\today",
+  "status": "draft",
+  "abstract": {
+    "tex": "We establish the analyticity and derive an explicit perturbation expansion of the rate function governing the short-maturity asymptotics of options on realized variance in local-stochastic volatility (LSV) models. The rate function $I_\\rho$, which arises from a constrained variational problem parametrized by the asset--volatility correlation $\\rho$, is shown to be real-analytic in $\\rho$ on an interval $(-r,r)$ with $r>0$, via the analytic implicit function theorem in Banach spaces applied to the Euler--Lagrange system. This yields the rigorous expansion\n\\[\n  I_\\rho = \\sum_{k=0}^{N} I_k\\,\\rho^k + R_{N+1}(\\rho), \\qquad\n  |R_{N+1}(\\rho)| \\leq \\frac{M\\,|\\rho|^{N+1}}{r - |\\rho|},\n\\]\nwhere the first-order correction $I_1 = -C[g_0,h_0]$ is a single integral over the known $\\rho=0$ optimal paths, computed via the envelope theorem. For pure stochastic volatility models (constant local volatility $\\eta$), we establish a much stronger result: $I_\\rho = I_0$ for all $\\rho \\in (-1,1)$, i.e., the rate function is completely independent of the asset--volatility correlation. The mechanism is that the free-endpoint asset path absorbs the correlation at zero action cost.\n\nIn the Heston model, we show that the $\\rho=0$ variational problem reduces to the classical Ermakov--Pinney equation, yielding the explicit optimal variance path $v(t) = V_0/(1 - p + p(t-1)^2)$ and a closed-form expression for $I_0$ involving elementary functions. The parameter $p$ is determined implicitly by the variance strike. We cross-validate this formula against the near-ATM asymptotics of Pirjol--Wang--Zhu and identify a structural prediction: $I_0$ saturates as the strike $K\\to\\infty$, implying that the variance option smile flattens in the far wing.\n\nFinally, we establish a connection between our perturbation expansion and the Alo\\`s decomposition of option prices. Both expansions are controlled by the same cross-correlation functional $C[g,h]$, but they operate at different points of the price distribution: the Alo\\`s decomposition controls the bulk (moderate strikes), while our rate-function expansion controls the tail (extreme strikes). For constant local volatility, both independently predict correlation invariance of the rate function, providing a non-trivial cross-validation. The correlation-invariance result $I_\\rho = I_0$ for pure SV models is confirmed numerically to machine precision, and the perturbation expansion for general LSV models is validated by Monte Carlo simulation.",
+    "en": "This paper establishes analyticity and derives an explicit perturbation expansion of the rate function governing short-maturity asymptotics of variance options in local-stochastic volatility models. Using the analytic implicit function theorem in Banach spaces applied to the Euler-Lagrange system, the rate function is shown to be real-analytic in correlation ρ with explicit error bounds. For the Heston model, the ρ=0 variational problem reduces to the Ermakov-Pinney equation, yielding closed-form optimal paths. A structural connection to the Aloş decomposition is established, with both controlled by the same cross-correlation functional but operating at different regions of the price distribution.",
+    "zh": "本文研究局部随机波动率模型中已实现方差期权短到期渐近的速率函数解析性及微扰展开。通过Banach空间中的隐函数定理，证明速率函数关于资产-波动率相关系数ρ是实解析的，并给出带误差界的显式展开式。对Heston模型，ρ=0时的变分问题化为Ermakov-Pinney方程，得到最优方差路径的解析表达式。进一步揭示微扰展开与Aloş分解之间的结构联系，两者均由相同的交叉相关泛函控制，前者描述尾部行为，后者描述主体定价。"
+  },
+  "domain": [
+    "variance_options",
+    "derivatives",
+    "rough_volatility"
+  ],
+  "math_tools": [
+    "perturbation_expansion",
+    "ermakov_pinney",
+    "large_deviations",
+    "monte_carlo",
+    "fixed_point_theory"
+  ],
+  "prerequisites": [
+    {
+      "topic_id": "large_deviations_theory",
+      "level": "advanced",
+      "why": "The rate function arises from large deviations asymptotics of the variance process."
+    },
+    {
+      "topic_id": "calculus_of_variations",
+      "level": "advanced",
+      "why": "The rate function is defined via a constrained variational problem with Euler-Lagrange equations."
+    },
+    {
+      "topic_id": "stochastic_volatility_models",
+      "level": "intermediate",
+      "why": "The paper works throughout with local-stochastic volatility and Heston models."
+    },
+    {
+      "topic_id": "functional_analysis",
+      "level": "intermediate",
+      "why": "Analytic implicit function theorem in Banach spaces is the key analytical tool."
+    },
+    {
+      "topic_id": "odes_boundary_value_problems",
+      "level": "intermediate",
+      "why": "The Ermakov-Pinney ODE and linearized BVP systems appear throughout."
+    }
+  ],
+  "main_theorems": [
+    {
+      "id": "lem:CS",
+      "env": "lemma",
+      "statement_tex": "For any $(g,h) \\in \\AC[0,1]^2$, the cross-correlation functional satisfies\n\\begin{equation}\\label{eq:CS_bound}\n  |C[g,h]| \\leq \\sqrt{A[g,h]}\\cdot\\sqrt{B[g,h]} \\leq \\frac{A[g,h] + B[g,h]}{2} = \\Lambda_0[g,h].\n\\end{equation}\nEquality in the first inequality holds if and only if $g'(t)/(\\eta(e^{g(t)})e^{h(t)/2})$ and $h'(t)/\\sigma(e^{h(t)})$ are proportional pointwise almost everywhere on $[0,1]$.",
+      "section_number": "2.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:rho0",
+      "env": "proposition",
+      "statement_tex": "Suppose Assumptions~\\ref{asm:regularity}--\\ref{asm:nondegen} hold and $\\eta(\\cdot)$ is non-increasing. When $\\rho = 0$, the rate function $I_0(S_0, V_0, K)$ is given by a one-dimensional optimization problem involving the rate function $J(V_0, z)$ for Asian options in a local volatility model with volatility $\\sigma(\\cdot)$, as specified in equations~(3.6)--(3.8) of~\\cite{PWZ2025}. The optimal paths $(g_0, h_0)$ that achieve the infimum in~\\eqref{eq:variational} at $\\rho = 0$ are given explicitly in Remark~10 of~\\cite{PWZ2025}.",
+      "section_number": "3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:separation",
+      "env": "lemma",
+      "statement_tex": "When $\\eta(\\cdot) \\equiv \\eta_0$ is constant (pure stochastic volatility model), the $\\rho=0$ optimal asset path is identically constant: $g_0(t) \\equiv \\log S_0$ for all $t \\in [0,1]$. The entire variational problem reduces to optimizing over the volatility path $h_0$ alone:\n\\begin{equation}\\label{eq:reduced_var}\n  I_0 = \\inf_{\\substack{h(0) = \\log V_0,\\; h'(1) = 0 \\\\ \\int_0^1 \\eta_0^2\\,e^{h(t)}\\,\\dd t = K}} \\frac{1}{2}\\,B[h],\n\\end{equation}\nwhere $B[h] := \\int_0^1 (h'(t))^2/\\sigma^2(e^{h(t)})\\,\\dd t$.",
+      "section_number": "3.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:transversality",
+      "env": "lemma",
+      "statement_tex": "Under the conditions of Proposition~\\ref{prop:rho0}, the $\\rho=0$ optimal volatility path $h_0$ satisfies:\n\\begin{enumerate}[label=(\\alph*)]\n  \\item $h_0'(1) = 0$ (transversality condition).\n  \\item For $K > V_0\\eta_0^2$ (OTM variance call), $h_0$ is strictly increasing on $[0,1)$ and achieves its maximum at $t=1$.\n  \\item For $K < V_0\\eta_0^2$ (OTM variance put), $h_0$ is strictly decreasing on $[0,1)$ and achieves its minimum at $t=1$.\n\\end{enumerate}",
+      "section_number": "3.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:main",
+      "env": "theorem",
+      "statement_tex": "Under Assumptions~\\ref{asm:regularity}--\\ref{asm:nondegen}, the rate function admits the expansion\n\\begin{equation}\\label{eq:first_order}\n  I_\\rho = I_0 - \\rho\\, C[g_0, h_0] + O(\\rho^2),\n\\end{equation}\nwhere $C[g_0, h_0]$ is the cross-correlation integral~\\eqref{eq:C_def} evaluated on the $\\rho = 0$ optimal paths.\n\nEquivalently,\n\\begin{equation}\\label{eq:I1}\n  I_1 := \\left.\\frac{\\dd I_\\rho}{\\dd\\rho}\\right|_{\\rho=0}\n  = -\\int_0^1 \\frac{g_0'(t)\\,h_0'(t)}{\\eta\\bigl(e^{g_0(t)}\\bigr)\\,e^{h_0(t)/2}\\,\\sigma\\bigl(e^{h_0(t)}\\bigr)}\\,\\dd t = -C_0.\n\\end{equation}",
+      "section_number": "4.1",
+      "label": {
+        "zh": "一阶微扰展开定理",
+        "en": "First-Order Perturbation Expansion"
+      },
+      "key_ideas": {
+        "zh": [
+          "包络定理",
+          "交叉相关泛函"
+        ],
+        "en": [
+          "envelope theorem",
+          "cross-correlation functional"
+        ]
+      }
+    },
+    {
+      "id": "thm:second_order",
+      "env": "theorem",
+      "statement_tex": "Under the assumptions of Theorem~\\ref{thm:main}, the second-order correction to the rate function is\n\\begin{equation}\\label{eq:I2}\n  I_2 := \\frac{1}{2}\\frac{\\dd^2 I_\\rho}{\\dd\\rho^2}\\bigg|_{\\rho=0} = I_0 - \\frac{1}{2}\\,\\delta C[g_0, h_0]\\cdot(g_1, h_1),\n\\end{equation}\nwhere $(g_1, h_1)$ is the solution of the linearized system~\\eqref{eq:linearized}, and $\\delta C[g_0,h_0]\\cdot(g_1,h_1)$ denotes the first variation of $C$ at $(g_0,h_0)$ in the direction $(g_1,h_1)$:\n\\begin{equation}\\label{eq:delta_C}\n  \\delta C \\cdot (g_1, h_1) = \\left.\\frac{\\dd}{\\dd\\epsilon}\\right|_{\\epsilon=0} C[g_0 + \\epsilon g_1, h_0 + \\epsilon h_1].\n\\end{equation}\n\nCombining with Theorem~\\ref{thm:main}, the rate function through second order is:\n\\begin{equation}\\label{eq:Irho_2nd}\n  I_\\rho = I_0 - \\rho\\,C_0 + \\rho^2\\!\\left(I_0 - \\tfrac{1}{2}\\,\\delta C\\cdot(g_1,h_1)\\right) + O(\\rho^3).\n\\end{equation}",
+      "section_number": "4.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:general_In",
+      "env": "proposition",
+      "statement_tex": "For $n \\geq 1$, the $n$-th order correction has the form\n\\begin{equation}\n  I_n = a_n\\,I_0 + b_n\\,C_0 + \\text{terms involving } (g_1, h_1), \\ldots, (g_{\\lfloor n/2 \\rfloor}, h_{\\lfloor n/2 \\rfloor}),\n\\end{equation}\nwhere $a_n, b_n$ are universal constants arising from the expansion of $1/(1-\\rho^2)$. Specifically, $a_n = 1$ for $n$ even and $a_n = 0$ for $n$ odd, while $b_n = -1$ for $n$ odd and $b_n = 0$ for $n$ even (to leading order, before path corrections).",
+      "section_number": "4.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "cor:constant",
+      "env": "corollary",
+      "statement_tex": "When $\\eta(\\cdot) \\equiv \\eta_0$ and $\\sigma(\\cdot) \\equiv \\sigma_0$, the first-order correction is\n\\begin{equation}\\label{eq:I1_const}\n  I_1 = -\\frac{1}{\\eta_0\\,\\sigma_0}\\int_0^1 g_0'(t)\\,h_0'(t)\\,e^{-h_0(t)/2}\\,\\dd t,\n\\end{equation}\nwhere $g_0(t)$ and $h_0(t)$ are the $\\rho = 0$ optimal paths.\n\nThe second-order correction $I_2$ admits a semi-explicit representation. When $\\eta \\equiv \\eta_0$ and $\\sigma \\equiv \\sigma_0$ are constant, the linearized BVP~\\eqref{eq:linearized} for $(g_1, h_1)$ becomes a system of the form\n\\begin{equation}\\label{eq:const_BVP}\n  \\begin{pmatrix} g_1'' \\\\ h_1'' \\end{pmatrix}\n  = \\begin{pmatrix} \\alpha(t) & \\beta(t) \\\\ \\gamma(t) & \\delta(t) \\end{pmatrix}\n    \\begin{pmatrix} g_1 \\\\ h_1 \\end{pmatrix}\n  + \\begin{pmatrix} F_g(t) \\\\ F_h(t) \\end{pmatrix},\n\\end{equation}\nwhere the coefficient functions $\\alpha, \\beta, \\gamma, \\delta$ depend on $g_0, h_0$ and $\\lambda_0$, and the forcing terms $F_g, F_h$ arise from $\\delta C[g_0, h_0; \\cdot]$.\n\nIn the pure stochastic volatility sub-case ($\\eta \\equiv \\eta_0$, $g_0 \\equiv \\log S_0$), the constraint $\\Phi[g,h] = \\eta_0^2\\int_0^1 e^{h}\\,dt - K$ is independent of~$g$, so $\\delta_g\\Phi = 0$ and $\\delta^2_{gg}\\Phi = 0$. The $g_1$-equation therefore contains no $\\lambda_0$ term and reduces to the first-order relation\n\\begin{equation}\\label{eq:g1_ODE}\n  e^{-h_0(t)}\\,g_1'(t) = \\frac{\\eta_0}{\\sigma_0}\\,h_0'(t)\\,e^{-h_0(t)/2} + c,\n  \\qquad g_1(0) = 0,\\;\\; g_1'(1) = 0,\n\\end{equation}\nwhere $c$ is determined by the transversality condition $g_1'(1) = 0$. Equivalently, $g_1'(t) = (\\eta_0/\\sigma_0)\\,h_0'(t)\\,e^{h_0(t)/2} + c\\,e^{h_0(t)}$. Since $h_0'(1) = 0$ (transversality of $h_0$), we get $c = 0$, and hence\n\\begin{equation}\\label{eq:g1_explicit}\n  g_1'(t) = \\frac{\\eta_0}{\\sigma_0}\\,h_0'(t)\\,e^{h_0(t)/2}.\n\\end{equation}\nThe second-order correction then satisfies (from~\\eqref{eq:I2} with $h_1 = 0$):\n\\begin{equation}\\label{eq:I2_const}\n  I_2 = I_0 - \\frac{1}{2}\\,\\delta C\\cdot(g_1, 0) = I_0 - \\frac{1}{2\\,\\sigma_0^2}\\int_0^1 (h_0'(t))^2\\,\\dd t = I_0 - I_0 = 0,\n\\end{equation}\nwhere the last equality uses $I_0 = B_0/2 = (2\\sigma_0^2)^{-1}\\int_0^1 (h_0')^2\\,\\dd t$. Thus $I_2 = 0$ in the pure SV case with constant $\\sigma$.",
+      "section_number": "4.4",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "cor:SV",
+      "env": "corollary",
+      "statement_tex": "When $\\eta(\\cdot) \\equiv \\eta_0$ is constant, the rate function is independent of the correlation:\n\\begin{equation}\\label{eq:SV_expansion}\n  I_\\rho = I_0 \\qquad \\text{for all } \\rho \\in (-1,1) \\qquad (\\text{constant } \\eta).\n\\end{equation}\nThat is, $I_k = 0$ for all $k \\geq 1$. Equivalently, $I_\\rho$ extends continuously to $\\rho = \\pm 1$ with $I_{\\pm 1} = I_0$.",
+      "section_number": "4.4",
+      "label": {
+        "zh": "纯SV相关不变性",
+        "en": "Correlation Invariance for Pure SV"
+      },
+      "key_ideas": {
+        "zh": [
+          "相关不变性",
+          "常数局部波动率"
+        ],
+        "en": [
+          "correlation invariance",
+          "constant local volatility"
+        ]
+      }
+    },
+    {
+      "id": "prop:nearATM",
+      "env": "proposition",
+      "statement_tex": "The near-ATM limit of the first-order correction $I_1$ from Theorem~\\ref{thm:main} agrees with the $O(\\rho)$ coefficient in~\\eqref{eq:PWZ_nearATM}:\n\\begin{equation}\n  \\lim_{x \\to 0} \\frac{I_1}{x^2} = -\\frac{6\\sigma_0\\eta_1\\sqrt{V_0}}{(\\sigma_0^2 + 4\\eta_1^2 V_0)^2}.\n\\end{equation}\nIn particular, when $\\eta_1 = 0$ (constant local volatility), the near-ATM limit confirms $I_1 = 0$.",
+      "section_number": "4.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:Lambda_analytic",
+      "env": "lemma",
+      "statement_tex": "For any fixed $(g,h) \\in \\mathcal{X}$, the map $\\rho \\mapsto \\Lambda_\\rho[g,h]$ is real-analytic on $(-1,1)$.",
+      "section_number": "5.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:F_analytic",
+      "env": "lemma",
+      "statement_tex": "Under Assumption~\\ref{asm:regularity}, the Euler--Lagrange map $F$ is real-analytic as a map $\\mathcal{X} \\times (-1,1) \\to \\mathcal{Y}$.",
+      "section_number": "5.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:invertibility",
+      "env": "lemma",
+      "statement_tex": "Under Assumption~\\ref{asm:nondegen}, the bordered operator~\\eqref{eq:bordered} is invertible as a map $\\Hone_0[0,1]^2 \\times \\R \\to (H^{-1}[0,1])^2 \\times \\R$.",
+      "section_number": "5.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:analyticity",
+      "env": "theorem",
+      "statement_tex": "Under Assumptions~\\ref{asm:regularity}--\\ref{asm:nondegen}, there exists $r > 0$ such that:\n\\begin{enumerate}[label=(\\roman*)]\n  \\item The minimizer $(g^*(\\rho), h^*(\\rho), \\lambda^*(\\rho))$ is real-analytic as a map $(-r,r) \\to \\Hone[0,1]^2 \\times \\R$.\n  \\item The rate function $I_\\rho = \\Lambda_\\rho[g^*(\\rho), h^*(\\rho)]$ is real-analytic on $(-r,r)$.\n  \\item The convergence radius satisfies\n  \\begin{equation}\\label{eq:r_bound}\n    r \\geq \\frac{\\alpha}{\\|D_\\rho F|_0\\|},\n  \\end{equation}\n  where $\\alpha$ is the coercivity constant~\\eqref{eq:coercivity} and $\\|D_\\rho F|_0\\|$ is the operator norm of the $\\rho$-derivative of $F$ at the origin.\n  \\item For any $N \\geq 0$ and $|\\rho| < r$, the truncation error satisfies\n  \\begin{equation}\\label{eq:error_bound}\n    \\left|I_\\rho - \\sum_{k=0}^N I_k\\,\\rho^k\\right| \\leq \\frac{M\\,|\\rho|^{N+1}}{r - |\\rho|},\n  \\end{equation}\n  where $M = \\sup_{|\\rho| < r} |I_\\rho|$.\n\\end{enumerate}",
+      "section_number": "5.4",
+      "label": {
+        "zh": "速率函数解析性定理",
+        "en": "Analyticity of Rate Function"
+      },
+      "key_ideas": {
+        "zh": [
+          "Banach空间隐函数定理",
+          "Euler-Lagrange算子可逆性"
+        ],
+        "en": [
+          "analytic implicit function theorem",
+          "invertibility of bordered operator"
+        ]
+      }
+    },
+    {
+      "id": "prop:doubled_radius",
+      "env": "proposition",
+      "statement_tex": "When $\\eta \\equiv \\eta_0$ is constant, $I_\\rho = I_0$ for all $\\rho \\in (-1,1)$. The Taylor series $\\sum_{k=0}^\\infty I_k\\,\\rho^k$ reduces to $I_0$, with convergence radius $r = \\infty$ (in the sense that all non-constant coefficients vanish, so the partial sums equal $I_0$ at every truncation order).\n\\begin{equation}\\label{eq:doubled_error}\n  I_\\rho - I_0 = 0 \\qquad \\text{for all } \\rho \\in (-1,1),\\;\\; \\eta \\text{ constant}.\n\\end{equation}",
+      "section_number": "5.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:heston_coercivity",
+      "env": "proposition",
+      "statement_tex": "In the Heston model ($\\eta \\equiv 1$, $\\sigma(V) = \\xi\\sqrt{V}$), the coercivity constant of $\\delta^2\\mathcal{L}_0$ on the constraint tangent space satisfies\n\\begin{equation}\\label{eq:heston_coercivity}\n  \\alpha \\geq \\min\\!\\left(1, \\frac{1}{\\xi^2}\\right) \\cdot e^{-h_{\\max}},\n\\end{equation}\nwhere $h_{\\max} := \\max_{t \\in [0,1]} h_0(t)$ is the maximum of the optimal $\\rho=0$ log-variance path.",
+      "section_number": "5.6",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:heston",
+      "env": "theorem",
+      "statement_tex": "In the Heston model, the $\\rho=0$ optimal variance path and rate function are given explicitly as follows.\n\n\\textbf{(i) Optimal variance path.} Define $p \\in (0,1)$ by the constraint equation\n\\begin{equation}\\label{eq:p_equation}\n  \\frac{\\arctan\\!\\left(\\sqrt{p/(1-p)}\\right)}{\\sqrt{p\\,(1-p)}} = \\frac{K}{V_0}.\n\\end{equation}\nThen the optimal variance path is\n\\begin{equation}\\label{eq:v_optimal}\n  v^*(t) = \\frac{V_0}{1 - p + p(t-1)^2}, \\qquad t \\in [0,1],\n\\end{equation}\nand the optimal log-variance path is\n\\begin{equation}\\label{eq:h_optimal}\n  h_0(t) = \\log V_0 - \\log\\bigl(1 - p + p(t-1)^2\\bigr).\n\\end{equation}\n\n\\textbf{(ii) Rate function.} The $\\rho=0$ rate function is\n\\begin{equation}\\label{eq:I0_heston}\n  I_0(K) = \\frac{2p}{\\xi^2 V_0}\\left[1 - \\sqrt{\\frac{1-p}{p}}\\,\\arctan\\!\\left(\\sqrt{\\frac{p}{1-p}}\\right)\\right],\n\\end{equation}\nwhere $p = p(K/V_0)$ is determined by~\\eqref{eq:p_equation}.\n\n\\textbf{(iii) Lagrange multiplier.} The Lagrange multiplier is $\\lambda_0 = I_0/K$.",
+      "section_number": "6.3",
+      "label": {
+        "zh": "Heston显式解定理",
+        "en": "Explicit Heston Solution"
+      },
+      "key_ideas": {
+        "zh": [
+          "Ermakov-Pinney方程",
+          "最优方差路径"
+        ],
+        "en": [
+          "Ermakov-Pinney equation",
+          "optimal variance path"
+        ]
+      }
+    },
+    {
+      "id": "cor:heston_properties",
+      "env": "corollary",
+      "statement_tex": "The optimal variance path~\\eqref{eq:v_optimal} satisfies:\n\\begin{enumerate}[label=(\\alph*)]\n  \\item $v^*(0) = V_0$ and $v^{*\\prime}(1) = 0$ (boundary and transversality conditions).\n  \\item $v^*(t)$ achieves its maximum at $t = 1$: $\\max_{t \\in [0,1]} v^*(t) = V_0/(1-p)$.\n  \\item For $K > V_0$ (OTM call): $p > 0$ and $v^*(t)$ is increasing on $[0,1]$.\n  \\item For $K = V_0$ (ATM): $p = 0$ and $v^*(t) \\equiv V_0$.\n  \\item For $K < V_0$ (OTM put): $p < 0$ and $v^*(t)$ is decreasing on $[0,1]$. In this case, the arctan in~\\eqref{eq:p_equation} is replaced by arctanh:\n  \\begin{equation}\\label{eq:p_put}\n    \\frac{\\mathrm{arctanh}\\!\\left(\\sqrt{|p|/(1+|p|)}\\right)}{\\sqrt{|p|\\,(1+|p|)}} = \\frac{K}{V_0}.\n  \\end{equation}\n\\end{enumerate}",
+      "section_number": "6.4",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:heston_nearATM",
+      "env": "proposition",
+      "statement_tex": "In the Heston model, as $K \\to V_0$ (i.e., $x := \\log(K/V_0) \\to 0$):\n\\begin{equation}\\label{eq:heston_nearATM}\n  I_0(K) = \\frac{3}{2\\xi^2 V_0}\\,x^2 + O(x^3).\n\\end{equation}",
+      "section_number": "6.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:saturation",
+      "env": "proposition",
+      "statement_tex": "In the Heston model, as $K \\to \\infty$:\n\\begin{equation}\\label{eq:saturation}\n  I_0(K) \\;\\to\\; I_0^{\\max} := \\frac{2}{\\xi^2 V_0}.\n\\end{equation}\nMore precisely, as $p \\to 1^-$:\n\\begin{equation}\n  I_0(K) = \\frac{2}{\\xi^2 V_0}\\left[1 - \\sqrt{\\frac{1-p}{p}}\\,\\frac{\\pi}{2} + O(1-p)\\right] \\to \\frac{2}{\\xi^2 V_0}.\n\\end{equation}",
+      "section_number": "6.6",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:heston_I2",
+      "env": "proposition",
+      "statement_tex": "In the Heston model, $I_\\rho = I_0$ for all $\\rho \\in (-1,1)$. The optimal paths at correlation $\\rho$ are given explicitly by\n\\begin{equation}\\label{eq:h_rho_heston}\n  h^*(t) = h_0(t), \\qquad g^*(t) = \\log S_0 - \\frac{\\rho}{\\xi}\\log q(t),\n\\end{equation}\nwhere $q(t) = 1 - p + p(t-1)^2$ and $h_0(t) = \\log V_0 - \\log q(t)$ is the $\\rho=0$ optimal log-variance path. The first-order path correction is\n\\begin{equation}\\label{eq:g1_heston}\n  g_1(t) = -\\frac{1}{\\xi}\\log q(t), \\qquad g_1'(t) = \\frac{h_0'(t)}{\\xi},\n\\end{equation}\nwith $g_1(0) = 0$ and $g_1'(1) = 0$. Note that $g_1(1) = -\\frac{1}{\\xi}\\log(1-p) \\neq 0$: the endpoint $g(1)$ is free (transversality), not fixed.",
+      "section_number": "6.7",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:alos_connection",
+      "env": "theorem",
+      "statement_tex": "Consider a pure stochastic volatility model ($\\eta \\equiv 1$). Then:\n\\begin{enumerate}[label=(\\roman*)]\n  \\item In our rate-function expansion, $I_1 = -C[g_0, h_0] = 0$ because the $\\rho=0$ optimal asset path satisfies $g_0' \\equiv 0$.\n\n  \\item In the Alo\\`s decomposition for variance options, the first-order correction $\\Delta_1(T)$ is proportional to\n  \\begin{equation}\n    \\E\\!\\left[\\int_0^T \\Gamma_t^V \\cdot \\rho\\cdot \\langle \\dd S_t, \\dd V_t\\rangle\\right],\n  \\end{equation}\n  where $\\Gamma_t^V$ is the Gamma of the variance option payoff with respect to the variance. For variance options with payoff depending only on $\\int V_s\\,\\dd s$ (not on $S$), $\\Gamma_t^V$ with respect to the asset price is identically zero.\n\n  \\item Both results yield $I_\\rho = I_0$ (equivalently, all $\\Delta_k = 0$ at leading exponential order) for the same structural reason: with constant local volatility, the variance payoff has no direct dependence on the asset price, so the asset path can absorb the correlation at zero action cost. The first-order statement $I_1 = 0$ is a special case of the stronger result $I_k = 0$ for all $k \\geq 1$ (Corollary~\\ref{cor:SV}).\n\\end{enumerate}",
+      "section_number": "7.2",
+      "label": {
+        "zh": "Aloş联系定理",
+        "en": "Connection to Aloş Decomposition"
+      },
+      "key_ideas": {
+        "zh": [
+          "交叉相关泛函",
+          "尾部与主体对偶"
+        ],
+        "en": [
+          "cross-correlation functional",
+          "bulk-tail duality"
+        ]
+      }
+    },
+    {
+      "id": "prop:bulk_tail",
+      "env": "proposition",
+      "statement_tex": "The Alo\\`s decomposition and the rate-function perturbation expansion share the following structure:\n\\begin{enumerate}[label=(\\roman*)]\n  \\item \\textbf{Alo\\`s (bulk)}: The first-order $\\rho$-correction to the option price is controlled by $C[g,h]$ evaluated on the ``typical'' path (near the mode of the path measure).\n  \\item \\textbf{Rate function (tail)}: The first-order $\\rho$-correction to the rate function is controlled by $C[g,h]$ evaluated on the ``optimal fluctuation'' path (the instanton, i.e., the minimizer $(g_0, h_0)$).\n\\end{enumerate}\nThe same functional $C[g,h]$ is the universal first-order $\\rho$-sensitivity, evaluated at different paths.",
+      "section_number": "7.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:rho_to_1",
+      "env": "proposition",
+      "statement_tex": "Assume that $\\eta$ is non-constant and $K \\neq V_0\\eta(S_0)^2$ (away from ATM). Then the rate function satisfies\n\\begin{equation}\\label{eq:rho_to_1}\n  I_\\rho \\to +\\infty \\qquad \\text{as } \\rho \\to \\pm 1.\n\\end{equation}\nMore precisely, there exists a constant $\\delta > 0$ (depending on $K$, $V_0$, and $\\eta$) such that\n\\begin{equation}\n  I_\\rho \\;\\geq\\; \\frac{\\delta}{1 - \\rho^2} \\qquad \\text{for all } \\rho \\in (-1,1).\n\\end{equation}\nWhen $\\eta$ is constant, $I_\\rho = I_0$ for all $\\rho \\in (-1,1)$ by Corollary~\\ref{cor:SV}, and no divergence occurs.",
+      "section_number": "9.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "cor:smile_flattening",
+      "env": "corollary",
+      "statement_tex": "In the Heston model, the implied volatility of deep OTM variance calls satisfies\n\\begin{equation}\n  \\Sigma_V(K) = \\sqrt{\\frac{\\log^2(K/F_V)}{2\\,I_\\rho(K)}} \\sim \\frac{|\\log(K/F_V)|}{\\sqrt{2\\,I_0^{\\max}}} \\qquad \\text{as } K \\to \\infty,\n\\end{equation}\nwhere $I_0^{\\max} = 2/(\\xi^2 V_0)$. The implied volatility grows only as $\\log K$ in the far wing, rather than the faster growth observed for equity options.",
+      "section_number": "9.4",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:V0_limits",
+      "env": "proposition",
+      "statement_tex": "In the Heston model:\n\\begin{enumerate}[label=(\\alph*)]\n  \\item As $V_0 \\to 0^+$ with $K$ fixed: $I_0 \\to \\infty$ (it becomes exponentially unlikely that the integrated variance reaches $K$).\n  \\item As $V_0 \\to \\infty$ with $K$ fixed: $I_0 \\to 0$ (the constraint is easily satisfied by the initial condition alone).\n  \\item The rate function scales as $I_0 \\propto 1/V_0$ for $K/V_0$ fixed (from~\\eqref{eq:I0_heston}).\n\\end{enumerate}",
+      "section_number": "9.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:xi_limits",
+      "env": "proposition",
+      "statement_tex": "In the Heston model with fixed $K > V_0$:\n\\begin{enumerate}[label=(\\alph*)]\n  \\item As $\\xi \\to 0^+$: $I_0 \\to \\infty$ proportionally to $1/\\xi^2$. The optimal variance path $v^*(t) \\to V_0$ (constant path, since the variance process becomes deterministic), and the constraint $\\int v\\,\\dd t = K > V_0$ becomes impossible without large deformations, which incur large action.\n  \\item As $\\xi \\to \\infty$: $I_0 \\to 0$. The variance process has arbitrarily large fluctuations, making any constraint easy to satisfy.\n  \\item In the Heston model, $I_\\rho = I_0 \\propto 1/\\xi^2$ for all $\\rho$ (Corollary~\\ref{cor:SV}), so no convergence-radius question arises.\n\\end{enumerate}",
+      "section_number": "9.6",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:monotone_K",
+      "env": "proposition",
+      "statement_tex": "For fixed $\\rho \\in (-1,1)$, $S_0 > 0$, and $V_0 > 0$, the rate function $K \\mapsto I_\\rho(S_0, V_0, K)$ is strictly increasing on $(V_0\\eta_0^2, \\infty)$ and strictly decreasing on $(0, V_0\\eta_0^2)$, with $I_\\rho(S_0, V_0, V_0\\eta_0^2) = 0$ at the ATM point.",
+      "section_number": "17",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "cor:convex_ATM",
+      "env": "corollary",
+      "statement_tex": "In the Heston model, $I_0(K)$ is strictly convex in $\\log(K/V_0)$ near the ATM point. More precisely, $\\partial^2 I_0/\\partial x^2|_{x=0} = 3/\\xi^2 > 0$ from Proposition~\\ref{prop:heston_nearATM}.",
+      "section_number": "17",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    }
+  ],
+  "sections": [
+    {
+      "number": "1",
+      "title_tex": "Introduction"
+    },
+    {
+      "number": "2",
+      "title_tex": "Model and variational problem"
+    },
+    {
+      "number": "2.1",
+      "title_tex": "Decomposition of the action functional"
+    },
+    {
+      "number": "2.2",
+      "title_tex": "The constraint manifold"
+    },
+    {
+      "number": "3",
+      "title_tex": "Known results at $\\rho = 0$"
+    },
+    {
+      "number": "3.1",
+      "title_tex": "Structure of the $\\rho=0$ optimal paths"
+    },
+    {
+      "number": "4",
+      "title_tex": "Main result: perturbation expansion"
+    },
+    {
+      "number": "4.1",
+      "title_tex": "First-order correction"
+    },
+    {
+      "number": "4.2",
+      "title_tex": "Second-order correction"
+    },
+    {
+      "number": "4.3",
+      "title_tex": "Higher-order corrections"
+    },
+    {
+      "number": "4.4",
+      "title_tex": "Explicit formulas for constant coefficients"
+    },
+    {
+      "number": "4.5",
+      "title_tex": "Near-ATM limit of the perturbation expansion"
+    },
+    {
+      "number": "5",
+      "title_tex": "Analyticity and convergence"
+    },
+    {
+      "number": "5.1",
+      "title_tex": "The Euler--Lagrange map"
+    },
+    {
+      "number": "5.2",
+      "title_tex": "Analyticity of the action functional"
+    },
+    {
+      "number": "5.3",
+      "title_tex": "Invertibility of the bordered operator"
+    },
+    {
+      "number": "5.4",
+      "title_tex": "The analyticity theorem"
+    },
+    {
+      "number": "5.5",
+      "title_tex": "Complete cancellation for pure stochastic volatility"
+    },
+    {
+      "number": "5.6",
+      "title_tex": "Coercivity estimate for the Heston model"
+    },
+    {
+      "number": "6",
+      "title_tex": "Explicit solution in the Heston model"
+    },
+    {
+      "number": "6.1",
+      "title_tex": "The Heston model setup"
+    },
+    {
+      "number": "6.2",
+      "title_tex": "Change of variables to the $v$-coordinate"
+    },
+    {
+      "number": "6.3",
+      "title_tex": "The Ermakov--Pinney reduction"
+    },
+    {
+      "number": "6.4",
+      "title_tex": "Properties of the optimal variance path"
+    },
+    {
+      "number": "6.5",
+      "title_tex": "Near-ATM behavior and cross-validation"
+    },
+    {
+      "number": "6.6",
+      "title_tex": "Far-wing behavior: saturation of $I_0$"
+    },
+    {
+      "number": "6.7",
+      "title_tex": "Correlation invariance in the Heston model"
+    },
+    {
+      "number": "7",
+      "title_tex": "Connection with the Alo\\`s decomposition"
+    },
+    {
+      "number": "7.1",
+      "title_tex": "The Alo\\`s decomposition: review"
+    },
+    {
+      "number": "7.2",
+      "title_tex": "The cross-correlation functional as universal sensitivity"
+    },
+    {
+      "number": "7.3",
+      "title_tex": "Bulk vs.\\ tail duality"
+    },
+    {
+      "number": "7.4",
+      "title_tex": "Higher-order connections"
+    },
+    {
+      "number": "8",
+      "title_tex": "Numerical validation"
+    },
+    {
+      "number": "8.1",
+      "title_tex": "Tanh LSV model"
+    },
+    {
+      "number": "8.1.1",
+      "title_tex": "Model parameters"
+    },
+    {
+      "number": "8.1.2",
+      "title_tex": "Monte Carlo implementation"
+    },
+    {
+      "number": "8.1.3",
+      "title_tex": "Computation of $I_1$"
+    },
+    {
+      "number": "8.1.4",
+      "title_tex": "Computation of $I_2$ via linearized BVP"
+    },
+    {
+      "number": "8.1.5",
+      "title_tex": "Results"
+    },
+    {
+      "number": "8.2",
+      "title_tex": "Heston model validation"
+    },
+    {
+      "number": "8.2.1",
+      "title_tex": "$I_0$ comparison"
+    },
+    {
+      "number": "8.2.2",
+      "title_tex": "Verification of $I_\\rho = I_0$"
+    },
+    {
+      "number": "8.2.3",
+      "title_tex": "$I_0$ across parameter space"
+    },
+    {
+      "number": "8.3",
+      "title_tex": "Sensitivity analysis"
+    },
+    {
+      "number": "8.3.1",
+      "title_tex": "Sensitivity to vol-of-vol $\\xi$"
+    },
+    {
+      "number": "8.3.2",
+      "title_tex": "Sensitivity to initial variance $V_0$"
+    },
+    {
+      "number": "8.3.3",
+      "title_tex": "Sensitivity to maturity $T$"
+    },
+    {
+      "number": "8.4",
+      "title_tex": "Comparison with full numerical optimization"
+    },
+    {
+      "number": "9",
+      "title_tex": "Boundary analysis"
+    },
+    {
+      "number": "9.1",
+      "title_tex": "Boundary $\\rho \\to 0$"
+    },
+    {
+      "number": "9.2",
+      "title_tex": "Boundary $\\rho \\to \\pm 1$"
+    },
+    {
+      "number": "9.3",
+      "title_tex": "Boundary $K \\to V_0\\eta_0^2$ (near ATM)"
+    },
+    {
+      "number": "9.4",
+      "title_tex": "Boundary $K \\to \\infty$ (far wing) in Heston"
+    },
+    {
+      "number": "9.5",
+      "title_tex": "Boundary $V_0 \\to 0$ and $V_0 \\to \\infty$"
+    },
+    {
+      "number": "9.6",
+      "title_tex": "Boundary $\\xi \\to 0$ and $\\xi \\to \\infty$"
+    },
+    {
+      "number": "9.7",
+      "title_tex": "Phase diagram of the expansion"
+    },
+    {
+      "number": "10",
+      "title_tex": "Implications"
+    },
+    {
+      "number": "10.1",
+      "title_tex": "Pricing accuracy"
+    },
+    {
+      "number": "10.2",
+      "title_tex": "Computational efficiency"
+    },
+    {
+      "number": "10.3",
+      "title_tex": "Calibration applications"
+    },
+    {
+      "number": "10.4",
+      "title_tex": "Comparison of expansion strategies"
+    },
+    {
+      "number": "10.5",
+      "title_tex": "The Ermakov--Pinney connection and structural insights"
+    },
+    {
+      "number": "11",
+      "title_tex": "Conclusion"
+    },
+    {
+      "number": "12",
+      "title_tex": "Explicit computation of the first variation of $C$"
+    },
+    {
+      "number": "13",
+      "title_tex": "Proof of the Ermakov--Pinney general solution"
+    },
+    {
+      "number": "14",
+      "title_tex": "Explicit second variation of the Lagrangian"
+    },
+    {
+      "number": "14.1",
+      "title_tex": "General LSV case"
+    },
+    {
+      "number": "14.2",
+      "title_tex": "Heston simplification"
+    },
+    {
+      "number": "15",
+      "title_tex": "Derivation of the $h_1$ equation in the general LSV case"
+    },
+    {
+      "number": "16",
+      "title_tex": "The Ermakov--Pinney equation: context and generalizations"
+    },
+    {
+      "number": "16.1",
+      "title_tex": "Physical contexts"
+    },
+    {
+      "number": "16.2",
+      "title_tex": "Generalizations to other stochastic volatility models"
+    },
+    {
+      "number": "17",
+      "title_tex": "Monotonicity of $I_\\rho$ in the strike $K$"
+    }
+  ],
+  "related_papers": [
+    {
+      "slug": "variance_options",
+      "relation": "shared_domain",
+      "note": "Directly extends short-maturity variance option asymptotics in the same model class."
+    },
+    {
+      "slug": "discrete_vs_rough",
+      "relation": "shared_domain",
+      "note": "Both analyze volatility model asymptotics relevant to options pricing."
+    },
+    {
+      "slug": "var_ratio",
+      "relation": "shared_mechanism",
+      "note": "Both use large deviations / rate function methodology for option asymptotics."
+    }
+  ],
+  "figures": [],
+  "generation": {
+    "model": "claude-sonnet-4-6",
+    "generated_at": "2026-04-16T01:36:46.352529+00:00",
+    "prompt_version": "v1",
+    "langs": []
+  },
+  "repo": "realresearch",
+  "repo_root": "E:/Anaconda/Realresearch",
+  "project_id": null,
+  "quality": {
+    "tier": "B",
+    "significance_score": 13,
+    "significance_max": 16,
+    "critic_verdict": "PASS_WITH_MAJOR",
+    "dimensions": {
+      "correctness": "acceptable",
+      "rigor": "acceptable",
+      "novelty": "strong",
+      "framing": "strong",
+      "coherence": "acceptable"
+    },
+    "assessed_by": "unified_critic"
+  }
+}

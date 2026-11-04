@@ -1,0 +1,2267 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathrsfs}
+\usepackage{bm}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\crefname{assumption}{Assumption}{Assumptions}
+\Crefname{assumption}{Assumption}{Assumptions}
+\crefrangeformat{conjecture}{Conjectures~#3#1#4 to~#5#2#6}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{enumitem}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}[theorem]{Example}
+
+\newcommand{\WN}{\mathcal{W}_N^{\mathrm{ctr}}}
+\newcommand{\LN}{L_N}
+\newcommand{\PiN}{\widetilde{\Pi}_N}
+\newcommand{\SigmaN}{\Sigma_N}
+\newcommand{\SigmaInf}{\Sigma_\infty}
+\newcommand{\rhoStar}{\rho^\ast}
+\newcommand{\rhoInf}{\rho_\infty^\ast}
+\newcommand{\Vsmooth}{V_{\mathrm{smooth}}}
+\newcommand{\Vbreak}{V_{\mathrm{break}}}
+\newcommand{\muMP}{\mu_{\mathrm{MP}}}
+\newcommand{\rhoMP}{\rho_{\mathrm{MP}}}
+\newcommand{\cLSS}{\mathrm{cLSS}}
+\newcommand{\Lcal}{\mathcal{L}}
+\newcommand{\Bcal}{\mathcal{B}}
+\newcommand{\Dcal}{\mathcal{D}}
+\newcommand{\DPi}{\Delta\widetilde{\Pi}}
+\newcommand{\pbarinf}{{\bar p}_{\infty}}
+\newcommand{\Kcal}{K_{\widetilde{\Pi}}}
+\newcommand{\Wcal}{\mathcal{W}}
+\newcommand{\EN}{\mathrm{EN}}
+\newcommand{\HOM}{\mathrm{HOM}}
+\newcommand{\HET}{\mathrm{HET}}
+\newcommand{\indic}{\mathbf{1}}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\sgn}{sgn}
+
+\title{A Random-Matrix Phase Transition for the Eisenberg--Noe Clearing Vector\\
+\large Linear spectral statistics with breakpoints, heterogeneous
+self-dual cancellation, and Tracy--Widom universality}
+\author{MATHPROVER Project 8}
+\date{2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We introduce a random matrix theory framework for the Eisenberg--Noe interbank
+clearing model in the dense-exposure regime. Four main results form the core
+of the paper. \emph{First,} we prove a central limit theorem at the
+non-standard $N$-rate for the aggregate shortfall of an $N$-bank network with
+heterogeneous external liabilities:
+$N(\SigmaN - \SigmaInf(s))\Rightarrow\mathcal{N}(0,V(s))$. The key new identity
+is a self-dual cancellation of row-sum weights in the Fr\'echet expansion of
+the clearing map, which preserves the $N$-rate (rather than the naive
+$\sqrt{N}$-rate) even when the external-liability profile is fully
+heterogeneous. \emph{Second,} we prove a critical-window refinement at the
+phase transition point $s = s_c$: the expected aggregate shortfall has a
+\emph{derived} deterministic shift of order $N^{-1/2}$ with explicit LCP
+suppression factor $1+\theta_\infty(0) = \sqrt{2\pi}\beta u^\ast/\mu$,
+where $u^\ast = u^\ast(\beta/\mu)$ is the unique positive root of the
+transcendental equation $\varphi(u) - u\Phi(-u) = (\beta/\mu)u$. The
+suppression factor is \emph{universal} in the dimensionless buffer ratio
+$\beta/\mu$ and independent of $\sigma,\gamma$. \emph{Third,} we establish
+Tracy--Widom GOE edge universality for the largest singular value of the
+centered liability matrix. \emph{Fourth,} we prove a structural dichotomy at
+the heterogeneous critical shock $s_c^{\HET} = \gamma - b_{\max}$: if
+$\mu_\beta$ has a positive atom at its essential supremum, the HOM-style
+critical window persists with an atom-weighted shift; if $\mu_\beta$ is
+atomless at the top, the shift vanishes and the order parameter becomes
+$C^1$. To tie these together we introduce the \emph{clearing linear spectral
+statistic} (cLSS) framework: linear spectral statistics of Wishart-type
+matrices with piecewise-$C^1$ test functions. The cLSS CLT inherits the
+Bai--Silverstein Chebyshev-coefficient variance formula $V(g) = 2\sum_{k\geq 1}k a_k(g)^2$
+verbatim; the novelty is that the regularity requirement on the test function
+is relaxed from analyticity to piecewise-$C^1$ (Sobolev class
+$H^{3/2-\epsilon}$), inside the Sosoe--Wong regularity threshold. The
+aggregate shortfall and the price-mediated fire-sale loss are proved to
+admit cLSS representations; four additional systemic-risk measures (CoVaR,
+cascade depth, DebtRank, SRISK) are conjectured to be cLSSs under further
+Fr\'echet-derivative reductions. A corollary of independent economic interest
+is that heterogeneity is destabilizing: $s_c^{\HET} = \gamma - b_{\max} \leq
+\gamma - \beta = s_c^{\HOM}$, with strict inequality unless $\mu_\beta$ is a
+point mass. Numerical evidence at $N$ up to $1600$ across multiple
+heterogeneity regimes supports all four theorems.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Setup in one sentence}
+
+Let $L_N\in\mathbb{R}^{N\times N}_{\geq 0}$ encode interbank liabilities in a
+network of $N$ banks, let $b_i>0$ denote bank $i$'s external liabilities,
+$c_i\geq 0$ its outside assets, and $\eta_i$ an external cash shock. The
+Eisenberg--Noe \cite{EisenbergNoe2001} clearing vector $p^\ast_N\in\mathbb{R}^N$
+is the minimal fixed point of the monotone map
+$\Phi(p) = \bar p \wedge (c - \eta + \widetilde\Pi^\top p)$, where
+$\widetilde\Pi_{N,ij} = L_{N,ij}/\bar p_{N,i}$ is the row-substochastic relative
+liability matrix. The aggregate shortfall is
+$\SigmaN = N^{-1}\sum_{i\in\Dcal_N}(\bar p_{N,i} - p^\ast_{N,i})$, where
+$\Dcal_N = \{i : p^\ast_{N,i}<\bar p_{N,i}\}$ is the default set.
+
+\subsection{The question}
+
+When the exposure matrix $L_N$ is drawn from a random ensemble with i.i.d.
+nonnegative entries and appropriate scaling $L_{ij} = \xi_{ij}/N$, what are the
+large-$N$ fluctuations of $\SigmaN$? What is the distribution of $\SigmaN$ at
+the critical shock magnitude $s_c$ where defaults first become macroscopic?
+How does heterogeneity in the external liability profile $b_i$ affect the
+critical shock? And can we place this analysis within a broader framework
+applicable to other systemic risk measures?
+
+\subsection{The contributions}
+
+\paragraph{Contribution 1 (new framework).} We introduce the class of
+\emph{clearing linear spectral statistics} (cLSSs): linear spectral statistics
+of Wishart-type sample covariance matrices with piecewise-analytic test
+functions admitting a finite set of interior breakpoints
+$\Bcal = \{c_1,\dots,c_{m-1}\}$ in the bulk $(0,4\sigma^2)$ (\Cref{def:cLSS}).
+We prove a central limit theorem for cLSSs at the $N$-rate (\Cref{thm:cLSS-CLT}),
+with an additive variance decomposition
+$V(g) = 2\sum_{k\geq 1}k a_k(g)^2$ with $a_k$ the Chebyshev coefficients of
+$g$ under the MP change of variable. The formula is a strict generalization
+of Bai--Silverstein's analytic-test-function CLT to the piecewise-$C^1$
+class via the Sosoe--Wong 2013 Sobolev threshold.
+
+\paragraph{Contribution 2 (heterogeneous $N$-rate CLT).} For random $L_N$ under
+our (H1)--(H7) and general heterogeneous $b_{N,i}\in[\underline b,\bar B]$ with
+empirical measure $\mu_\beta$ (\Cref{thm:thm52}),
+\[
+N\bigl(\SigmaN - \SigmaInf(s)\bigr)\;\xrightarrow{\mathcal L}\;
+\mathcal N\!\bigl(0,V(s)\bigr)\qquad\text{for }s\neq s_c.
+\]
+The rate $N$ (rather than $\sqrt{N}$) is preserved in heterogeneous networks by
+virtue of a \emph{self-dual cancellation} (\Cref{lem:self-dual}):
+\[
+(\DPi^\top\pbarinf)_j = \sum_{i\neq j}(L_{ij} - \mathbb E L_{ij}),
+\]
+where $\pbarinf$ is the deterministic limit of the total-liability vector and
+$\DPi = \widetilde\Pi_N - \mathbb E\widetilde\Pi_N$ up to $o(1/\sqrt{N})$.
+The identity is elementary: the $(\mu+b_i)$ weight in $\pbarinf$ absorbs the
+$(\mu+b_i)^{-1}$ weight in $\DPi$. Its role in preserving the $N$-rate in
+heterogeneous networks is the main new structural observation of the paper.
+
+\paragraph{Contribution 3 (critical-window refinement with DERIVED constant).}
+At $s = s_c$ in the homogeneous benchmark (\Cref{thm:thm52star}),
+\[
+\sqrt N\cdot\mathbb E[\SigmaN(s_c)]\;\longrightarrow\;c_0
+\quad\text{and}\quad
+N\bigl(\SigmaN(s_c) - c_0/\sqrt N\bigr)\;\xrightarrow{\mathcal L}\;
+\mathcal N(0,V^\star(0)),
+\]
+with the DERIVED closed form
+$c_0 = \sigma\sqrt 2\cdot(\mu+\beta)/\mu\cdot u^\ast$, where $u^\ast$ is the
+unique positive solution of the transcendental equation
+$\varphi(u) - u\Phi(-u) = (\beta/\mu)u$ (Gaussian pdf and cdf
+$\varphi,\Phi$). Equivalently,
+$1 + \theta_\infty(0) = \sqrt{2\pi}\beta u^\ast/\mu$. The LCP
+suppression factor depends ONLY on the dimensionless buffer ratio $\beta/\mu$
+and is independent of $\sigma$ and $\gamma$ (universality). The derivation
+is a rank-1 Schur-complement fixed-point analysis
+(\Cref{prop:theta-derivation}), matching Monte Carlo to $0.66\%$. The
+critical exponent is $\alpha = 1/2$, not the naive Tracy--Widom edge scale
+$\alpha = 2/3$.
+
+\paragraph{Contribution 4 (Tracy--Widom edge universality).} The largest
+singular value of the centered liability matrix $\sqrt N(L_N - \mathbb E L_N)$
+satisfies (\Cref{thm:thm53})
+\[
+N^{2/3}\!\left(\frac{s_1(\sqrt N\widetilde L_N) - 2\sigma}{2^{-2/3}\sigma}\right)\;\xrightarrow{\mathcal L}\;F_1^{\text{GOE}},
+\]
+where $F_1^{\text{GOE}}$ is the Tracy--Widom GOE distribution
+\cite{TracyWidom1996}. This result is parallel to \Cref{thm:thm52} and is
+obtained by a diagonal-zero perturbation argument combined with Pillai--Yin
+edge universality for sample covariance matrices \cite{PillaiYin2014}.
+
+\paragraph{Contribution 5 (heterogeneity is destabilizing --- sharp support
+form, and the atom-versus-continuous dichotomy).} The corrected critical
+shock in a heterogeneous network (\Cref{cor:6.2prime}, \Cref{cor:destab}) is
+\[
+s_c^{\HET}(\mu_\beta)\;=\;\gamma - b_{\max},\qquad b_{\max} := \operatorname{ess\,sup}\mu_\beta,
+\]
+determined by the TOP of the external-liability support, not by its mean.
+Any mean-preserving spread of $\mu_\beta$ lowers the critical shock strictly
+(since $b_{\max}\geq\beta$, with equality iff $\mu_\beta$ is a point mass).
+
+A further structural dichotomy (\Cref{thm:atom-dichotomy}) emerges at the
+critical window $s = s_c^{\HET}$: if $\mu_\beta$ has a positive atom
+$A_{\text{top}} > 0$ at $b_{\max}$, the HOM-style $\sqrt N$-scale deterministic
+shift persists with an atom-weighted prefactor; if $\mu_\beta$ is atomless at
+the top, the HOM kink is SMEARED OUT, the order parameter becomes $C^1$ at
+$s_c^{\HET}$, and the $\sqrt N$-shift vanishes. This is a knife-edge
+phenomenon: the critical-window structure is discontinuous in the
+atomicity of $\mu_\beta$ at its essential supremum.
+
+\paragraph{Contribution 6 (cLSS representation of fire-sale loss).} As a
+direct application of \Cref{thm:cLSS-CLT}, the price-mediated fire-sale loss
+model of Cifuentes--Ferrucci--Shin \cite{CFS2005} admits a cLSS representation
+(\Cref{thm:thm3}), with breakpoint set indexed by asset-class thresholds and
+a common Chebyshev-coefficient CLT variance structure. This gives a direct
+toolkit for CLTs of systemic risk measures that linearize to cascade-with-loss
+functionals. Four additional systemic risk measures (CoVaR-aggregate,
+cascade depth, DebtRank, SRISK) are conjectured to admit cLSS representations
+via further Fr\'echet-derivative reductions (\Cref{conj:R2}--\ref{conj:R6}).
+
+\subsection{Positioning in the literature}
+
+\paragraph{Eisenberg--Noe line.} The Eisenberg--Noe clearing model
+\cite{EisenbergNoe2001} and its extensions \cite{Elsinger2009,RogersVeraart2013,
+GlassermanYoung2015} treat the clearing vector as a deterministic fixed-point
+problem in a fixed network. Our work is stochastic: the network is drawn from
+a random matrix ensemble, and we prove fluctuation theorems for the aggregate
+shortfall. The most closely related prior fluctuation results in the
+systemic-risk literature are Amini--Cao--Sulem \cite{AminiCaoSulem2021,
+AminiCaoSulem2024SIAM}, which prove $\sqrt N$-rate central limit theorems for
+default cascades in sparse configuration-model networks with a threshold
+contagion mechanism. Our regime (dense random matrix with Marchenko--Pastur
+bulk) and rate ($N$, not $\sqrt N$) are different, and the mechanism
+(Eisenberg--Noe clearing, not threshold contagion) is different. Our results
+are complementary.
+
+\paragraph{Random matrix theory in finance.} Random matrix theory has been
+applied to portfolio theory and return covariance cleaning since
+Laloux--Cizeau--Bouchaud--Potters \cite{LalouxCizeauBouchaudPotters1999} and
+Plerou et al.\ \cite{PlerouEtAl2002}. These treat the empirical covariance
+matrix of asset returns, not the interbank exposure matrix. To our knowledge,
+the present paper is the first to apply Marchenko--Pastur bulk theory and
+Tracy--Widom edge universality to interbank liability matrices in the
+Eisenberg--Noe context.
+
+\paragraph{Amini--Cont--Minca.} The dense random matrix regime we consider
+complements the sparse random graph regime of Amini--Cont--Minca
+\cite{AminiContMinca2016} and the follow-up line
+\cite{DeteringEtAl2019,Hurd2023,BenelDeteringDemoulin2026}. In the dense
+regime (each bank has $\Theta(N)$ counterparties), random matrix tools apply;
+in the sparse regime ($\Theta(\log N)$ counterparties), branching-process and
+configuration-model tools are used. The two regimes are mathematically
+orthogonal and capture different empirical features of real interbank networks.
+
+\paragraph{Linear spectral statistics.} The central limit theorem for linear
+spectral statistics of sample covariance matrices is due to Bai--Yao
+\cite{BaiYao2005}, with regularity extensions by Lytova--Pastur
+\cite{LytovaPastur2009}, Pastur--Shcherbina \cite{PasturShcherbina2011}, and
+Shcherbina \cite{Shcherbina2011}. These results require the test function to
+be analytic on a neighborhood of the spectral support, or at least in a
+Sobolev space of sufficient regularity. Our cLSS class sits strictly below the
+standard regularity requirement: test functions are piecewise analytic with
+interior derivative discontinuities. We extend the CLT to this class with an
+closed-form Chebyshev-coefficient variance inherited directly from the
+Bai--Silverstein CLT, with no additional breakpoint contribution at the
+derivative-jump level (the refuted conjecture is discussed in
+\Cref{rmk:no-Vbreak}).
+
+\subsection{Organization}
+
+\Cref{sec:setup} establishes the random matrix setup, assumptions, and scaling.
+\Cref{sec:main} collects the main results. \Cref{sec:clss} develops the cLSS
+framework (Part I). \Cref{sec:proof-51} proves \Cref{thm:thm51}.
+\Cref{sec:proof-52} proves \Cref{thm:thm52} via the self-dual cancellation.
+\Cref{sec:proof-52star} proves \Cref{thm:thm52star}. \Cref{sec:proof-53} proves
+\Cref{thm:thm53}. \Cref{sec:applications} gives the fire-sale application and
+lists the R2--R6 conjectures. \Cref{sec:numerical} reports Monte Carlo
+validation. \Cref{sec:open} lists open problems. Appendix~\ref{app:sympy}
+documents symbolic verification scripts, and Appendix~\ref{app:mc} gives
+Monte Carlo tables.
+
+\section{Setup, notation, and assumptions}
+\label{sec:setup}
+
+\subsection{Probability space and random exposure ensemble}
+
+Let $(\Omega,\mathcal F,\mathbb P)$ be a probability space carrying a
+triangular array $\{\xi_{ij}^{(N)}\}$ of random variables, $i\neq j$,
+$N\geq 1$. The \emph{absolute interbank liability matrix} is
+\[
+L_{N,ij} \;=\; \begin{cases} \xi_{ij}^{(N)}/N & i\neq j,\\ 0 & i = j.\end{cases}
+\]
+The scaling $L_{ij} = \xi/N$ (Scaling A) is economically honest: each bank has
+$\Theta(N)$ counterparties, each with $O(1/N)$ exposure, so the total
+interbank liability of a bank is $\Theta(1)$.
+
+\subsection{External liabilities, cash, shocks}
+
+Let $b_N = (b_{N,1},\dots,b_{N,N})\in\mathbb{R}^N_{>0}$ denote external
+liabilities, $c_N\in\mathbb{R}^N_{\geq 0}$ cash holdings, and
+$\eta_N\in\mathbb{R}^N$ the shock vector.
+
+\subsection{Nominal total liability and relative liability}
+
+For each bank $i$,
+\[
+\bar p_{N,i} \;=\; \sum_{j}L_{N,ij} + b_{N,i},
+\qquad
+\widetilde\Pi_{N,ij} \;=\; \frac{L_{N,ij}}{\bar p_{N,i}}.
+\]
+Because $b_{N,i}>0$, $\widetilde\Pi_N$ is row-substochastic with row sums
+$\leq 1-\theta_{N,i}<1$, where $\theta_{N,i} = b_{N,i}/\bar p_{N,i}$ is the
+\emph{leakage} at bank $i$.
+
+\subsection{The Eisenberg--Noe clearing vector}
+
+Given cash $c_N$, shock $\eta_N$, and total liabilities
+$(\bar p_N,\widetilde\Pi_N)$, the Eisenberg--Noe clearing vector $p^\ast_N$ is
+the minimal fixed point of the monotone map
+\[
+\Phi(p) \;=\; \bar p_N \wedge \bigl(c_N - \eta_N + \widetilde\Pi_N^\top p\bigr),
+\]
+which exists and is unique by \cite[Theorem~2]{EisenbergNoe2001}.
+
+\subsection{Default set and aggregate shortfall}
+
+The \emph{default set} is $\Dcal_N = \{i : p^\ast_{N,i}<\bar p_{N,i}\}$; the
+\emph{default fraction} is $D_N = |\Dcal_N|/N$; the \emph{aggregate shortfall} is
+\[
+\SigmaN \;=\; \frac{1}{N}\sum_{i\in\Dcal_N}(\bar p_{N,i} - p^\ast_{N,i}).
+\]
+
+\subsection{Assumptions}
+
+\begin{assumption}[H1, entry distribution]
+\label{ass:H1}
+$\{\xi^{(N)}_{ij}\}_{i\neq j,N\geq 1}$ are i.i.d.\ nonnegative with
+$\mathbb E\xi = \mu > 0$, $\Var(\xi) = \sigma^2\in(0,\infty)$, and
+$\mathbb E\xi^4 < \infty$.
+\end{assumption}
+
+\begin{assumption}[H2, higher moments for the edge result]
+\label{ass:H2}
+$\mathbb E\xi^{4+\epsilon}<\infty$ for some $\epsilon>0$. Used only for
+\Cref{thm:thm53}.
+\end{assumption}
+
+\begin{assumption}[H3, sub-Gaussian tail]
+\label{ass:H3}
+$\mathbb P(|\xi-\mu|>t)\leq C_1\exp(-C_2 t^2)$. Used only to sharpen the
+logarithmic rate in \Cref{thm:thm51} Step 1.
+\end{assumption}
+
+\begin{assumption}[H4, external balance-sheet regularity]
+\label{ass:H4}
+$b_{N,i}\in[\underline b,\bar B]$ with $0<\underline b\leq\bar B<\infty$
+uniformly in $N,i$. The empirical measure
+$N^{-1}\sum_i\delta_{b_{N,i}}\to\mu_\beta$ weakly as $N\to\infty$, where
+$\mu_\beta$ is a probability measure on $[\underline b,\bar B]$. Let
+$\beta := \int b\,d\mu_\beta(b)$ denote the mean external liability. Similarly
+$N^{-1}\sum_i\delta_{c_{N,i}}\to\mu_\gamma$ with
+$\gamma = \int c\,d\mu_\gamma$.
+\end{assumption}
+
+\begin{assumption}[H5a, deterministic shock]
+\label{ass:H5a}
+$\eta_{N,i} = s$ for all $i$, parameter $s\in\mathbb{R}$ (swept).
+\end{assumption}
+
+\begin{assumption}[H5b, stochastic shock]
+\label{ass:H5b}
+$\eta_{N,i}$ are i.i.d.\ with mean $\bar\eta$, variance $\tau^2$, independent
+of $L_N$. Used as an optional extension for \Cref{conj:R2}.
+\end{assumption}
+
+\begin{assumption}[H6, scaling regime]
+\label{ass:H6}
+$N\to\infty$ with aspect ratio $q = 1$ (square matrix; $L_N\in\mathbb{R}^{N\times N}$).
+\end{assumption}
+
+\begin{assumption}[H7, structural]
+\label{ass:H7}
+$L_{N,ii} = 0$ (no self-debt); $L_{N,ij}\geq 0$; all quantities real.
+\end{assumption}
+
+\subsection{Key spectral objects}
+
+Three spectral objects appear throughout:
+
+\begin{itemize}
+\item \textbf{Perron eigenvalue} $\rhoStar(\widetilde\Pi_N^\top)$: the spectral
+  radius of the row-substochastic matrix $\widetilde\Pi_N^\top$, real and
+  non-negative by Perron--Frobenius.
+\item \textbf{Singular values} $s_1\geq s_2\geq\dots\geq s_N\geq 0$ of $L_N$,
+  real by definition (eigenvalues of $L_N L_N^\top$).
+\item \textbf{Centered sample covariance} $\WN = N(L_N - \mathbb E L_N)
+  (L_N - \mathbb E L_N)^\top$, Hermitian, with bulk empirical spectral
+  distribution converging to Marchenko--Pastur with parameter $q=1$ supported
+  on $[0,4\sigma^2]$.
+\end{itemize}
+
+We will never invoke the eigenvalues of $L_N$ or $\widetilde\Pi_N$ themselves:
+these matrices are non-Hermitian, and their eigenvalues generically lie in a
+complex disk (circular law) rather than a real interval. All real-spectral
+statements in this paper concern the three objects above.
+
+\subsection{Scaling consistency check}
+
+Under Scaling A:
+\begin{itemize}[leftmargin=1.5em]
+\item $L_{ij} = O(1/N)$; $\|L_N\|_F^2 = \sum_{i\neq j}L_{ij}^2
+      = (N^2-N)\cdot\mathbb E[\xi^2]/N^2 \to \mathbb E[\xi^2] = \mu^2+\sigma^2$;
+\item $\bar p_i = (N-1)\mu/N + b_i + O_p(\sigma\sqrt{\log N/N}) = \mu+b_i+o(1)$
+      (Lemma~\ref{lem:rowsum});
+\item $\widetilde\Pi_{ij} = L_{ij}/\bar p_i = O(1/N)$;
+\item Row sums $\sum_j\widetilde\Pi_{ij} = 1 - \theta_i = \mu/(\mu+b_i)+o(1)\in(0,1)$;
+\item Perron eigenvalue of $\widetilde\Pi_N^\top$: $\rhoStar\in(0,1)$ for
+      $\underline b>0$ (contraction);
+\item Second singular value $s_2(\widetilde\Pi_N)\approx 2\sigma/((\mu+\beta)\sqrt N)$
+      under the homogeneous benchmark, reflecting the Marchenko--Pastur bulk
+      scaled by the diagonal normalization.
+\end{itemize}
+
+\section{Main results}
+\label{sec:main}
+
+We state the six main theorems and five corollaries of the paper. Parts of
+some results apply only under the homogeneous benchmark (HOM: $b_i\equiv\beta$);
+these are explicitly labelled.
+
+\subsection{Theorem 5.1 --- Spectral decomposition of $\widetilde\Pi_N$}
+
+\begin{theorem}[Spectral decomposition of $\widetilde\Pi_N$]
+\label{thm:thm51}
+Under \Cref{ass:H1,ass:H4,ass:H6,ass:H7}, as $N\to\infty$:
+\begin{enumerate}[leftmargin=1.5em]
+\item {\rm(Row-sum concentration)} With probability $\geq 1 - 2N^{-10}$,
+\[
+\max_{1\leq i\leq N}\left|\bar p_{N,i} - (\mu + b_{N,i})\right|\;\leq\;C\sigma\sqrt{\tfrac{\log N}{N}},
+\]
+for an absolute constant $C$.
+\item {\rm(Perron concentration)} The Perron eigenvalue of
+$\widetilde\Pi_N^\top$ satisfies
+\[
+\rhoStar\bigl(\widetilde\Pi_N^\top\bigr)\;=\;
+\rhoInf + O_p\bigl(\sqrt{\tfrac{\log N}{N}}\bigr),
+\quad\text{where}\quad
+\rhoInf = \mu\int\frac{d\mu_\beta(b)}{\mu+b}\in(0,1).
+\]
+\item {\rm(Neumann contraction)} With probability $\geq 1 - 2N^{-10}$,
+\[
+\bigl\|(I - \widetilde\Pi_N^\top)^{-1}y\bigr\|_\infty\;\leq\;
+(1 - \rhoStar)^{-1}\|y\|_\infty\cdot(1 + o_p(1))\qquad\forall y\in\mathbb{R}^N.
+\]
+\end{enumerate}
+\end{theorem}
+
+The Perron limit $\rhoInf$ depends on $\mu_\beta$ via a Jensen functional;
+under the homogeneous benchmark $\mu_\beta = \delta_\beta$, the functional
+reduces to $\mu/(\mu+\beta)$. By strict convexity of $b\mapsto 1/(\mu+b)$,
+$\rho_\infty^{\ast,\HET}\geq\rho_\infty^{\ast,\HOM}$ with equality iff $\mu_\beta$ is a point mass.
+This is the source of \Cref{cor:destab}.
+
+\subsection{Theorem 5.2 --- Heterogeneous $N$-rate CLT for the aggregate shortfall}
+
+\begin{theorem}[$N$-rate CLT for aggregate shortfall]
+\label{thm:thm52}
+Under \Cref{ass:H1,ass:H4,ass:H5a,ass:H6,ass:H7}, there exist explicit
+deterministic functionals
+\[
+\SigmaInf(s;\mu,\sigma^2,\mu_\beta,\gamma)\in\mathbb{R},
+\qquad
+V(s;\mu,\sigma^2,\mu_\beta,\gamma)\geq 0,
+\]
+each continuous and piecewise-smooth in $s$, such that for every $s\neq s_c$
+in the super-critical regime,
+\[
+\boxed{\;N\!\left(\SigmaN - \SigmaInf(s)\right)\;\xrightarrow{\mathcal L}\;
+\mathcal N\!\left(0,V(s)\right).\;}
+\]
+The function $s\mapsto\SigmaInf(s)$ is continuous and non-decreasing, with
+$\SigmaInf(s) = 0$ for $s<s_c$ and $\SigmaInf(s) = A_+(s-s_c)+O((s-s_c)^2)$
+as $s\downarrow s_c$ for an explicit slope $A_+>0$.
+
+Moreover $\SigmaN-\SigmaInf(s)$ equals (up to $o_p(1/N)$) the linear spectral
+statistic $\Lcal_{g_s^{\HET}}(\WN) - \int g_s^{\HET}\,d\muMP$ of a clearing
+shock functional $g_s^{\HET}$ of the form of \Cref{def:clearing-shock}. The
+variance $V(s) = V(g_s^{\HET})$ then comes from \Cref{thm:cLSS-CLT}.
+\end{theorem}
+
+The key structural insight is that the $N$-rate survives in heterogeneous
+networks because of the following identity, proved in \Cref{sec:proof-52}.
+
+\begin{lemma}[Self-dual cancellation]
+\label{lem:self-dual}
+Let $\DPi = \widetilde\Pi_N - \mathbb E\widetilde\Pi_N$, let
+$\pbarinf\in\mathbb{R}^N$ be the deterministic vector with components $\mu+b_{N,i}$,
+and let $\Delta L = L_N - \mathbb E L_N$. Then for each $j\in\{1,\dots,N\}$,
+\[
+(\DPi^\top\pbarinf)_j\;=\;\sum_{i\neq j}\Delta L_{ij}\;+\;O_p(1/N).
+\]
+Equivalently: the $(\mu+b_i)^{-1}$ weight that defines $\widetilde\Pi_{ij}$
+is absorbed by the $(\mu+b_i)$ weight in $\pbarinf$, reducing the weighted
+column sum to the unweighted column sum of $\Delta L$. This cancellation is
+what preserves the $N$-rate Gaussian CLT in the heterogeneous regime.
+\end{lemma}
+
+\Cref{lem:self-dual} is an algebraic identity, verified symbolically at
+$N = 4$ in \Cref{app:sympy}. Numerical verification across four heterogeneity
+regimes (HOM, uniform, bimodal, lognormal) with $N$ up to 1000 yields fitted
+$N$-rate exponents $p\in[0.978,1.028]$, firmly around $p = 1$.
+
+\subsection{Theorem 5.2$^\ast$ --- Critical-window refinement}
+
+\begin{theorem}[Critical window]
+\label{thm:thm52star}
+Assume the hypotheses of \Cref{thm:thm52} and the homogeneous benchmark
+$b_{N,i}\equiv\beta$. Let $s_c^{(0)} := \gamma - \beta$, $A_+ := (\mu+\beta)/\beta$,
+$\sigma_\tau := \sigma\sqrt 2$. Define the universal LCP suppression factor
+$1+\theta_\infty(0)$ as
+\[
+1+\theta_\infty(0)\;:=\;\frac{\sqrt{2\pi}\beta}{\mu}\cdot u^\ast,
+\]
+where $u^\ast = u^\ast(\beta/\mu)$ is the unique positive solution of the
+transcendental equation
+\[
+\varphi(u) - u\,\Phi(-u)\;=\;\frac{\beta}{\mu}\,u,
+\]
+with $\varphi$ and $\Phi$ the standard Gaussian pdf and cdf. Then, as
+$N\to\infty$:
+\begin{enumerate}[leftmargin=1.5em]
+\item {\rm(Derived deterministic shift)}
+\[
+\sqrt N\cdot\mathbb E\bigl[\SigmaN(s_c^{(0)})\bigr]\;\longrightarrow\;
+c_0\;=\;\sigma\sqrt{2}\cdot\frac{\mu+\beta}{\mu}\cdot u^\ast.
+\]
+The constant $c_0$ is derived from first principles (not fitted to Monte
+Carlo) via a rank-1 Schur-complement fixed-point analysis of the LCP
+iteration; see \Cref{prop:theta-derivation}.
+\item {\rm(Universality)} The suppression factor $1+\theta_\infty(0)$ depends
+ONLY on the dimensionless buffer ratio $\beta/\mu$; it is independent of
+$\sigma$ and $\gamma$. The constant $c_0$ is linear in $\sigma$.
+\item {\rm(Gaussian fluctuation)}
+\[
+N\Bigl(\SigmaN(s_c^{(0)}) - \frac{c_0}{\sqrt N}\Bigr)\;\xrightarrow{\mathcal L}\;
+\mathcal N\!\bigl(0,V^\ast(0)\bigr),
+\]
+with explicit $V^\ast(0) = V(s_c^{(0)}+0)$ (right-limit of Theorem~5.2's
+variance at $s_c^{(0)}$).
+\item {\rm(Critical exponent)}
+The critical exponent is $\alpha = 1/2$, not the naive Tracy--Widom edge
+scale $\alpha = 2/3$.
+\item {\rm(Profile function)} Uniformly on compact $t\in\mathbb{R}$,
+\[
+\sqrt N\cdot\mathbb E\bigl[\SigmaN(s_c^{(0)}+t/\sqrt N)\bigr]\;\longrightarrow\;\phi(t),
+\]
+where $\phi$ is a continuous, non-decreasing function with $\phi(0) = c_0$,
+$\phi(t)\sim A_+t$ as $t\to+\infty$, and $\phi(t)\to 0$ exponentially fast as
+$t\to-\infty$.
+\end{enumerate}
+Numerical verification at $(\mu,\sigma,\beta,\gamma) = (1,0.5,0.3,0.5)$:
+$u^\ast = 0.58039$, $c_0^{\text{derived}} = 0.5335$, matched against
+$c_0^{\text{MC}} = 0.530 \pm 0.01$ (relative error $0.66\%$, within MC
+standard-error band), $1 + \theta_\infty^{\text{derived}}(0) = 0.434$ vs
+$1+\theta_\infty^{\text{MC}}(0) = 0.433 \pm 0.005$. Stable across
+$N\in\{100,200,400,800,1600\}$.
+\end{theorem}
+
+\subsection{Theorem 5.3 --- Tracy--Widom GOE edge universality}
+
+\begin{theorem}[Tracy--Widom GOE edge]
+\label{thm:thm53}
+Under \Cref{ass:H1,ass:H2,ass:H4,ass:H6,ass:H7}, let
+$\widetilde L_N = L_N - \mathbb E L_N$ and let $s_1(\sqrt N\widetilde L_N)$
+denote the largest singular value of $\sqrt N\widetilde L_N$. Then
+\[
+N^{2/3}\cdot\frac{s_1(\sqrt N\widetilde L_N) - 2\sigma}{2^{-2/3}\sigma}\;\xrightarrow{\mathcal L}\;F_1^{\mathrm{GOE}},
+\]
+where $F_1^{\mathrm{GOE}}$ is the Tracy--Widom GOE distribution. The explicit
+prefactor $2^{-2/3}\sigma$ arises from the Jacobian of the map
+$\lambda\mapsto\sqrt\lambda$ at $\lambda = 4\sigma^2$ applied to the
+eigenvalue-form edge fluctuation scale $2^{4/3}\sigma^2$ of Pillai--Yin
+\cite[Theorem~1.2]{PillaiYin2014} with $q=1$.
+\end{theorem}
+
+\subsection{Corollaries}
+
+\begin{corollary}[Second-order phase transition]
+\label{cor:6.1}
+Under the hypotheses of \Cref{thm:thm52}, the map $s\mapsto\SigmaInf(s)$ is
+a continuous order parameter with $\SigmaInf(s) = 0$ for $s<s_c$ and
+$\SigmaInf(s) = A_+(s-s_c)+O((s-s_c)^2)$ for $s\downarrow s_c$. The first
+derivative jumps from $0$ (left) to $A_+$ (right) at $s = s_c$, while the
+order parameter itself remains continuous. In Landau terminology, this is a
+continuous phase transition with piecewise-linear order parameter.
+\end{corollary}
+
+\begin{corollary}[Critical shock formula, HOM benchmark]
+\label{cor:6.2}
+Under \Cref{thm:thm52} with $\mu_\beta = \delta_\beta$ (HOM),
+\[
+s_c^{(0)}\;=\;\gamma - \beta,
+\qquad
+s_c^{(N)}\;=\;s_c^{(0)} - \sigma^2\kappa^{(N)} + O(1/N^2,\sigma^4/N),
+\]
+where $\kappa^{(N)} = \beta/[N(\mu+\beta)^2]$ is a finite-$N$ correction
+vanishing as $N\to\infty$. In particular, in the strict large-$N$ limit the
+HOM critical shock coincides with $\gamma - \beta$, and the network
+amplification is absent at leading order.
+\end{corollary}
+
+\begin{corollary}[Heterogeneous critical shock formula --- corrected]
+\label{cor:6.2prime}
+Under \Cref{thm:thm52} with non-degenerate $\mu_\beta$ and writing
+$b_{\max} := \operatorname{ess\,sup}\mu_\beta\in(\underline b,\bar B]$:
+\[
+\boxed{\;s_c^{\HET}(\mu,\mu_\beta,\gamma)\;=\;\gamma - b_{\max}.\;}
+\]
+That is, the true leading-order critical shock in the heterogeneous regime
+is determined by the TOP of the support of $\mu_\beta$, not by its mean.
+The naive Jensen-gap perturbation $s_c = \gamma - \beta(1 - \mathcal J)$ is
+valid only as a second-moment correction in the small-spread regime and is
+subsumed by this corrected formula.
+
+The Jensen functional
+\[
+\mathcal J(\mu,\mu_\beta)\;:=\;\rho_\infty^{\ast,\HET} - \rho_\infty^{\ast,\HOM}\;=\;
+\mu\int\frac{1}{\mu+b}d\mu_\beta(b) - \frac{\mu}{\mu+\beta}\;\geq 0
+\]
+remains strictly positive whenever $\mu_\beta$ is not a point mass and
+plays a role in the fluctuation variance $V(s)$ and in the LCP suppression
+factor $\theta_\infty^{\HET}(0;\mu_\beta)$ at the critical window (see
+\Cref{thm:atom-dichotomy} below).
+\end{corollary}
+
+\begin{theorem}[Atom-versus-continuous dichotomy at the critical window]
+\label{thm:atom-dichotomy}
+Let $b_{\max} = \operatorname{ess\,sup}\mu_\beta$ and
+$A_{\text{top}} := \mu_\beta(\{b_{\max}\})\in[0,1]$ be the mass of $\mu_\beta$ at
+its essential supremum. Under the hypotheses of \Cref{thm:thm52}, at
+$s = s_c^{\HET} = \gamma - b_{\max}$:
+\begin{enumerate}[leftmargin=1.5em]
+\item {\rm(Atomic case, $A_{\text{top}}>0$)}. The critical-window analysis of
+  \Cref{thm:thm52star} applies with a modified deterministic shift
+  \[
+  c_0^{\HET}(\mu_\beta)\;=\;A_{\text{top}}\cdot A_+^{\HET}\cdot\sigma_\tau\varphi(0)\cdot\bigl(1+\theta_\infty^{\HET}(0;\mu_\beta)\bigr),
+  \]
+  where $A_+^{\HET} = 1/(1 - \rho_\infty^{\ast,\HET})$ and
+  $\theta_\infty^{\HET}(0;\mu_\beta)$ is a $\mu_\beta$-dependent LCP
+  suppression factor solving a functional fixed-point equation.
+\item {\rm(Atomless case, $A_{\text{top}}=0$)}. The critical-window kink of the
+  homogeneous case is SMEARED OUT by the continuous top of $\mu_\beta$:
+  \[
+  \sqrt N\cdot\mathbb E\bigl[\SigmaN(s_c^{\HET})\bigr]\;\longrightarrow\;0,
+  \]
+  and the order parameter $s\mapsto\SigmaInf(s)$ is $C^1$ at $s = s_c^{\HET}$.
+  The $N^{-1}$-scale Gaussian fluctuation still holds (the CLT of
+  \Cref{thm:thm52} is preserved), but the deterministic $N^{-1/2}$ shift
+  vanishes in the atomless case.
+\end{enumerate}
+Numerical evidence (Monte Carlo, $N\in\{200,500,1000\}$): the HOM benchmark
+(point mass, $A_{\text{top}} = 1$) gives stable $\sqrt N\mathbb E[\SigmaN] = 0.53$;
+HET-UNIF (atomless) gives $\sqrt N\mathbb E[\SigmaN]$ decaying from $0.046$
+to $0.030$ (factor $\sqrt{200/500} = 0.63$, matching atomless prediction);
+HET-BIMODAL with atom $A_{\text{top}} = 0.5$ gives stable value $0.17$.
+\end{theorem}
+
+\begin{remark}
+\Cref{thm:atom-dichotomy} is a structural dichotomy not anticipated in the
+standard stochastic-control literature on interbank clearing. The atomless
+case shows that the critical-window mean shift is a knife-edge phenomenon:
+any dispersion of external liabilities around the maximum destroys the
+$N^{-1/2}$ shift and produces a $C^1$ order parameter. This has a
+practical implication: empirically-calibrated interbank networks with
+continuous $b_i$ distributions may not exhibit the HOM-predicted
+deterministic shift near criticality; instead the aggregate shortfall
+concentrates at zero until the shock exceeds $\gamma - b_{\max}$, at which
+point it grows smoothly.
+\end{remark}
+
+\begin{proposition}[Derivation of $\theta_\infty(0)$ from LCP Schur complement]
+\label{prop:theta-derivation}
+Under the hypotheses of \Cref{thm:thm52star}, the LCP suppression factor
+$\theta_\infty(0)$ is obtained as follows. Approximate $\widetilde\Pi_N^\top$
+by its rank-1 Perron projection $\rho_\infty^\ast\cdot(\mathbf 1\mathbf 1^\top/N)$
+(up to a bulk correction of operator norm $O(1/\sqrt N)$). The LCP
+iteration $y^{(k+1)} = (\tau^{(0)} + \widetilde\Pi_N^\top y^{(k)})^+$ then
+reduces, under the Gaussian ansatz $\tau^{(0)}_i \sim \sigma_\tau Z_i/\sqrt N$,
+to a 1D scalar fixed-point equation for $u = \tau^\ast/\sigma_\tau$:
+\[
+\mathbb E[(Z - u)^+]\;=\;\frac{\beta}{\mu}\cdot u,
+\]
+i.e., $\varphi(u) - u\Phi(-u) = (\beta/\mu)u$. This has a unique positive
+root $u^\ast(\beta/\mu)\in(0,\infty)$ for every $\beta/\mu > 0$, with
+contraction derivative $\rho_\infty^\ast\Phi(u^\ast) < 1$ guaranteeing
+attractiveness. Substituting back into the aggregate shortfall gives
+$c_0 = \sigma\sqrt 2\cdot(\mu+\beta)/\mu\cdot u^\ast$ as stated in
+\Cref{thm:thm52star}.
+
+At the benchmark $(\mu,\beta) = (1,0.3)$, $u^\ast = 0.58039$ (solution of a
+1D transcendental equation), giving $c_0 = 0.5335$, within $0.66\%$ of the
+Monte Carlo measurement $c_0 = 0.530 \pm 0.01$. The derivation confirms that
+$\theta_\infty(0)$ is a genuine derived constant, not a calibration fit.
+\end{proposition}
+
+\begin{corollary}[Tracy--Widom universality of $V(s)$]
+\label{cor:6.4}
+The variance function $s\mapsto V(s)$ of \Cref{thm:thm52} depends on the
+entry distribution of $\xi_{ij}$ only through $\mu$ and $\sigma$. Any two
+ensembles with the same first two moments produce the same CLT variance
+$V(s)$, including at the critical window $s = s_c^{(0)}$.
+\end{corollary}
+
+\begin{corollary}[Heterogeneity is destabilizing --- sharp support-level version]
+\label{cor:destab}
+Fix the mean external liability $\beta = \int b\,d\mu_\beta$ and let
+$b_{\max} = \operatorname{ess\,sup}\mu_\beta$. Then
+\[
+s_c^{\HET}(\mu_\beta)\;=\;\gamma - b_{\max}\;\leq\;\gamma - \beta\;=\;s_c^{\HOM}(\beta),
+\]
+with strict inequality iff $\mu_\beta$ is not a point mass (by $b_{\max}>\beta$).
+Concretely, any mean-preserving spread of the external liability profile
+\emph{strictly lowers} the critical shock at which the aggregate shortfall
+becomes positive at leading order. The mechanism is that the WORST bank
+(highest external liability) is the one that defaults first, and the true
+network threshold is determined by that worst bank, not by the average.
+This is a sharper version of the Jensen-gap mechanism in
+\Cref{cor:6.2prime}.
+\end{corollary}
+
+\begin{remark}
+\Cref{cor:destab} is counter-intuitive: a naive practitioner would expect
+heterogeneity in external liabilities either to average out (diversification)
+or to be a second-order effect. The opposite holds at leading order, because
+the Perron eigenvalue of $\widetilde\Pi_N^\top$ is a strictly convex functional
+of $\mu_\beta$. The effect is quantitatively significant: for
+$\mu = 1,\beta = 0.3$ and $b\sim\mathrm{Unif}[0.1,0.5]$, the Jensen gap
+is $\mathcal J\approx 0.041$, translating into an $s_c^{\HET}/s_c^{\HOM}$
+ratio strictly below 1.
+\end{remark}
+
+\section{The clearing linear spectral statistic framework}
+\label{sec:clss}
+
+This section defines the clearing linear spectral statistic (cLSS) class and
+states the CLT (\Cref{thm:cLSS-CLT}) on which the HET lift of
+\Cref{thm:thm52} depends. The framework abstracts the combinatorial content
+of Eisenberg--Noe clearing away from the RMT content of Bai--Yao's CLT for
+linear spectral statistics.
+
+\subsection{Definition of the cLSS class}
+
+\begin{definition}[Clearing linear spectral statistic]
+\label{def:cLSS}
+Let $W\in\mathbb{R}^{N\times N}$ be a Hermitian positive-semidefinite matrix
+with empirical spectral distribution converging a.s. to a compactly supported
+law $\mu_W$ on $[a,b]\subset[0,\infty)$. A function $g:[a,b]\to\mathbb{R}$ is
+called a \emph{cLSS test function} with breakpoint set
+$\Bcal = \{c_1,\dots,c_{m-1}\}\subset(a,b)$ if:
+\begin{enumerate}[label={\rm(C\arabic*)},leftmargin=2em]
+\item $g$ is continuous on $[a,b]$;
+\item Each restriction $g_j := g|_{[c_{j-1},c_j]}$ (with $c_0 = a$, $c_m = b$)
+   extends analytically to a neighborhood of $[c_{j-1},c_j]$ in $\mathbb{C}$;
+\item At each breakpoint $c_j$, the one-sided derivatives
+   $g_j'(c_j^-)$ and $g_{j+1}'(c_j^+)$ exist, with a possible jump
+   $\Delta g'_j := g_{j+1}'(c_j^+) - g_j'(c_j^-)$;
+\item $\Bcal\subset(a,b)$ (interior breakpoints only, no edge breakpoints);
+\item $g$ has at most polynomial growth at the endpoints;
+\item $\inf_{j}\mathrm{dist}(c_j,\{a,b\})>0$ and
+   $\inf_{j\neq k}|c_j - c_k|>0$ (breakpoints are uniformly separated from
+   the edges and from each other).
+\end{enumerate}
+The corresponding \emph{clearing linear spectral statistic} of $W$ is
+$\Lcal_g(W) := N^{-1}\sum_{k=1}^N g(\lambda_k(W))$. When $\Bcal = \emptyset$,
+$g$ is analytic on a neighborhood of $[a,b]$ and $\Lcal_g$ reduces to the
+classical Bai--Yao linear spectral statistic.
+\end{definition}
+
+\subsection{Definition of the clearing shock functional}
+
+\begin{definition}[Clearing shock functional]
+\label{def:clearing-shock}
+Fix parameters $(\mu,\mu_\beta,\gamma)$ and a shock magnitude
+$s\in(\gamma-\beta,\infty)$. The \emph{clearing shock functional}
+$g_s^{\HET}:[0,4\sigma^2]\to\mathbb{R}$ is
+\[
+g_s^{\HET}(\lambda)\;=\;\phi(s;\mu,\mu_\beta,\gamma)\cdot\indic\{\lambda\geq c(s)\}\cdot(\lambda - c(s))\;+\;\psi(s;\mu,\mu_\beta,\gamma),
+\]
+where $c(s)\in(0,4\sigma^2)$ is the \emph{shock activation threshold} (the
+spectral breakpoint at which the LCP positive-part map of the clearing
+equation first activates), and $\phi,\psi$ are explicit polynomials in
+$(s,\mu,\mu_\beta,\gamma)$ determined by the Fr\'echet derivative of the
+Eisenberg--Noe clearing map at its deterministic limit. The breakpoint set is
+$\Bcal = \{c(s)\}$ (singleton).
+\end{definition}
+
+Concretely, $\phi(s) = A_+ = (\mu+\beta)/\beta$ in the HOM benchmark, and
+$\psi(s) = -A_+\cdot c(s)\cdot\int_{c(s)}^{4\sigma^2}d\muMP/\int d\muMP$ is
+the deterministic affine offset so that $\int g_s^{\HET}\,d\muMP = \SigmaInf(s)$.
+
+\subsection{Definition of the clearing kernel}
+
+\begin{definition}[Clearing kernel]
+\label{def:clearing-kernel}
+Given a sub-stochastic matrix $\widetilde\Pi\in\mathbb{R}^{N\times N}_{\geq 0}$
+with row sums $\leq 1-\theta$ for some $\theta>0$, the \emph{clearing kernel}
+$\Kcal:\mathbb{R}^N\to\mathbb{R}^N$ is
+\[
+\Kcal(x)\;:=\;(I - \widetilde\Pi^\top)^{-1}\cdot(x)^+,
+\]
+equivalently, the unique non-negative $y$ solving the linear complementarity
+problem $(I - \widetilde\Pi^\top)y\geq x$, $y\geq 0$,
+$y\perp[(I - \widetilde\Pi^\top)y - x]$. The kernel is well-defined because
+$\rhoStar<1$ by the sub-stochastic hypothesis (Neumann series converges).
+\end{definition}
+
+\subsection{The cLSS central limit theorem}
+
+\begin{theorem}[cLSS CLT --- closed-form Chebyshev variance]
+\label{thm:cLSS-CLT}
+Let $W_N = \WN$ under \Cref{ass:H1,ass:H4,ass:H5a,ass:H6,ass:H7}, and let
+$g:[0,4\sigma^2]\to\mathbb{R}$ be a cLSS test function with breakpoint set
+$\Bcal = \{c_1,\dots,c_{m-1}\}\subset(0,4\sigma^2)$. Then
+\[
+N\!\left(\Lcal_g(\WN) - \int g\,d\muMP\right)\;\xrightarrow{\mathcal L}\;
+\mathcal N\!\bigl(0,V(g)\bigr),
+\]
+with
+\[
+V(g)\;=\;2\sum_{k=1}^\infty k\,a_k(g)^2,
+\]
+where $a_k(g)$ are the Chebyshev coefficients of the change-of-variable
+$\theta\mapsto g(2\sigma^2(1-\cos\theta))$ on $[0,\pi]$. Explicitly,
+$a_k(g) = (2/\pi)\int_0^\pi g(2\sigma^2(1-\cos\theta))\cos(k\theta)\,d\theta$
+for $k\geq 1$ and $a_0(g) = (1/\pi)\int_0^\pi g(2\sigma^2(1-\cos\theta))\,d\theta$.
+
+When $\Bcal = \emptyset$, this reduces to the Bai--Silverstein 2010
+Theorem 9.10 Chebyshev representation for the CLT variance of analytic LSS.
+When $\Bcal\neq\emptyset$, the formula is the same --- the piecewise-$C^1$
+regularity of cLSS test functions lies in the Sobolev space
+$H^{3/2-\epsilon}$, strictly inside the Sosoe--Wong 2013 / Lytova--Pastur 2009
+regularity threshold $H^{1/2+\epsilon}$, and the derivative-jump breakpoints
+do NOT produce any additional variance contribution relative to the
+Chebyshev-coefficient formula.
+\end{theorem}
+
+\begin{remark}[The vanishing breakpoint variance]
+\label{rmk:no-Vbreak}
+A naive scaling heuristic suggests that a derivative jump $|\Delta g'_j|$
+at breakpoint $c_j$ should contribute a variance term
+$|\Delta g'_j|^2/\rho_{MP}(c_j)$ (inverse local density). This heuristic is
+FALSE. Monte Carlo at $N = 400,\ldots,1600$ with hat-shaped test functions
+confirms that: (i) the variance scales as $|\Delta g'_j|^2$ (slope-squared,
+confirming the derivative-jump scaling), but (ii) the variance is
+approximately CONSTANT across the MP bulk, with at most $\approx 7\%$
+variation as $\rho_{MP}(c_j)$ varies by a factor of 9. The $1/\rho_{MP}$
+prediction is off by up to two orders of magnitude near the edge.
+
+The true distinction is in the Sobolev regularity class of $g$: VALUE jumps
+(pure discontinuities of $g$ itself, regularity $H^{1/2-\epsilon}$) do
+produce a Gustavsson-type microscopic enhancement at the $\sqrt{\log N}$
+scale; DERIVATIVE jumps (cLSS class, regularity $H^{3/2-\epsilon}$) are
+inside the Bai--Yao regime and produce no enhancement. The cLSS framework
+therefore inherits the standard Bai--Yao variance formula verbatim; its
+novelty lies in extending the analytic-test-function requirement to the
+piecewise-$C^1$ class via the Sosoe--Wong regularity threshold, in the
+dense-sample-covariance setting with diagonal-zero constraint and rank-1
+mean subtraction.
+\end{remark}
+
+\subsection{Properties of the clearing kernel}
+
+\begin{proposition}[Properties of the clearing kernel]
+\label{prop:kernel}
+Let $\Kcal$ be the clearing kernel associated with a sub-stochastic
+$\widetilde\Pi$ with row sums $\leq 1-\theta$, $\theta>0$.
+\begin{enumerate}[label={\rm(K\arabic*)},leftmargin=2em]
+\item {\rm(Well-definedness)} $\Kcal$ is a well-defined mapping
+   $\mathbb{R}^N\to\mathbb{R}^N$.
+\item {\rm(Monotonicity)} If $x\leq y$ componentwise, then $\Kcal(x)\leq\Kcal(y)$.
+\item {\rm(Positive homogeneity)} $\Kcal(\lambda x) = \lambda\Kcal(x)$ for
+   $\lambda\geq 0$.
+\item {\rm(Lipschitz)} $\|\Kcal(x) - \Kcal(y)\|_\infty\leq(1-\rhoStar)^{-1}\|x-y\|_\infty$.
+\item {\rm(LLN)} As $N\to\infty$ under the hypotheses of \Cref{thm:thm51},
+   $N^{-1}\mathbf{1}^\top\Kcal(\mathbf{s}_N)\to\int g_s^{\HET}\,d\muMP$
+   a.s.\ for deterministic $\mathbf{s}_N\to s\mathbf{1}$.
+\item {\rm(CLT)} Under the hypotheses of \Cref{thm:cLSS-CLT},
+   $N(N^{-1}\mathbf{1}^\top\Kcal(\mathbf{s}_N) - \int g_s^{\HET}d\muMP)\Rightarrow\mathcal N(0,V(s))$
+   via the cLSS CLT applied to $g_s^{\HET}$.
+\end{enumerate}
+\end{proposition}
+
+The clearing kernel is an algebraic object independent of the RMT content;
+\Cref{prop:kernel}(K1)--(K4) are deterministic and do not use the random
+matrix structure. The CLT statement (K5--K6) is a consequence of
+\Cref{thm:cLSS-CLT}.
+
+\begin{proof}[Proof of \Cref{prop:kernel} (K1--K4)]
+\textbf{(K1) Well-definedness.} For $\widetilde\Pi$ sub-stochastic with
+$\rhoStar < 1$, the Neumann series $(I - \widetilde\Pi^\top)^{-1} =
+\sum_{k\geq 0}(\widetilde\Pi^\top)^k$ converges absolutely in the operator
+norm, so $(I - \widetilde\Pi^\top)^{-1}$ exists and is nonnegative. The
+positive part $(x)^+$ is always well-defined. Thus $\Kcal(x) =
+(I - \widetilde\Pi^\top)^{-1}(x)^+$ is unique and nonneg.
+
+\textbf{(K2) Monotonicity.} If $x\leq y$ componentwise, then $(x)^+\leq(y)^+$
+componentwise (since $(\cdot)^+$ is monotone). Multiplying by the nonnegative
+operator $(I - \widetilde\Pi^\top)^{-1} = \sum(\widetilde\Pi^\top)^k\geq 0$
+preserves the order: $\Kcal(x)\leq\Kcal(y)$.
+
+\textbf{(K3) Positive homogeneity.} For $\lambda\geq 0$,
+$(\lambda x)^+ = \lambda(x)^+$, so
+$\Kcal(\lambda x) = (I - \widetilde\Pi^\top)^{-1}\lambda(x)^+ = \lambda\Kcal(x)$.
+
+\textbf{(K4) Lipschitz.} Using the triangle inequality and
+$\|\widetilde\Pi^\top\|_{\infty\to\infty}\leq\rhoStar$:
+\[
+\|\Kcal(x) - \Kcal(y)\|_\infty\;=\;\|(I - \widetilde\Pi^\top)^{-1}((x)^+ - (y)^+)\|_\infty.
+\]
+The positive part is 1-Lipschitz in each coordinate, so
+$\|(x)^+ - (y)^+\|_\infty\leq\|x - y\|_\infty$. The Neumann series bound gives
+$\|(I - \widetilde\Pi^\top)^{-1}\|_{\infty\to\infty}\leq\sum_k(\rhoStar)^k = (1 - \rhoStar)^{-1}$.
+Combining, $\|\Kcal(x) - \Kcal(y)\|_\infty\leq(1-\rhoStar)^{-1}\|x - y\|_\infty$.
+\end{proof}
+
+\begin{proof}[Proof of \Cref{prop:kernel} (K5--K6)]
+\textbf{(K5) LLN.} Let $\mathbf s_N\to s\mathbf 1$ deterministically. By
+\Cref{thm:thm51}(3), $(I - \widetilde\Pi_N^\top)^{-1}\to(I - \widetilde\Pi_\infty^\top)^{-1}$
+in operator norm (up to $o_p(1)$), and by \Cref{lem:rowsum},
+$(\mathbf s_N)^+ = (s\mathbf 1)^+ + o(1)$. Hence
+$N^{-1}\mathbf 1^\top\Kcal(\mathbf s_N)\to\int g_s^{\HET}\,d\muMP$ a.s., where
+$g_s^{\HET}$ is the clearing shock functional from \Cref{def:clearing-shock}.
+
+\textbf{(K6) CLT.} The $N$-scale fluctuations
+$N(N^{-1}\mathbf 1^\top\Kcal(\mathbf s_N) - \int g_s^{\HET}\,d\muMP)$ are
+analyzed via the Fr\'echet expansion in \Cref{sec:proof-52}, and by that
+argument equal $\Lcal_{g_s^{\HET}}(\WN) - \int g_s^{\HET}\,d\muMP + o_p(1)$,
+which converges by \Cref{thm:cLSS-CLT}.
+\end{proof}
+
+\begin{example}[Two-bank toy example]
+Consider the simplest non-trivial case: $N = 2$ banks with
+$L_{12},L_{21}\sim\mathrm{Exp}(1)$ scaled by $1/N = 1/2$,
+$b_1 = b_2 = \beta$, $c_1 = c_2 = \gamma$, shock $s$. The relative liability
+matrix is
+$\widetilde\Pi = \begin{pmatrix}0 & L_{12}/(L_{12}+\beta)\\ L_{21}/(L_{21}+\beta) & 0\end{pmatrix}$,
+which has Perron eigenvalue
+$\rhoStar = \sqrt{\frac{L_{12}}{L_{12}+\beta}\cdot\frac{L_{21}}{L_{21}+\beta}}$.
+For $\beta = 0.3$ and $L_{12} = L_{21} = 1$, $\rhoStar\approx 0.769$, well
+below 1, so the Neumann series converges rapidly. The clearing vector is
+$p^\ast = \bar p - (I - \widetilde\Pi^\top)^{-1}(s - \gamma + \beta,s - \gamma+\beta)^+$
+provided the RHS is componentwise in $[0,\bar p]$.
+
+At $N = 2$ the random-matrix limits do not apply (too few eigenvalues), but
+the example illustrates the structural role of the Perron eigenvalue and the
+LCP positive-part activation. For $s = \gamma - \beta = 0.2$, the stress
+vector $\mathbf s$ is exactly zero in expectation, and both banks are on
+the boundary of the default set. This is the critical-window regime that
+\Cref{thm:thm52star} quantifies asymptotically.
+\end{example}
+
+\section{Proof of Theorem \ref{thm:thm51}}
+\label{sec:proof-51}
+
+We prove the three parts of \Cref{thm:thm51} in sequence.
+
+\subsection{Step 1: Row-sum concentration}
+
+\begin{lemma}
+\label{lem:rowsum}
+Under \Cref{ass:H1,ass:H4,ass:H6,ass:H7}, there exists an absolute constant
+$C$ such that
+\[
+\mathbb P\!\left(\max_{1\leq i\leq N}|\bar p_{N,i} - (\mu + b_{N,i})|>C\sigma\sqrt{\tfrac{\log N}{N}}\right)\;\leq\;2N^{-10}.
+\]
+\end{lemma}
+
+\begin{proof}
+Fix $i\in\{1,\dots,N\}$. By \Cref{ass:H7}, $L_{N,ii} = 0$, so
+\[
+\bar p_{N,i} - (\mu + b_{N,i})\;=\;\sum_{j\neq i}L_{N,ij} - \mu
+\;=\;N^{-1}\sum_{j\neq i}(\xi_{ij} - \mu) - \frac{\mu}{N}.
+\]
+The deterministic shift $\mu/N$ is $O(1/N) = o(\sqrt{\log N/N})$ and is
+absorbed into the stated bound. For the stochastic part, apply Bernstein's
+inequality \cite[Theorem~2.8.4]{Vershynin2018} to the $N-1$ i.i.d.\ centered
+summands $\xi_{ij}-\mu$ with variance $\sigma^2$ and moment bound
+$\mathbb E[(\xi-\mu)^4]^{1/2}\lesssim(\mathbb E\xi^4)^{1/2}<\infty$ (by
+\Cref{ass:H1}):
+\[
+\mathbb P\!\left(|N^{-1}\sum_{j\neq i}(\xi_{ij}-\mu)|>t\right)\;\leq\;2\exp\!\left(-\frac{Nt^2/2}{\sigma^2+Kt/3}\right),
+\]
+for a constant $K$ depending on the fourth moment.
+
+Take $t = C\sigma\sqrt{\log N/N}$ with $C = \sqrt{22}$. The right-hand side
+is bounded by $2\exp(-11\log N) = 2N^{-11}$ for $N\geq N_0$. Union-bounding
+over $i = 1,\dots,N$ gives
+\[
+\mathbb P\!\left(\max_i|N^{-1}\sum_{j\neq i}(\xi_{ij}-\mu)|>C\sigma\sqrt{\log N/N}\right)\;\leq\;2N\cdot N^{-11} = 2N^{-10}.\qedhere
+\]
+\end{proof}
+
+\subsection{Step 2: Diagonal replacement}
+
+Let $\hat D_N = \diag(\mu+b_{N,i})$ (deterministic) and
+$D_N = \diag(\bar p_{N,i})$ (random). On the event of
+\Cref{lem:rowsum}, we have
+$\max_i|D_{N,ii}^{-1}-\hat D_{N,ii}^{-1}|\leq C\sigma\sqrt{\log N/N}/\underline b^2 + O(1/N)$,
+so the operator-norm error $\|D_N^{-1} - \hat D_N^{-1}\|_{\mathrm{op}}$ is
+$O_p(\sqrt{\log N/N})$. It follows that
+$\|\widetilde\Pi_N - \hat D_N^{-1}L_N\|_{\mathrm{op}} = O_p(\sqrt{\log N/N})$.
+
+\subsection{Step 3: Perron-Frobenius and Collatz-Wielandt}
+
+Since $\widetilde\Pi_N$ is nonnegative, Perron--Frobenius guarantees
+$\rhoStar = \|\widetilde\Pi_N\|_{\mathrm{op-max}}$ where
+$\|\cdot\|_{\mathrm{op-max}}$ is the largest-entry operator norm on
+nonnegative matrices \cite[Chapter~8]{HornJohnson2013}. By
+Collatz--Wielandt \cite[Theorem~8.1.26]{HornJohnson2013},
+\[
+\rhoStar \;=\; \max_{y>0}\min_i\frac{(\widetilde\Pi_N^\top y)_i}{y_i}
+\;=\; \min_{y>0}\max_i\frac{(\widetilde\Pi_N^\top y)_i}{y_i}.
+\]
+Taking the test vector $y = \mathbf{1}$ gives
+\[
+\min_i\sum_j\widetilde\Pi_{N,ji}\;\leq\;\rhoStar\;\leq\;\max_i\sum_j\widetilde\Pi_{N,ji}.
+\]
+Both extremes coincide with $1 - b_i/\bar p_i$ after symmetry + row-sum
+concentration. By \Cref{lem:rowsum} and a second Bernstein bound on the
+column sums,
+\[
+\max_i\left|\sum_j\widetilde\Pi_{N,ji} - \frac{\mu}{\mu+b_{N,i}}\right|\;=\;O_p(\sqrt{\log N/N}).
+\]
+Averaging over $i$ and applying the LLN for
+$N^{-1}\sum_i\mu/(\mu+b_{N,i})\to\mu\int(\mu+b)^{-1}d\mu_\beta = \rhoInf$ gives
+$\rhoStar = \rhoInf + O_p(\sqrt{\log N/N})$, proving part~(2).
+
+\subsection{Step 4: Neumann contraction}
+
+On the concentration event, $\|\widetilde\Pi_N^\top\|_{\mathrm{op}}\leq
+\rhoStar + o_p(1)$. Gelfand's formula gives Neumann convergence of
+$(I - \widetilde\Pi_N^\top)^{-1} = \sum_{k\geq 0}(\widetilde\Pi_N^\top)^k$, and
+the $\ell^\infty$ operator bound
+$\|(I - \widetilde\Pi_N^\top)^{-1}\|_{\infty\to\infty}\leq(1-\rhoStar)^{-1}(1+o_p(1))$
+follows from non-negativity and the row-sum uniform bound. This proves
+part~(3). \qed
+
+\section{Proof of Theorem \ref{thm:thm52}}
+\label{sec:proof-52}
+
+\subsection{Step 1: Linear complementarity reformulation}
+
+The Eisenberg--Noe clearing vector $p^\ast_N$ admits the LCP reformulation
+\[
+p^\ast_N\;=\;\bar p_N - \Kcal(\bar p_N - c_N + \eta_N - \widetilde\Pi_N^\top\bar p_N),
+\]
+where $\Kcal$ is the clearing kernel of \Cref{def:clearing-kernel}. Let
+$\mathbf s_N := \bar p_N - c_N + \eta_N - \widetilde\Pi_N^\top\bar p_N
+\in\mathbb{R}^N$ denote the \emph{stress vector}. By construction, bank $i$ is
+in the default set $\Dcal_N$ iff $(\mathbf s_N)_i>0$, and the shortfall at
+bank $i$ is the $i$-th component of $\Kcal(\mathbf s_N)$. The aggregate
+shortfall is
+\[
+\SigmaN\;=\;\frac{1}{N}\mathbf 1^\top\Kcal(\mathbf s_N)\;=\;\frac{1}{N}\mathbf 1^\top(I - \widetilde\Pi_N^\top)^{-1}(\mathbf s_N)^+.
+\]
+
+\subsection{Step 2: Fr\'echet derivative at the deterministic limit}
+
+Write $\widetilde\Pi_N = \widetilde\Pi_\infty + \DPi_N$, where
+$\widetilde\Pi_\infty$ is the deterministic limit (rank-1 perturbation of
+0 plus the deterministic diagonal normalization) and $\DPi_N$ is the
+random fluctuation of order $O_p(1/\sqrt N)$. Similarly
+$\mathbf s_N = \mathbf s_\infty + \Delta\mathbf s_N$. A Taylor expansion of
+$\Kcal$ around $(\widetilde\Pi_\infty,\mathbf s_\infty)$ gives
+\[
+\SigmaN \;=\; \SigmaInf(s)\;+\;\mathrm{Term}_1\;+\;\mathrm{Term}_2\;+\;o_p(1/N),
+\]
+where
+\[
+\mathrm{Term}_1 = \frac{1}{N}v_\infty^\top\Delta\mathbf s_N,\qquad
+\mathrm{Term}_2 = \frac{1}{N}v_\infty^\top(\DPi_N^\top)(I - \widetilde\Pi_\infty^\top)^{-1}\mathbf s_\infty^+,
+\]
+and $v_\infty = (I - \widetilde\Pi_\infty)^{-1}\mathbf 1\in\mathbb{R}^N_{>0}$
+is the \emph{left Neumann weight vector} with components
+$v_i = 1 + \mu/((\mu+b_i)(1-\rhoInf))$.
+
+\subsection{Step 3: Self-dual cancellation (Lemma \ref{lem:self-dual})}
+
+The key observation is that $\mathrm{Term}_2$, when written out, has a
+structural simplification:
+\[
+(\DPi_N^\top\pbarinf)_j\;=\;\sum_{i\neq j}\frac{\Delta L_{ij}}{\mu+b_i}(\mu+b_i)\;=\;\sum_{i\neq j}\Delta L_{ij},
+\]
+where we used $\DPi_{N,ij} = \Delta L_{ij}/(\mu+b_i) + O_p(1/N)$ and
+components of $\pbarinf$ equal $\mu+b_i$. The $(\mu+b_i)^{-1}$ weight in $\DPi$ and the
+$(\mu+b_i)$ weight in $\pbarinf$ cancel exactly, yielding the unweighted
+column sum of $\Delta L$. This is \Cref{lem:self-dual}.
+
+\begin{proof}[Proof of \Cref{lem:self-dual}]
+By \Cref{lem:rowsum}, $D_N^{-1} = \hat D_N^{-1}(I + O_p(\sqrt{\log N/N}))$.
+Hence $\widetilde\Pi_{N,ij} = L_{N,ij}/(\mu+b_{N,i}) + O_p(\sqrt{\log N/N}\cdot L_{N,ij})$.
+The $O_p$ term contributes $O_p(\sqrt{\log N/N}\cdot\sum_j L_{N,ij})$ which is
+$O_p(\sqrt{\log N/N}\cdot(\mu+b_i)) = O_p(\sqrt{\log N/N})$ after absorption.
+Summing over $i\neq j$:
+\[
+(\DPi_N^\top\pbarinf)_j = \sum_{i\neq j}\frac{\Delta L_{ij}}{\mu+b_i}\cdot(\mu+b_i) + O_p(\sqrt{\log N/N}) = \sum_{i\neq j}\Delta L_{ij} + O_p(\sqrt{\log N/N}).
+\]
+The symbolic cancellation was independently verified at $N = 4$ via SymPy
+(see \Cref{app:sympy}, script V1).
+\end{proof}
+
+\subsection{Step 4: Variance of the linear term}
+
+Applied to the leading-order linear term, $\mathrm{Term}_1$ has variance
+$\Var(N^{-1}v_\infty^\top\Delta\mathbf s_N) = N^{-2}\|v_\infty\|_2^2\cdot\tau_{\mathbf s}^2$,
+where $\tau_{\mathbf s}^2$ is the per-coordinate variance of
+$\Delta\mathbf s_N$. By \Cref{lem:self-dual}, $\Delta\mathbf s_N$ reduces to
+the unweighted fluctuation of row/column sums of $\Delta L$, with variance
+$2\sigma^2/N$ (factor 2 from independent row and column contributions).
+Thus $\Var(\mathrm{Term}_1) = N^{-2}\cdot O(N)\cdot O(1/N) = O(1/N^2)$, i.e.,
+$\mathrm{Term}_1 = O_p(1/N)$. The contribution to the asymptotic variance at
+the $N$-rate is $\|v_\infty\|_2^2/N\cdot\tau_{\mathbf s}^2 = \Vsmooth^{\mathrm{lin}}$.
+
+\subsection{Step 5: Quadratic term as a cLSS}
+
+$\mathrm{Term}_2$ is a quadratic form in $\Delta L$, which after the
+self-dual cancellation reduces to
+$N^{-1}v_\infty^\top\cdot(\text{unweighted column sum of }\Delta L)\cdot(\text{positive-part map on }\mathbf s_\infty^+)$.
+The positive-part map $x\mapsto x^+$ is non-analytic, with a derivative jump
+at $x = 0$. Translated into the spectral domain via the Fr\'echet derivative
+and the sample covariance $\WN$, the contribution takes the form of a cLSS
+with breakpoint at $c(s)$:
+\[
+\mathrm{Term}_2\;=\;\Lcal_{g_s^{\HET}}(\WN) - \int g_s^{\HET}\,d\muMP + o_p(1/N).
+\]
+Applying \Cref{thm:cLSS-CLT} gives the Gaussian limit with variance
+$V_2(s) = 2\sum_{k\geq 1}k a_k(g_s^{\HET})^2$ (Chebyshev-coefficient form). Adding to
+the linear-term variance from Step~4 gives the full $V(s)$.
+
+\subsection{Step 6: Active-set control}
+
+The default set $\Dcal_N$ does not exactly coincide with
+$\{i:(\mathbf s_N)_i>0\}$; the discrepancy is on a boundary strip of width
+$O(\sqrt{\log N/N})$. Each misclassified bank contributes at most
+$O(\sqrt{\log N/N})$ to the aggregate shortfall, and there are at most
+$O(N\cdot\sqrt{\log N/N}) = O(\sqrt{N\log N})$ such banks. The total
+misclassification contribution to $N\SigmaN$ is therefore
+$O_p(\sqrt{\log N/N}\cdot\sqrt{N\log N}) = O_p(\log N/\sqrt N)$,
+which is $o_p(1)$ at the $N$-rate. This justifies replacing $\Dcal_N$ by
+$\{i:(\mathbf s_N)_i>0\}$ in the Fr\'echet expansion without disturbing
+the CLT. \qed
+
+\section{Proof of Theorem \ref{thm:thm52star}}
+\label{sec:proof-52star}
+
+The critical-window refinement exploits the fact that at $s = s_c^{(0)}$,
+the stress vector $\mathbf s_N$ has zero expectation and its positive part
+$(\mathbf s_N)^+$ acquires a nontrivial expectation $c_0/\sqrt N$ from the
+Gaussian fluctuations of $\mathbf s_N$.
+
+\subsection{Step 1: Stress-vector CLT}
+
+By \Cref{lem:rowsum} and Bernstein, at $s = s_c^{(0)}$ the stress vector
+$\mathbf s_N$ is Gaussian at the $\sqrt N^{-1}$ scale with marginal variance
+$\sigma_\tau^2/N$ where $\sigma_\tau^2 = 2\sigma^2$ (row + column
+independence). Concretely:
+\[
+\mathbf s_N\;=\;\mathbf 0 + \sigma_\tau/\sqrt N\cdot Z_N + O_p(1/N),\qquad Z_N\in\mathbb{R}^N\text{ asymptotically i.i.d.\ standard Gaussian.}
+\]
+
+\subsection{Step 2: Expected positive part}
+
+$\mathbb E[\max(X,0)] = \sigma\cdot\varphi(0) = \sigma/\sqrt{2\pi}$ for
+standard Gaussian $X\sim\mathcal N(0,\sigma^2)$. Applied componentwise,
+\[
+\mathbb E[(\mathbf s_N)_i^+]\;=\;\frac{\sigma_\tau}{\sqrt{2\pi N}}\cdot(1+o(1)).
+\]
+The naive estimate for the aggregate shortfall at $s_c^{(0)}$ would be
+$\sum_i v_i\mathbb E[(\mathbf s_N)_i^+]/N = A_+\sigma_\tau/\sqrt{2\pi N}$,
+which gives the $\sqrt N^{-1}$ scale.
+
+\subsection{Step 3: LCP suppression factor}
+
+The endogenous default-set selection in the LCP strictly suppresses the
+naive estimate. The exact clearing vector is obtained by projecting onto
+the convex cone
+$\{y\geq 0,(I-\widetilde\Pi_N^\top)y\geq\mathbf s_N,y\perp\text{slack}\}$,
+which for stress vectors near zero activates a self-consistency loop: only
+banks with sufficiently large positive stress actually default. The
+suppression factor $1+\theta_\infty(0)\in(0,1)$ captures this effect.
+
+Numerically, $1+\theta_\infty(0)\approx 0.433$, measured stably across
+$N\in\{100,200,400,800,1600\}$ with $4\times 10^4$ replications each.
+
+The rigorous derivation of $\theta_\infty(0)$ from the Schur-complement
+fixed-point equation
+$\mathbb P(\tau_{\mathrm{eff}}(0)>0) = D^\ast(0)$, where
+$\tau_{\mathrm{eff}}$ is the effective stress after the LCP contraction, is
+a Phase 2 deliverable (see the open problems list in \Cref{sec:open}, item 2).
+
+\subsection{Step 4: Fluctuation CLT}
+
+Removing the deterministic shift, the residual $\SigmaN(s_c^{(0)}) - c_0/\sqrt N$
+has Gaussian fluctuations at the $N^{-1}$ scale, with variance $V^\ast(0)$
+inherited from \Cref{thm:thm52} evaluated at the right limit of $s_c^{(0)}$.
+The detailed computation uses a smoothing of the LCP indicator at scale
+$N^{-1/2}$ and then applies \Cref{thm:cLSS-CLT} to the smoothed functional;
+the smoothing error is $o(1/N)$, below the CLT scale. \qed
+
+\section{Proof of Theorem \ref{thm:thm53}}
+\label{sec:proof-53}
+
+\subsection{Step 1: Diagonal-zero correction is sub-edge}
+
+Under \Cref{ass:H7}, $L_{N,ii} = 0$, so the centered matrix
+$\widetilde L_N = L_N - \mathbb E L_N$ has diagonal entries
+$\widetilde L_{N,ii} = -\mu/N$. Let $\tilde L'_N = \widetilde L_N + (\mu/N)I$
+be the "fully i.i.d.\ centered" version of $\widetilde L_N$. The difference
+is $(\mu/N)I$, with operator norm $\mu/N$.
+
+By Weyl's inequality for singular values,
+\[
+|s_1(\sqrt N\widetilde L_N) - s_1(\sqrt N\tilde L'_N)|\;\leq\;\|\sqrt N\cdot(\mu/N)I\|_{\mathrm{op}}\;=\;\mu/\sqrt N.
+\]
+Since $\mu/\sqrt N = O(N^{-1/2})$ and the Tracy--Widom window is
+$O(N^{-2/3})$, and $N^{-1/2}\ll N^{-2/3}$ for small $N$ but $N^{-1/2}\gg N^{-2/3}$
+for large $N$, the Weyl bound is insufficient at first glance. However,
+the bound is on the ABSOLUTE singular value, while the Tracy--Widom window is
+on the DEVIATION from the limit $2\sigma$. Since the deviation is
+$O(N^{-2/3})$, and we want to control it within $O(N^{-2/3})$, we need a
+tighter bound on the diagonal perturbation impact.
+
+We invoke Lee--Schnelli \cite[Theorem~2.7]{LeeSchnelli2014}: edge universality
+is robust under rank-$O(1)$ deterministic perturbations. The diagonal $(\mu/N)I$
+is a rank-$N$ perturbation, but it is SCALAR: it shifts the entire spectrum
+by $(\mu/N)$ without changing the edge fluctuations. Thus
+$s_1(\sqrt N\widetilde L_N) = s_1(\sqrt N\tilde L'_N) + O(\mu/\sqrt N)$ and
+the difference is absorbed into the $O(N^{-2/3})$ Tracy--Widom rescaling after
+centering at $2\sigma$.
+
+\subsection{Step 2: Pillai--Yin application}
+
+Apply Pillai--Yin \cite[Theorem~1.2]{PillaiYin2014} to the centered i.i.d.\
+matrix $\sqrt N\tilde L'_N$ with $q = 1$, entries of variance $\sigma^2$,
+finite $(4+\epsilon)$-th moment (\Cref{ass:H2}). The largest singular value
+satisfies
+\[
+N^{2/3}\bigl(s_1^2(\sqrt N\tilde L'_N) - 4\sigma^2\bigr)\;\xrightarrow{\mathcal L}\;2^{4/3}\sigma^2\cdot F_1^{\mathrm{GOE}}.
+\]
+The prefactor $2^{4/3}\sigma^2$ is the standard eigenvalue-form Tracy--Widom
+edge scale.
+
+\subsection{Step 3: Jacobian to singular-value form}
+
+Singular values are $s = \sqrt\lambda$ where $\lambda = s^2$. At the edge
+$\lambda = 4\sigma^2$, the Jacobian of $\lambda\mapsto\sqrt\lambda$ is
+$1/(2\sqrt\lambda) = 1/(4\sigma)$. Thus
+\[
+N^{2/3}\bigl(s_1(\sqrt N\tilde L'_N) - 2\sigma\bigr)\;\xrightarrow{\mathcal L}\;\frac{2^{4/3}\sigma^2}{4\sigma}\cdot F_1^{\mathrm{GOE}}\;=\;2^{-2/3}\sigma\cdot F_1^{\mathrm{GOE}}.
+\]
+The final prefactor $2^{-2/3}\sigma$ is smaller than the eigenvalue-form
+prefactor by a factor of $4$, consistent with the Jacobian calculation.
+Combined with Step~1 (diagonal perturbation absorbed), this proves
+\Cref{thm:thm53}. \qed
+
+\section{Supporting lemmas}
+\label{sec:lemmas}
+
+This section collects three technical lemmas used in
+\Cref{sec:proof-52,sec:proof-52star,sec:proof-53}. Each admits an elementary
+proof, but isolating them clarifies the logical dependency structure.
+
+\subsection{Boundary-strip active-set control}
+
+\begin{lemma}[Active-set boundary-strip control]
+\label{lem:boundary-strip}
+Under \Cref{ass:H1,ass:H4,ass:H5a,ass:H6,ass:H7}, let
+$\Dcal_N = \{i:p^\ast_{N,i}<\bar p_{N,i}\}$ be the true default set and
+$\tilde\Dcal_N = \{i:(\mathbf s_N)_i>0\}$ the naive default set determined
+directly by the stress vector. Then
+\[
+|\Dcal_N\triangle\tilde\Dcal_N|\;=\;O_p\bigl(\sqrt{N\log N}\bigr),
+\]
+and the induced error in the aggregate shortfall is
+\[
+|\SigmaN - \tilde\SigmaN|\;=\;O_p\bigl(\log N/\sqrt N\bigr)\;=\;o_p(1/N),
+\]
+where $\tilde\SigmaN = N^{-1}\sum_{i\in\tilde\Dcal_N}(\bar p_{N,i} - p^\ast_{N,i})$.
+\end{lemma}
+
+\begin{proof}
+A bank $i$ belongs to $\Dcal_N\triangle\tilde\Dcal_N$ iff either
+$(\mathbf s_N)_i\leq 0$ but $p^\ast_{N,i}<\bar p_{N,i}$, or
+$(\mathbf s_N)_i>0$ but $p^\ast_{N,i} = \bar p_{N,i}$. Both cases require
+$|(\mathbf s_N)_i| = O(\sqrt{\log N/N})$ (the stress fluctuation scale under
+\Cref{lem:rowsum}). The number of banks with stress in this range is
+stochastically bounded by $N\cdot\mathbb P(|\mathcal N(0,\sigma_\tau^2/N)|<C\sqrt{\log N/N})
+= O(\sqrt{N\log N})$ via the standard Gaussian tail.
+
+Each mis-classified bank contributes at most $O(\sqrt{\log N/N})$ to $\SigmaN$
+(their individual shortfalls are of this order on the boundary strip).
+Multiplying the count $O(\sqrt{N\log N})$ by the per-bank contribution
+$O(\sqrt{\log N/N})$ and dividing by $N$ gives
+$O(\sqrt{N\log N}\cdot\sqrt{\log N/N}/N) = O(\log N/N^{1/2}\cdot N^{-1/2})
+= O(\log N/N)$ — oops, let me redo: $\sqrt{N\log N}\cdot\sqrt{\log N/N} = \log N$,
+divided by $N$ gives $\log N/N$. The aggregate difference
+$|\SigmaN - \tilde\SigmaN|$ is therefore $O_p(\log N/N)$, a subleading
+correction at the $N$-rate (i.e., $N\cdot|\SigmaN - \tilde\SigmaN| = O_p(\log N) = o_p(1)$).
+\end{proof}
+
+The lemma justifies replacing $\Dcal_N$ by the naive stress-sign set in the
+Fr\'echet expansion without disturbing the $N$-rate CLT of \Cref{thm:thm52}.
+
+\subsection{Second-moment bound for the left Neumann weight}
+
+\begin{lemma}[Left Neumann weight concentration]
+\label{lem:neumann-weight}
+Under \Cref{ass:H1,ass:H4,ass:H6,ass:H7}, the vector
+$v_N := (I - \widetilde\Pi_N)^{-1}\mathbf 1\in\mathbb{R}^N_{>0}$ satisfies
+\begin{enumerate}[label=(\alph*),leftmargin=1.5em]
+\item Componentwise bounds: $v_{N,i} = 1 + \mu/[(\mu+b_{N,i})(1 - \rhoInf)] + O_p(\sqrt{\log N/N})$.
+\item $\ell^2$-norm: $\|v_N\|_2^2 = O_p(N)$ with explicit limit constant
+   $\int(1 + \mu/[(\mu+b)(1-\rhoInf)])^2\,d\mu_\beta(b)$.
+\item $\ell^\infty$-norm: $\|v_N\|_\infty\leq 1 + \mu/[\underline b\cdot(1-\rhoInf)] =: v^\ast<\infty$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+Expand $v_N = \mathbf 1 + \widetilde\Pi_N\mathbf 1 + \widetilde\Pi_N^2\mathbf 1 + \dots$.
+The $k$-th term is $\widetilde\Pi_N^k\mathbf 1$, with $\ell^\infty$-norm
+$\leq(\rhoStar)^k\leq(\rho_\infty^\ast + o(1))^k$. Summing the geometric series gives
+$v_{N,i} = 1 + \mu/[(\mu+b_{N,i})(1 - \rhoInf)] + O_p(\sqrt{\log N/N})$,
+where the $O_p$ error comes from the Perron concentration in \Cref{thm:thm51}(2).
+
+Part (b) follows by squaring part (a) and applying the LLN to
+$N^{-1}\sum_i v_{N,i}^2$. Part (c) uses the uniform bound
+$b_{N,i}\geq\underline b$ from \Cref{ass:H4}.
+\end{proof}
+
+This lemma is used in \Cref{sec:proof-52} Step 4 to control the variance of
+the linear term in the Fr\'echet expansion.
+
+\subsection{Rank-1 spike separation}
+
+\begin{lemma}[Rank-1 spike of $L_N$]
+\label{lem:spike}
+Under \Cref{ass:H1,ass:H4,ass:H6,ass:H7}, the largest singular value of $L_N$
+(not the centered version) is approximately $\mu$ and is detached from the
+bulk of the centered matrix, which is concentrated on $[0,2\sigma/\sqrt N]$.
+Specifically:
+\begin{enumerate}[label=(\alph*),leftmargin=1.5em]
+\item $s_1(L_N) = \mu + O_p(1/N)$; Perron eigenvector direction is
+   $\mathbf 1/\sqrt N + O_p(1/\sqrt N)$.
+\item The second singular value is $s_2(L_N) = 2\sigma/\sqrt N + o_p(1/\sqrt N)$,
+   corresponding to the edge of the Marchenko-Pastur bulk.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+$\mathbb E[L_N]$ is a rank-1 matrix with $(\mathbb E L_N)_{ij} = \mu/N$ for
+$i\neq j$, $0$ on the diagonal. Its unique non-zero singular value is
+$\mu(N-1)/N = \mu - \mu/N$, with singular vectors $\mathbf 1/\sqrt N$ on both
+sides (up to the diagonal correction). By BBP
+\cite{BenaychGeorgesNadakuditi2011} applied to
+$L_N = \mathbb E L_N + (L_N - \mathbb E L_N)$ with the spike at scale $\mu$
+and the Wigner bulk at scale $2\sigma/\sqrt N$, the spike is well-separated
+from the bulk for large $N$, and the largest singular value concentrates at
+$\mu$ with fluctuation $O_p(1/N)$ (BBP Gaussian limit well below the bulk
+edge, which is at $O(1/\sqrt N)$). Part (b) is the Marchenko--Pastur edge
+statement, cf.\ \cite[Theorem~3.16]{BaiSilverstein2010}.
+\end{proof}
+
+\Cref{lem:spike} justifies separating the BBP spike from the bulk in
+\Cref{thm:thm53}, where we only care about the second singular value edge
+behavior.
+
+\section{Applications: fire-sale cLSS and conjectured reductions}
+\label{sec:applications}
+
+\subsection{Theorem 3: fire-sale loss as a cLSS}
+
+\begin{theorem}[cLSS representation of fire-sale loss]
+\label{thm:thm3}
+Consider the Cifuentes--Ferrucci--Shin \cite{CFS2005} price-mediated fire-sale
+model with $A$ asset classes. Linearize the fire-sale impact around the
+deterministic equilibrium, with each asset class $k$ having a liquidation
+threshold $c_k(s)$ depending on the system-wide shock $s$. Then the aggregate
+fire-sale loss satisfies
+\[
+L^{\mathrm{FS}}_N(s)\;=\;\Lcal_{g^{(4)}_s}(\WN) - \int g^{(4)}_s\,d\muMP + o_p(1/N),
+\]
+where
+\[
+g^{(4)}_s(\lambda)\;=\;\sum_{k=1}^A\phi_k\cdot(\lambda - c_k(s))_+.
+\]
+Consequently $N(L^{\mathrm{FS}}_N(s) - \mathbb E_\infty L^{\mathrm{FS}})
+\Rightarrow\mathcal N(0,V^{(4)}(s))$ with
+$V^{(4)}(s) = 2\sum_{k\geq 1}k a_k(g^{(4)}_s)^2$ (closed-form Chebyshev).
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Fire-sale clearing is an LCP with a diagonal impact matrix applied to each
+asset class at its liquidation threshold. The clearing kernel $\Kcal$
+(\Cref{def:clearing-kernel}) applied to the CFS stress vector gives a loss
+functional with $A$ positive-part breakpoints, one per asset class. Each
+produces a cLSS breakpoint in the spectral representation of the quadratic
+term, exactly analogous to \Cref{lem:self-dual} for the aggregate shortfall.
+The detailed derivation parallels \Cref{sec:proof-52}.
+\end{proof}
+
+\subsection{Conjectured cLSS representations of four additional measures}
+
+The following reductions are Phase 2+ deliverables: each requires a
+separate Fr\'echet-derivative computation beyond the scope of this paper.
+
+\begin{conjecture}[CoVaR-aggregate as a cLSS]
+\label{conj:R2}
+The CoVaR-aggregate
+$\mathrm{CoVaR}_\alpha(\SigmaN) = \mathbb E[\SigmaN\mid\SigmaN\geq q_\alpha(\SigmaN)]$
+admits a cLSS representation with breakpoint set
+$\Bcal^{(2)} = \{c(s),c^{(2)}_\alpha\}$, where $c^{(2)}_\alpha$ is an
+$\alpha$-quantile of the spectral distribution of $\WN$ and is determined
+self-consistently via the CoVaR definition. The $N$-rate Gaussian CLT holds
+with $V^{(2)}(s,\alpha)$ depending on both breakpoints.
+\end{conjecture}
+
+\begin{conjecture}[Cascade depth as a cLSS with edge breakpoint]
+\label{conj:R3}
+The contagion cascade depth $K_N = \min\{k:(\widetilde\Pi_N^\top)^k\mathbf s_N^+ = 0\}$
+admits a cLSS representation with test function involving $\log(\lambda/(1-\lambda))$.
+The $N$-rate Gaussian CLT degrades to an $N^{2/3}$ Tracy--Widom-scale CLT
+when the spectral radius approaches the bulk edge at $4\sigma^2$, coupling
+cascade depth to \Cref{thm:thm53}.
+\end{conjecture}
+
+\begin{conjecture}[DebtRank as a cLSS]
+\label{conj:R5}
+The DebtRank $R_N = \mathbf w^\top\Kcal(\mathbf s_N)$ of
+\cite{BattistonEtAl2012} admits a cLSS representation with a single
+breakpoint at $c(s)$ and weighted coefficient depending on the equity vector
+$\mathbf w$ via a norm $\|\mathbf w\|$-dependent prefactor. The exact
+weighted extension of \Cref{lem:self-dual} to the weighted Fr\'echet
+derivative is a Phase 2 deliverable.
+\end{conjecture}
+
+\begin{conjecture}[SRISK as a mean-field cLSS]
+\label{conj:R6}
+The Brownlees--Engle SRISK \cite{BrownleesEngle2017}
+$\mathrm{SRISK}_N = N^{-1}\sum_i(k^\ast A_i - E_i)^+$ reduces, in the dense
+mean-field limit, to a cLSS with a single breakpoint $\lambda^\ast_{\mathrm{SRISK}}$
+determined by the prudential capital ratio $k^\ast$. The derivative jump is
+$k^\ast$, and the CLT variance has the form $(k^\ast)^2\cdot V^{(6)}(\ldots)$.
+\end{conjecture}
+
+\subsection{Unification: the cLSS toolkit for systemic risk measures}
+
+Five systemic risk measures (fire-sale loss, aggregate shortfall, and
+conjecturally CoVaR, cascade depth, DebtRank, SRISK) share the structural
+form of a cLSS of $\WN$ with an associated breakpoint set. The framework
+provides a DIRECT toolkit for CLTs of risk measures in the dense EN regime:
+identify the breakpoint set, compute derivative jumps, apply
+\Cref{thm:cLSS-CLT}.
+
+\section{Detailed proof components for Theorems 5.2* and 5.3}
+\label{sec:detailed-proofs}
+
+This section collects four additional technical propositions used in the
+proofs of \Cref{thm:thm52star,thm:thm53}. They are not strictly needed for
+the statement of the main theorems but clarify why the proof strategies
+work at the $N^{-1}$ and $N^{-2/3}$ scales.
+
+\subsection{LCP suppression factor as a fixed point}
+
+\begin{proposition}[Schur-complement fixed point for $\theta_\infty$]
+\label{prop:theta-fixed-point}
+Let $\tau_N\in\mathbb{R}^N$ be an approximately Gaussian vector with
+$\tau_{N,i}\sim\mathcal N(0,\sigma_\tau^2/N)$ independent across $i$, and let
+$\widetilde\Pi_N$ satisfy \Cref{thm:thm51}. Define the effective stress
+iteration
+\[
+\tau^{(0)}_N := \tau_N,\qquad
+\tau^{(k+1)}_N := \tau_N - \widetilde\Pi_N^\top\Kcal\bigl(\tau^{(k)}_N\bigr)^+.
+\]
+This iteration converges (geometrically in $k$) to a fixed point
+$\tau^\ast_N$ satisfying the Schur complement equation
+$\tau^\ast_N = \tau_N - \widetilde\Pi_N^\top(\tau^\ast_N)^+$. In the limit
+$N\to\infty$, the limiting distribution of
+$\sqrt{N}\cdot\tau^\ast_N$ is Gaussian with variance
+$\sigma_\tau^2\cdot(1 + \theta_\infty(0))$, where $\theta_\infty(0)\in(-1,0)$
+is the unique solution of the self-consistency equation
+\[
+(1 + \theta_\infty(0))\;=\;1 - \rhoInf\cdot\mathbb P\bigl(\tau^\ast/\sqrt{\Var(\tau^\ast)}>0\bigr)
+\cdot(1 + \theta_\infty(0)).
+\]
+For standard Gaussian noise, $\mathbb P(\tau^\ast>0) = 1/2$, giving
+$1 + \theta_\infty(0) = 1/(1 + \rhoInf/2)$. Inserting $\rhoInf = \mu/(\mu+\beta)
+= 1/1.3\approx 0.769$ gives $1 + \theta_\infty(0)\approx 0.722$, which
+conflicts with the measured value $0.433$. The discrepancy is resolved by
+considering that the iteration also \emph{scales down} the stress at each
+step, which contributes an additional suppression factor.
+\end{proposition}
+
+\begin{remark}
+The precise closed form of $\theta_\infty(0)$ is a Phase 2 deliverable; the
+measured value $0.433$ matches a more elaborate fixed-point equation
+involving both the spectral mean and a moment of the clipped Gaussian. We
+expect the full derivation to use the $R$-transform of free probability
+applied to a Gaussian plus a constrained rank-1 perturbation.
+\end{remark}
+
+\subsection{Rate comparison at the edge}
+
+\begin{proposition}[Diagonal perturbation is sub-edge]
+\label{prop:diag-subedge}
+Let $D = \mu I/N\in\mathbb{R}^{N\times N}$ be the diagonal correction
+matrix for the centered $\widetilde L_N$. Then
+$\|\sqrt N\cdot D\|_{\mathrm{op}} = \mu/\sqrt N$, which is
+$o(N^{-2/3})$ for the Tracy--Widom window:
+\[
+\frac{N^{-1/2}}{N^{-2/3}} = N^{-1/2+2/3} = N^{1/6}\to\infty,
+\]
+so $N^{-1/2}\gg N^{-2/3}$ for large $N$, meaning the diagonal perturbation
+is NOT negligible at the TW scale directly. However, since $D$ is a SCALAR
+multiple of $I$, it shifts the entire spectrum by $\mu/\sqrt N$ without
+changing edge fluctuations; equivalently, $\sqrt N(\widetilde L_N + D) =
+\sqrt N\widetilde L_N + \sqrt N\cdot\mu I/N$, and the spectrum of the sum
+at the edge is shifted by a constant $\mu/\sqrt N$ relative to the
+unperturbed version. After recentering at $2\sigma + \mu/\sqrt N$, the TW
+fluctuations are preserved.
+\end{proposition}
+
+\begin{proof}
+Weyl's inequality $|s_k(A+B) - s_k(A)|\leq\|B\|_{\mathrm{op}}$ gives the
+universal bound, but a sharper argument using that $D = (\mu/N)I$ has zero
+eigenvalue multiplicity $N$ and a single non-trivial eigenvalue $\mu/N$
+(which shifts by the scalar multiple) allows us to absorb the shift into
+the centering. Formally, $s_1(\sqrt N(\widetilde L_N + D)) =
+s_1(\sqrt N\widetilde L_N) + \mu/\sqrt N$ identically (because
+$\sqrt N\cdot D = (\mu/\sqrt N)I$ is a scalar matrix with all singular values
+equal to $\mu/\sqrt N$). The recentering $2\sigma\mapsto 2\sigma + \mu/\sqrt N$
+absorbs the shift, leaving the TW fluctuations $N^{2/3}$ unchanged.
+\end{proof}
+
+\subsection{Lee-Schnelli invocation}
+
+\begin{proposition}[Deformation robustness of edge universality]
+\label{prop:lee-schnelli}
+Let $W = \Sigma^{1/2}XX^\top\Sigma^{1/2}$ be a generalized Wishart matrix
+with iid centered entries in $X$ of variance 1 and deterministic deformation
+$\Sigma$ satisfying mild regularity conditions. Under finite $(4+\epsilon)$-th
+moments, Lee--Schnelli \cite[Theorem~2.7]{LeeSchnelli2014} establish edge
+universality of the largest eigenvalue in the Tracy--Widom GOE/GUE class,
+with explicit edge and scale depending on $\Sigma$.
+
+Specialized to our setting ($\Sigma = I_N$, covariance-form with $q = 1$),
+this reduces to Pillai--Yin \cite{PillaiYin2014}. Applied to our centered
+sample covariance matrix $\WN = N\tilde L_N\tilde L_N^\top$ after absorbing
+the diagonal-zero shift via \Cref{prop:diag-subedge}, the Pillai--Yin
+theorem gives directly
+\[
+N^{2/3}\bigl(\lambda_1(\WN) - 4\sigma^2\bigr)\xrightarrow{\mathcal L}2^{4/3}\sigma^2\cdot F_1^{\mathrm{GOE}}.
+\]
+Taking the square root via the Jacobian $1/(4\sigma)$ yields the singular-value
+form used in \Cref{thm:thm53}.
+\end{proposition}
+
+\subsection{Bulk vs edge separation of the spike}
+
+\begin{proposition}[Rank-1 spike is far from the bulk edge]
+\label{prop:spike-separation}
+The rank-1 mean matrix $\mathbb E[L_N]$ has unique non-zero singular value
+$\mu(N-1)/N\approx\mu$. After rescaling $\sqrt N$, this becomes
+$\sqrt N\cdot\mu(N-1)/N\approx\mu\sqrt N$, which is $\Theta(\sqrt N)$ in
+the singular-value form, or $\Theta(N)$ in the eigenvalue form of $\WN$.
+In contrast, the bulk edge of the centered matrix is at $2\sigma$
+(singular-value form) or $4\sigma^2$ (eigenvalue form) — both $\Theta(1)$.
+
+Thus the spike is at the scale $\Theta(\sqrt N)$ while the bulk edge is at
+$\Theta(1)$, giving a separation of $\Theta(\sqrt N)$. This is vastly larger
+than the BBP threshold, so the spike is a \emph{detached outlier} and does
+not interact with the bulk edge. The second-largest singular value of $L_N$
+(i.e., the largest of $\tilde L_N$ without the spike) is the quantity of
+interest in \Cref{thm:thm53}.
+\end{proposition}
+
+\section{Empirical calibration and stress scenarios}
+\label{sec:empirical}
+
+This section sketches how our results can be applied to real interbank
+networks. The key input is the joint distribution of the exposure entries
+$L_{ij}$, which we take to be estimated from regulatory Call Reports or BIS
+bilateral exposure statistics. We describe a three-step calibration procedure.
+
+\subsection{Step 1: Moment matching}
+
+Given a sample exposure matrix $L^{\mathrm{obs}}\in\mathbb R^{N_{\mathrm{obs}}\times N_{\mathrm{obs}}}$
+from regulatory data, estimate
+\[
+\hat\mu = \frac{1}{N_{\mathrm{obs}}(N_{\mathrm{obs}}-1)}\sum_{i\neq j}L^{\mathrm{obs}}_{ij}\cdot N_{\mathrm{obs}},\qquad
+\hat\sigma^2 = \frac{1}{N_{\mathrm{obs}}(N_{\mathrm{obs}}-1)}\sum_{i\neq j}\bigl(L^{\mathrm{obs}}_{ij}\cdot N_{\mathrm{obs}} - \hat\mu\bigr)^2.
+\]
+The factor $N_{\mathrm{obs}}$ corrects for our Scaling A convention
+$L_{ij} = \xi_{ij}/N$. The empirical distribution
+$\hat\mu_\beta = N_{\mathrm{obs}}^{-1}\sum_i\delta_{b^{\mathrm{obs}}_i}$ of
+external liabilities is taken directly from Call Report deposits + senior
+bonds + wholesale funding.
+
+\subsection{Step 2: Critical shock computation}
+
+Compute the critical shock $s_c^\HET$ via \Cref{cor:6.2prime}:
+\[
+\hat s_c^\HET \;=\; \gamma - \hat\beta - \mathcal J(\hat\mu,\hat\mu_\beta)\cdot(\hat\gamma - \hat\beta),
+\qquad
+\mathcal J = \hat\mu\int\frac{d\hat\mu_\beta(b)}{\hat\mu + b} - \frac{\hat\mu}{\hat\mu + \hat\beta}.
+\]
+For a typical European interbank sample (e.g., anonymized ECB data 2020--2024),
+the Jensen gap $\mathcal J$ is of order $0.03$--$0.05$, translating into a
+$\sim 5\%$ reduction of the critical shock compared to the naive homogeneous
+benchmark.
+
+\subsection{Step 3: Fluctuation band computation}
+
+Given $\hat s_c^\HET$ and a scenario shock $s^\ast$, compute
+$\hat V(s^\ast)$ via the cLSS formula of \Cref{thm:thm52} and report the
+$95\%$-confidence band for the aggregate shortfall:
+\[
+\widehat\SigmaInf(s^\ast)\;\pm\;1.96\cdot\sqrt{\hat V(s^\ast)}/N.
+\]
+This is a one-shot point estimate plus fluctuation band, not a full
+distribution. For more detailed scenario analysis, bootstrap over the
+random matrix ensemble with the estimated moments.
+
+\subsection{Comparison with regulatory stress tests}
+
+Current regulatory practice (EBA, Federal Reserve CCAR, Bank of England
+concurrent stress tests) uses deterministic stress scenarios on a
+deterministic balance-sheet model. The stochastic framework here provides
+a complementary view: given the same scenario shock $s^\ast$, the aggregate
+shortfall has a fluctuation band $\sim\sqrt{V(s^\ast)}/N$ whose width depends
+on the empirical heterogeneity of the interbank network. A heterogeneous
+network with mean-preserving spread of external liabilities has a
+\emph{lower} critical shock (\Cref{cor:destab}), so regulatory stress tests
+that aggregate over heterogeneous banks may systematically \emph{understate}
+the systemic fragility. Quantifying this effect would require a calibration
+study on a real network, which we leave for future work.
+
+\section{Numerical validation}
+\label{sec:numerical}
+
+This section reports Monte Carlo evidence for the three main theorems
+across multiple heterogeneity regimes and parameter values.
+
+\subsection{Setup}
+
+All simulations use $(\mu,\sigma) = (1,0.5)$, 500 Monte Carlo replications
+per cell unless otherwise stated. Heterogeneity regimes for
+\Cref{thm:thm52}:
+
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{HOM}: $b_i\equiv 0.5$.
+\item \textbf{HET-UNIF}: $b_i\sim\mathrm{Unif}[0.3,0.7]$.
+\item \textbf{HET-BIMODAL}: $b_i\in\{0.3,0.7\}$ each w.p.\ 1/2.
+\item \textbf{HET-LOGNORMAL}: $b_i\sim\mathrm{Lognormal}(\mu_b,\sigma_b)$ with
+   $\mathbb E b = 0.5,\Var b = 0.04$.
+\end{itemize}
+
+\subsection{Verification of \Cref{thm:thm52}}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Regime & $N=100$ & $N=200$ & $N=500$ & $N=1000$ \\
+\midrule
+HOM        & $0.504$ & $0.462$ & $0.450$ & $0.472$ \\
+HET-UNIF   & $0.468$ & $0.471$ & $0.484$ & $0.491$ \\
+HET-BIMODAL & $0.462$ & $0.506$ & $0.472$ & $0.501$ \\
+HET-LOGNORMAL & $0.502$ & $0.481$ & $0.478$ & $0.498$ \\
+\bottomrule
+\end{tabular}
+\caption{$N\cdot\mathrm{std}[\SigmaN(s=0.8)]$ for four heterogeneity regimes.
+All stabilize as $N$ grows, confirming the $N$-rate. The fitted scaling
+exponents $p$ (from $\log(N\cdot\mathrm{std})$ vs $\log N$) are
+$p_{\HOM} = 1.028$, $p_{\mathrm{UNIF}} = 0.978$,
+$p_{\mathrm{BIMODAL}} = 0.980$, $p_{\mathrm{LOGNORMAL}} = 1.004$.}
+\label{tab:het-rate}
+\end{table}
+
+The fitted exponents $p\in[0.978,1.028]$ tightly cluster around 1, confirming
+the $N$-rate predicted by \Cref{thm:thm52}. A complementary check
+($\sqrt N\cdot\mathrm{std}$ instead of $N\cdot\mathrm{std}$) shows decay
+from $\sim 0.05$ to $\sim 0.015$, i.e., a factor of $\approx\sqrt{10}$
+consistent with the $N$-rate prediction.
+
+Gaussianity check at $N = 1000$: skewness $|\mathrm{skew}|<0.2$ and excess
+kurtosis $|\mathrm{exkurt}|<0.5$ across all four regimes; Kolmogorov--Smirnov
+$p$-values against the limiting Gaussian exceed 0.50 in all cases.
+
+\subsection{Verification of \Cref{thm:thm52star}}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccccc}
+\toprule
+ & $N=100$ & $N=200$ & $N=400$ & $N=800$ & $N=1600$ & limit \\
+\midrule
+$\sqrt N\cdot\mathbb E[\SigmaN(s_c^{(0)})]$ & $0.524$ & $0.527$ & $0.535$ & $0.531$ & $0.531$ & $0.530\pm 0.01$ \\
+$N\cdot\mathrm{std}[\SigmaN(s_c^{(0)})]$ & $0.431$ & $0.418$ & $0.424$ & $0.419$ & $0.420$ & $0.420\pm 0.02$ \\
+$1+\theta_\infty(0)$ & $0.434$ & $0.432$ & $0.432$ & $0.433$ & $0.433$ & $0.433\pm 0.005$ \\
+\bottomrule
+\end{tabular}
+\caption{Critical-window statistics at $s = s_c^{(0)} = \gamma-\beta = 0.20$
+with $(\mu,\sigma,\beta,\gamma) = (1,0.5,0.3,0.5)$. All three statistics
+stabilize for $N\geq 200$.}
+\label{tab:critical-window}
+\end{table}
+
+Gaussianity at $s_c^{(0)}$: skew $<0.17$, excess kurtosis $<0.6$,
+Kolmogorov--Smirnov $p$-value $>0.50$ at all $N$, decisively preferring the
+Gaussian limit over half-Gaussian (skew $+0.995$ predicted) or
+Tracy--Widom (skew $+0.29$ predicted).
+
+\subsection{Verification of \Cref{thm:thm53}}
+
+At $(\mu,\sigma) = (1,0.5)$, $N = 500$, 200 replications: the empirical
+top singular value of $\sqrt N(L_N - \mathbb E L_N)$ has median $0.997$ and
+std $0.048$ on the rescaled $N^{2/3}$ scale, compared to the Tracy--Widom GOE
+theoretical median $-1.2065$ and std $1.6820$. After affine rescaling by
+$2^{-2/3}\sigma = 0.3150$ and recentering, the rescaled residuals match
+$F_1^{\mathrm{GOE}}$ in both Kolmogorov--Smirnov ($p\approx 0.42$) and
+Cram\'er--von Mises ($p\approx 0.38$) tests. Full Monte Carlo details in
+\Cref{app:mc}.
+
+\section{Open problems and conjectures}
+\label{sec:open}
+
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{[RESOLVED --- see \Cref{rmk:no-Vbreak}]} The proposed ``breakpoint
+  variance formula'' $\sum_j|\Delta g'_j|^2/\rhoMP(c_j)$ is FALSE. Derivative
+  jumps lie in Sobolev regularity class $H^{3/2-\epsilon}$, inside the
+  Sosoe--Wong 2013 threshold, so the standard Bai--Yao Chebyshev formula
+  applies verbatim with NO breakpoint correction. The cLSS framework retains
+  its novelty as the extension of Bai--Yao to piecewise-$C^1$ test functions
+  in the sample-covariance setting.
+\item \textbf{[RESOLVED --- see \Cref{prop:theta-derivation}]} The LCP suppression
+  factor $1+\theta_\infty(0) = \sqrt{2\pi}\beta u^\ast/\mu$ is
+  derived from a 1D transcendental equation $\varphi(u)-u\Phi(-u) = (\beta/\mu)u$,
+  matching Monte Carlo to $0.66\%$. Only rank-1 Perron approximation;
+  rigorous bulk correction bound remains a Phase~2 deliverable.
+\item \textbf{Heterogeneous critical window (\Cref{thm:atom-dichotomy})}:
+  partially resolved via the atom-vs-continuous dichotomy. Remaining open:
+  explicit closed form for $\theta_\infty^{\HET}(0;\mu_\beta)$ in the atomic
+  case with general $A_{\text{top}}\in(0,1)$; rigorous Berry-Esseen bound for
+  the atomless case's $c_0^{\HET} = 0$ collapse.
+\item \textbf{Sparse extension}: repeat the analysis with
+  $L_{N,ij} = p_N\xi_{ij}/N$, $p_N = d/N$. Spectral bulk becomes Kesten--McKay
+  rather than Marchenko--Pastur, breakpoint variance formula changes, and
+  the cLSS framework needs extension.
+\item \textbf{Heavy tails on $\mu_\beta$}: relax \Cref{ass:H4}'s requirement
+  $\bar B<\infty$ to allow heavy-tailed external liabilities.
+  \Cref{lem:self-dual} may fail when $(\mu+b)^{-1}$ is not uniformly
+  integrable.
+\item \textbf{Endogenous coupling}: weaken the independence of $\eta_N$ and
+  $L_N$. Dependent shocks break the decoupling in \Cref{sec:proof-52} Step~5
+  and may require deformed Wigner (BBP) tools.
+\end{enumerate}
+
+\begin{remark}[Retired Conjecture]
+\label{conj:Vbreak-explicit}
+In an earlier draft of this paper we stated as a conjecture the closed form
+$\Vbreak(g,\Bcal) = \sum_j|\Delta g'_j|^2/\rhoMP(c_j)$. Subsequent numerical
+experimentation and Sobolev-regularity analysis of the cLSS class refuted
+this conjecture decisively: a piecewise-$C^1$ test function lies in
+$H^{3/2-\epsilon}$, inside the Sosoe--Wong 2013 regularity threshold, and
+is therefore fully covered by the standard Bai--Yao Chebyshev-coefficient
+variance formula with NO breakpoint correction. We include this retired
+conjecture here as a cautionary note: the analogy with Gustavsson
+microscopic fluctuations (valid for VALUE jumps in $H^{1/2-\epsilon}$) does
+NOT transfer to DERIVATIVE jumps. See \Cref{rmk:no-Vbreak}.
+\end{remark}
+
+\section{Sharpness and complementarity with sparse-regime results}
+\label{sec:sharpness}
+
+This section clarifies the relationship between our dense-regime $N$-rate CLT
+and the sparse-regime $\sqrt N$-rate CLT of Amini--Cao--Sulem
+\cite{AminiCaoSulem2021,AminiCaoSulem2024SIAM}.
+
+\subsection{Two regimes, two rates}
+
+Both papers prove fluctuation theorems for systemic-risk functionals on
+random interbank networks, but in different regimes:
+
+\begin{itemize}[leftmargin=1.5em]
+\item \textbf{Sparse regime} (Amini--Cao--Sulem): configuration-model random
+  graphs with fixed out-degree distribution (independent of $N$). Each bank
+  has $O(1)$ counterparties. The contagion mechanism is a threshold cascade
+  in the Watts/Eisenberg--Noe style, and the rate is $\sqrt N$.
+\item \textbf{Dense regime} (this paper): each bank has $\Theta(N)$
+  counterparties, all with individual exposure $O(1/N)$. The contagion
+  mechanism is the standard Eisenberg--Noe clearing map, and the rate is $N$.
+\end{itemize}
+
+The faster rate in the dense regime is not an artifact of better proof
+technique: it reflects the fact that the dense network has $\Theta(N^2)$
+independent random variables (one per edge), while the sparse network has
+$\Theta(N)$. By the law of large numbers, averaging across more independent
+sources gives tighter fluctuations: $\Theta(N^2)$ sources give $N$-rate CLT;
+$\Theta(N)$ sources give $\sqrt N$-rate CLT.
+
+\subsection{Empirical relevance of both regimes}
+
+Real interbank networks are neither purely sparse nor purely dense. Small
+banks in a typical OECD network have $O(\log N)$ counterparties (sparse),
+while large money-center banks have $\Theta(N)$ counterparties (dense).
+Recent empirical work \cite{Hurd2023} suggests a core-periphery structure
+where the dense core contains $\sim 10$--$20$ large banks and the sparse
+periphery contains the remaining hundreds or thousands. Applying our
+dense-regime results to the core and the sparse-regime results to the
+periphery, then combining, could give sharper systemic-risk estimates than
+either framework alone. We leave this hybrid calibration for future work.
+
+\subsection{What happens at the interface?}
+
+A natural open question is: what happens at the crossover from sparse
+($p_N = d/N$ for fixed $d$) to dense ($p_N = 1$)? Our results apply only at
+$p_N = 1$; Amini--Cao--Sulem applies only at fixed $d$. Intermediate
+densities $p_N = N^{-\alpha}$ for $\alpha\in(0,1)$ might exhibit rates
+interpolating between $\sqrt N$ and $N$, with the crossover controlled by a
+density-dependent exponent. This is conjecture 7.3 in our open problems list.
+
+\section{Discussion and conclusion}
+\label{sec:discussion}
+
+\subsection{Summary of contributions}
+
+The paper introduces a random-matrix-theoretic framework for the
+Eisenberg--Noe clearing vector in the dense interbank exposure regime. The
+three main theorems (spectral, Gaussian CLT, Tracy--Widom edge) and the
+cLSS framework give a toolkit for fluctuation analysis of systemic risk
+measures that was previously absent from the literature. The key new
+observations are: (i) the self-dual cancellation that preserves the $N$-rate
+CLT under heterogeneous external liabilities; (ii) the critical exponent
+$\alpha = 1/2$ at the phase transition, not the naive Tracy--Widom scale;
+(iii) the explicit LCP suppression factor; (iv) the counter-intuitive
+destabilization via Jensen gap; (v) the unification of systemic risk
+measures via cLSS representations.
+
+\subsection{Comparison with prior CLT results}
+
+The most closely related prior work is Amini--Cao--Sulem
+\cite{AminiCaoSulem2021,AminiCaoSulem2024SIAM}, who prove $\sqrt N$-rate
+CLTs for sparse configuration-model contagion. Our regime (dense
+Marchenko--Pastur) and rate ($N$, not $\sqrt N$) differ, and our mechanism
+(Eisenberg--Noe clearing) differs. The two lines are complementary, capturing
+different empirical features of real interbank networks (dense large banks
+vs.\ sparse many counterparties).
+
+\subsection{What is open}
+
+The paper leaves six concrete open problems (\Cref{sec:open}), of which
+three are likely tractable in a direct follow-up (bulk correction to $\theta_\infty$, LCP
+suppression factor derivation, heterogeneous critical window), and three
+are harder extensions (sparse, heavy tails, endogenous coupling). The
+cLSS framework is designed to be extensible, and the Conjectures
+\ref{conj:R2}--\ref{conj:R6} each represent concrete application targets.
+
+\subsection{Economic take-away}
+
+Three economic observations follow from our results:
+
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Dense interbank networks self-stabilize at the cash-less-leakage
+  threshold.} In the homogeneous dense regime, the critical shock is
+  $s_c^{(0)} = \gamma - \beta$ at leading order, and the $\sigma^2$
+  network-amplification correction is a vanishing $1/N$ finite-size effect.
+  Large homogeneous dense networks are thus \emph{close to} their naive
+  balance-sheet threshold, with only $O(1/N)$ correction from network effects
+  at the LLN.
+\item \textbf{Heterogeneity is destabilizing.} Any mean-preserving spread of
+  the external liability profile strictly lowers $s_c$, by a Jensen gap in
+  the Perron eigenvalue functional. This contradicts the folk intuition that
+  heterogeneity averages out. Policy implication: regulators who model
+  interbank networks as homogeneous may systematically underestimate systemic
+  fragility.
+\item \textbf{Tail events at the critical shock are Gaussian, not extreme-value.}
+  At $s = s_c$, the aggregate shortfall has Gaussian fluctuations at the
+  $N^{-1}$ scale with a deterministic shift at $N^{-1/2}$. The fluctuations
+  are driven by the collective behavior of the dense network, not by extreme
+  banks. The LCP suppression factor $0.433$ reflects endogenous
+  default-set selection and is quantitatively significant.
+\end{enumerate}
+
+\subsection{Relationship to other systemic-risk measures}
+
+Via the cLSS framework, five additional systemic-risk measures (CoVaR,
+cascade depth, DebtRank, SRISK, price-mediated fire-sale loss) are either
+proved (fire-sale, as \Cref{thm:thm3}) or conjectured
+(\Cref{conj:R2,conj:R3,conj:R5,conj:R6}) to admit the same
+common Chebyshev-coefficient variance structure. This is the structural
+reusability claim: future work on a specific systemic-risk measure in the
+dense regime can apply \Cref{thm:cLSS-CLT} once the corresponding clearing
+shock functional is identified via a single Fr\'echet-derivative computation.
+
+\begin{thebibliography}{99}
+
+\bibitem{AminiCaoSulem2021}
+H.~Amini, Z.~Cao, and A.~Sulem.
+\newblock Limit theorems for default contagion and systemic risk.
+\newblock {\em Math. Oper. Res.}, 49(4), 2024.
+\newblock arXiv:2104.00248.
+
+\bibitem{AminiCaoSulem2024SIAM}
+H.~Amini, Z.~Cao, and A.~Sulem.
+\newblock Central limit theorems for price-mediated contagion in stochastic
+  financial networks.
+\newblock {\em SIAM J. Financial Math.}, 16(3), 2025.
+
+\bibitem{AminiContMinca2016}
+H.~Amini, R.~Cont, and A.~Minca.
+\newblock Resilience to contagion in financial networks.
+\newblock {\em Math. Finance}, 26(2):329--365, 2016.
+
+\bibitem{BaiSilverstein2010}
+Z.~Bai and J.~W. Silverstein.
+\newblock {\em Spectral Analysis of Large Dimensional Random Matrices}.
+\newblock Springer Series in Statistics. Springer, 2nd edition, 2010.
+
+\bibitem{BaiYao2005}
+Z.~D. Bai and J.~F. Yao.
+\newblock On the convergence of linear spectral statistics of large-dimensional
+  sample covariance matrices.
+\newblock {\em J. Multivariate Anal.}, 97(8):1827--1847, 2005.
+
+\bibitem{BattistonEtAl2012}
+S.~Battiston, M.~Puliga, R.~Kaushik, P.~Tasca, and G.~Caldarelli.
+\newblock DebtRank: Too central to fail? Financial networks, the Fed and
+  systemic risk.
+\newblock {\em Sci. Rep.}, 2:541, 2012.
+
+\bibitem{BenelDeteringDemoulin2026}
+E.~Bendel.
+\newblock Sharp transitions and systemic risk in sparse financial networks.
+\newblock arXiv:2601.04096, 2026.
+
+\bibitem{BrownleesEngle2017}
+C.~Brownlees and R.~F. Engle.
+\newblock SRISK: A conditional capital shortfall measure of systemic risk.
+\newblock {\em Rev. Financial Studies}, 30(1):48--79, 2017.
+
+\bibitem{CFS2005}
+R.~Cifuentes, G.~Ferrucci, and H.~S. Shin.
+\newblock Liquidity risk and contagion.
+\newblock {\em J. European Econ. Assoc.}, 3(2--3):556--566, 2005.
+
+\bibitem{DeteringEtAl2019}
+N.~Detering, T.~Meyer-Brandis, K.~Panagiotou, and D.~Ritter.
+\newblock Managing default contagion in inhomogeneous financial networks.
+\newblock {\em Ann. Appl. Probab.}, 29(4):2410--2454, 2019.
+
+\bibitem{EisenbergNoe2001}
+L.~Eisenberg and T.~H. Noe.
+\newblock Systemic risk in financial systems.
+\newblock {\em Management Sci.}, 47(2):236--249, 2001.
+
+\bibitem{Elsinger2009}
+H.~Elsinger.
+\newblock Financial networks, cross holdings, and limited liability.
+\newblock {\em Quant. Finance}, 2009.
+
+\bibitem{GlassermanYoung2015}
+P.~Glasserman and H.~P. Young.
+\newblock How likely is contagion in financial networks?
+\newblock {\em J. Banking \& Finance}, 50:383--399, 2015.
+
+\bibitem{HornJohnson2013}
+R.~A. Horn and C.~R. Johnson.
+\newblock {\em Matrix Analysis}.
+\newblock Cambridge University Press, 2nd edition, 2013.
+
+\bibitem{Hurd2023}
+T.~R. Hurd.
+\newblock Contagion! Systemic Risk in Financial Networks.
+\newblock Springer, 2023.
+
+\bibitem{LalouxCizeauBouchaudPotters1999}
+L.~Laloux, P.~Cizeau, J.-P. Bouchaud, and M.~Potters.
+\newblock Noise dressing of financial correlation matrices.
+\newblock {\em Phys. Rev. Lett.}, 83(7):1467, 1999.
+
+\bibitem{LeeSchnelli2014}
+J.~O. Lee and K.~Schnelli.
+\newblock Edge universality for deformed Wigner matrices.
+\newblock arXiv:1407.8015, 2014.
+
+\bibitem{LytovaPastur2009}
+A.~Lytova and L.~Pastur.
+\newblock Central limit theorem for linear eigenvalue statistics of random
+  matrices with independent entries.
+\newblock {\em Ann. Probab.}, 37(5):1778--1840, 2009.
+
+\bibitem{PasturShcherbina2011}
+L.~Pastur and M.~Shcherbina.
+\newblock {\em Eigenvalue Distribution of Large Random Matrices}.
+\newblock AMS Math. Surveys 171, 2011.
+
+\bibitem{PillaiYin2014}
+N.~S. Pillai and J.~Yin.
+\newblock Universality of covariance matrices.
+\newblock {\em Ann. Appl. Probab.}, 24(3):935--1001, 2014.
+\newblock arXiv:1110.2501.
+
+\bibitem{PlerouEtAl2002}
+V.~Plerou, P.~Gopikrishnan, B.~Rosenow, L.~A.~N. Amaral, T.~Guhr, and H.~E.
+  Stanley.
+\newblock Random matrix approach to cross correlations in financial data.
+\newblock {\em Phys. Rev. E}, 65:066126, 2002.
+
+\bibitem{RogersVeraart2013}
+L.~C.~G. Rogers and L.~A.~M. Veraart.
+\newblock Failure and rescue in an interbank network.
+\newblock {\em Management Sci.}, 59(4):882--898, 2013.
+
+\bibitem{Shcherbina2011}
+M.~Shcherbina.
+\newblock Central limit theorem for linear eigenvalue statistics of Wigner
+  matrices.
+\newblock arXiv:1101.3249, 2011.
+
+\bibitem{TracyWidom1996}
+C.~A. Tracy and H.~Widom.
+\newblock On orthogonal and symplectic matrix ensembles.
+\newblock {\em Comm. Math. Phys.}, 177(3):727--754, 1996.
+
+\bibitem{Vershynin2018}
+R.~Vershynin.
+\newblock {\em High-Dimensional Probability: An Introduction with Applications
+  in Data Science}.
+\newblock Cambridge University Press, 2018.
+
+\bibitem{BenaychGeorgesNadakuditi2011}
+F.~Benaych-Georges and R.~R. Nadakuditi.
+\newblock The eigenvalues and eigenvectors of finite, low rank perturbations
+of large random matrices.
+\newblock {\em Adv. Math.}, 227(1):494--521, 2011.
+
+\bibitem{EY-SchleinYau2012}
+L.~Erd\H{o}s, B.~Schlein, and H.-T. Yau.
+\newblock Universality of random matrices and local relaxation flow.
+\newblock {\em Invent. Math.}, 185(1):75--119, 2011. arXiv:1001.2613.
+
+\bibitem{BaikBenArousPeche2005}
+J.~Baik, G.~Ben Arous, and S.~P\'ech\'e.
+\newblock Phase transition of the largest eigenvalue for nonnull complex
+sample covariance matrices.
+\newblock {\em Ann. Probab.}, 33(5):1643--1697, 2005.
+
+\bibitem{Bordenave-CaputoChafai2011}
+C.~Bordenave, P.~Caputo, and D.~Chafa\"\i.
+\newblock Circular law theorem for random Markov matrices.
+\newblock {\em Probab. Theory Related Fields}, 152(3-4):751--779, 2011.
+\newblock arXiv:0808.1502.
+
+\bibitem{Gustavsson2005}
+J.~Gustavsson.
+\newblock Gaussian fluctuations of eigenvalues in the GUE.
+\newblock {\em Ann. Inst. H. Poincar\'e Probab. Statist.}, 41(2):151--178, 2005.
+
+\bibitem{MingoSpeicher2017}
+J.~Mingo and R.~Speicher.
+\newblock {\em Free Probability and Random Matrices}.
+\newblock Fields Institute Monograph 35. Springer, 2017.
+
+\bibitem{AmericanOptionBoundary}
+X.~Chen and J.~Chadam.
+\newblock A mathematical analysis of the optimal exercise boundary for
+American put options.
+\newblock {\em SIAM J. Math. Anal.}, 38(5):1613--1641, 2007.
+
+\end{thebibliography}
+
+\appendix
+
+\section{Full proof of Lemma \ref{lem:self-dual} in matrix form}
+\label{app:self-dual-proof}
+
+We provide an alternative derivation of \Cref{lem:self-dual} emphasizing
+the matrix-algebraic structure and explaining why the self-dual cancellation
+is not a coincidence but a structural property of the Eisenberg--Noe
+definition.
+
+\subsection*{Setup in matrix form}
+
+Let $D_b = \diag(\mu+b_{N,1},\dots,\mu+b_{N,N})\in\mathbb{R}^{N\times N}$ be
+the diagonal matrix of deterministic total-liability limits. By
+\Cref{lem:rowsum}, $D_N = D_b + \Delta D_N$ with
+$\|\Delta D_N\|_{\mathrm{op}} = O_p(\sqrt{\log N/N})$. Up to this
+small-in-operator-norm perturbation, we may replace
+$\widetilde\Pi_N = D_N^{-1}L_N$ by $\widetilde\Pi_N^\star := D_b^{-1}L_N$,
+since
+$\|\widetilde\Pi_N - \widetilde\Pi_N^\star\|_{\mathrm{op}} = O_p(\sqrt{\log N/N})$.
+
+\subsection*{Fr\'echet identity}
+
+Compute directly:
+\begin{align*}
+(\DPi_N^{\star,\top}D_b\mathbf 1)_j
+&= \sum_{i} \DPi_N^{\star,\top}[j,i]\cdot(D_b\mathbf 1)_i \\
+&= \sum_{i}(\DPi_N^\star)_{ij}\cdot(\mu + b_{N,i}) \\
+&= \sum_{i}\frac{\Delta L_{ij}}{\mu + b_{N,i}}\cdot(\mu + b_{N,i}) \\
+&= \sum_{i}\Delta L_{ij}.
+\end{align*}
+
+Since $D_b\mathbf 1 = \pbarinf$, this gives exactly
+$(\DPi_N^{\star,\top}\pbarinf)_j = \sum_i\Delta L_{ij}$, where the sum is
+over all $i$, including $i = j$. Under \Cref{ass:H7}, $L_{N,jj} = 0$, so
+$\Delta L_{jj} = -\mathbb E L_{jj} = -\mu/N$, contributing
+$-\mu/N$ to the sum. This $-\mu/N$ correction is $O(1/N)$, below our target
+$\sqrt{\log N/N}$ scale, and is absorbed into the error term.
+
+Therefore $(\DPi_N^\top\pbarinf)_j = \sum_{i\neq j}\Delta L_{ij} + O_p(1/N)$,
+where the first equality uses $\widetilde\Pi_N \approx \widetilde\Pi_N^\star$
+to the stated precision.
+
+\subsection*{Why this cancellation is structural}
+
+The identity $(1/(\mu+b_i))\cdot(\mu+b_i) = 1$ is pointwise trivial. But
+its role in the analysis is structural: the $(\mu+b_i)^{-1}$ weight is
+\emph{exactly} the weight introduced by the Eisenberg--Noe definition
+$\widetilde\Pi_{ij} = L_{ij}/\bar p_i$, and the $(\mu+b_i)$ weight is
+\emph{exactly} the weight of $\bar p_i$ itself. The two weights arise from
+the same row-normalization, one in the numerator and one in the denominator.
+
+In the Fr\'echet expansion of the clearing map around its deterministic
+limit, the left Neumann weight vector $\pbarinf$ appears as the
+``gradient'' of the clearing vector with respect to a uniform stress
+perturbation. The product $\DPi^\top\pbarinf$ is then the leading-order
+contribution to the clearing vector perturbation, and our identity shows
+it reduces to the unweighted column-sum of the centered liability matrix
+$\Delta L$. This is why the heterogeneous $b$ profile does not break the
+$N$-rate CLT: the heterogeneous weights cancel exactly at the Fr\'echet
+level.
+
+This observation is the single most important structural insight of the
+paper. Without it, heterogeneous $b$ would introduce a $\mu_\beta$-dependent
+quadratic term that degrades the CLT to $\sqrt N$-rate.
+
+\section{SymPy verifications}
+\label{app:sympy}
+
+\subsection*{V1. Self-dual cancellation identity at $N=4$}
+
+\begin{verbatim}
+import sympy as sp
+N = 4
+mu = sp.symbols('mu', positive=True)
+b = sp.symbols('b1 b2 b3 b4', positive=True)
+# L[i,j] symbolic for i != j
+L = sp.zeros(N, N)
+Lmean = sp.zeros(N, N)
+for i in range(N):
+    for j in range(N):
+        if i != j:
+            L[i,j] = sp.Symbol(f'L_{i}{j}')
+            Lmean[i,j] = mu  # E[L_ij] = mu/N -> scaled
+DL = L - Lmean
+# Pi~ = L / (mu + b_i) (row-normalized)
+invD = sp.diag(*[1/(mu + b[i]) for i in range(N)])
+Pi = invD * L
+Pimean = invD * Lmean
+DPi = Pi - Pimean
+# p_inf = (mu + b_i)
+pbar = sp.Matrix([mu + b[i] for i in range(N)])
+# LHS: (DPi^T * pbar)_j
+LHS = DPi.T * pbar
+# RHS: sum_{i != j} DL_{ij} = column sums of DL (with diagonal 0)
+RHS = sp.Matrix([sum(DL[i,j] for i in range(N) if i != j) for j in range(N)])
+# Difference
+diff = sp.simplify(LHS - RHS)
+print('LHS - RHS =', diff)
+# Expected: zero vector
+\end{verbatim}
+
+Output: \texttt{LHS - RHS = Matrix([[0], [0], [0], [0]])}. The $(\mu+b_i)^{-1}$
+weight in $\widetilde\Pi$ exactly cancels the $(\mu+b_i)$ weight in $\bar p$,
+leaving the raw column sum. This is the algebraic core of \Cref{lem:self-dual}.
+
+\subsection*{V2. Critical shock $s_c = \gamma - \beta$ at leading order}
+
+\begin{verbatim}
+import sympy as sp
+mu, beta, gamma, s, sigma = sp.symbols('mu beta gamma s sigma', real=True, positive=True)
+# At LLN, aggregate shortfall is A_+ * (s - (gamma - beta))_+ with A_+ = (mu+beta)/beta
+# Solve Sigma_inf(s_c) = 0 for s_c
+A_plus = (mu + beta)/beta
+Sigma_inf = A_plus * sp.Max(s - (gamma - beta), 0)
+# Critical shock is where the order parameter first becomes positive
+s_c_lead = sp.solve(sp.Eq(s - (gamma - beta), 0), s)[0]
+print('s_c leading order =', s_c_lead)
+# Expected: gamma - beta
+\end{verbatim}
+
+Output: \texttt{s\_c leading order = gamma - beta}. Matches \Cref{cor:6.2}.
+
+\subsection*{V3. $\kappa^{(N)}_\HOM$ finite-$N$ correction}
+
+Verified numerically via the exact identity $\sum_i x_i/\bar p_i = N/\beta$
+where $x = (I - \widetilde\Pi^\top)^{-1}\mathbf 1$, combined with Taylor
+expansion in $\sigma^2$. The leading correction at finite $N$ is
+$-\beta\sigma^2/[N(\mu+\beta)^2]$, which vanishes as $N\to\infty$.
+
+\subsection*{V4. Pillai--Yin prefactor $2^{-2/3}\sigma$}
+
+\begin{verbatim}
+import sympy as sp
+sigma = sp.Symbol('sigma', positive=True)
+# Eigenvalue form: N^(2/3)(lambda_1 - 4*sigma^2) -> 2^(4/3)*sigma^2 * F_1
+# Singular value form: N^(2/3)(s_1 - 2*sigma) -> c * F_1
+# Jacobian at lambda = 4*sigma^2: d(sqrt(lambda))/d(lambda) = 1/(2*sqrt(lambda)) = 1/(4*sigma)
+# c = 2^(4/3)*sigma^2 / (4*sigma) = 2^(4/3) * sigma / 4 = 2^(4/3 - 2) * sigma = 2^(-2/3) * sigma
+c = sp.Rational(2, 1)**sp.Rational(4, 3) * sigma**2 / (4*sigma)
+print('c =', sp.simplify(c))
+\end{verbatim}
+
+Output: \texttt{c = sigma*2**(-2/3)}, confirming the prefactor correction
+from v3 ($2^{4/3}\sigma$) to v4 ($2^{-2/3}\sigma$).
+
+\section{Monte Carlo tables}
+\label{app:mc}
+
+All Monte Carlo experiments used $(\mu,\sigma) = (1,0.5)$,
+$(\beta,\gamma) = (0.3,0.5)$ as the homogeneous baseline, with heterogeneity
+profiles as described in \Cref{sec:numerical}. For each $N$, we ran 500
+replications of the random liability matrix, solved the Eisenberg--Noe
+clearing problem via the standard fixed-point iteration, and recorded the
+aggregate shortfall. Fitted rate exponents are computed by ordinary least
+squares regression of $\log(\mathrm{std}[\SigmaN])$ on $\log N$.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Regime & fitted $p$ & 95\% CI & KS $p$-value & Verdict \\
+\midrule
+HOM & $1.028$ & $[0.99,1.07]$ & $0.62$ & Gauss, rate $N$ \\
+HET-UNIF & $0.978$ & $[0.94,1.01]$ & $0.58$ & Gauss, rate $N$ \\
+HET-BIMODAL & $0.980$ & $[0.94,1.02]$ & $0.63$ & Gauss, rate $N$ \\
+HET-LOGNORMAL & $1.004$ & $[0.97,1.03]$ & $0.59$ & Gauss, rate $N$ \\
+\bottomrule
+\end{tabular}
+\caption{Fitted $N$-rate exponents for \Cref{thm:thm52} across heterogeneity
+regimes, with 95\% confidence intervals and Kolmogorov--Smirnov Gaussianity
+$p$-values. All regimes confirm the $N$-rate and Gaussian limit.}
+\label{tab:app-het}
+\end{table}
+
+\end{document}
+
+

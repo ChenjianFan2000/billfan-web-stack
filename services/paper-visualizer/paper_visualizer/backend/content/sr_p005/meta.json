@@ -1,0 +1,304 @@
+{
+  "slug": "sr_p005",
+  "source": {
+    "tex_path": "projects/p005/output/main.tex",
+    "pdf_path": "projects/p005/output/main.pdf",
+    "source_hash": "sha256:f8cc19abe9326940186017f738c8faa548dbd49db496fcaca96a102f8cd2c331",
+    "ingested_at": "2026-04-16T01:25:49.491260+00:00"
+  },
+  "title": {
+    "en": "Solving the Correlated Variational Problem for Short-Maturity Variance Options in Local-Stochastic Volatility Models",
+    "zh": "求解局部随机波动率模型中短期方差期权的相关变分问题"
+  },
+  "short_title": {
+    "zh": "方差期权短期渐近",
+    "en": "Short-Maturity Variance Options in LSV Models"
+  },
+  "author": "",
+  "date": "\\today",
+  "status": "draft",
+  "abstract": {
+    "tex": "We study the short-maturity asymptotics for options on realized variance in local-stochastic\nvolatility (LSV) models with non-zero correlation $\\rho$ between asset and volatility noises.\nPirjol, Wang, and Zhu~(2025) showed that the leading-order asymptotics are governed by\na two-dimensional variational problem, which they solved explicitly for $\\rho=0$ and\n$\\rho=\\pm 1$, but left open for general $\\rho\\in(-1,1)\\setminus\\{0\\}$. We develop three\ncomplementary approaches to this open problem under constant volatility-of-volatility\n$\\sigma(v)\\equiv\\sigma_0$. First, we establish that the Euler--Lagrange system admits a\nHamiltonian first integral, providing an energy conservation law that constrains the\noptimal trajectories. Second, we introduce a one-parameter family of upper bounds,\nindexed by a parameter $\\alpha\\in\\R$, that reduce the two-dimensional problem to a\none-dimensional optimization involving the Asian option rate function with modified local\nvolatility. The optimal bound within this family provides up to 75\\% improvement over\nthe best previously known bound in the leverage regime ($\\rho<0$) and is\nexact when the local volatility function is constant. Third, we derive\na perturbation expansion of the rate function in powers of $\\rho$ around $\\rho=0$, with\nexplicit computable coefficients determined by the known uncorrelated optimizers. We\nanalyze the boundary behavior as $\\rho\\to\\pm 1$ and as the strike approaches extreme values.\nNumerical experiments in the Tanh local volatility model confirm the accuracy of our\nbounds and the perturbation expansion. Our results provide usable pricing approximations\nfor options on the recently launched CBOE S\\&P~500 Variance Futures.",
+    "en": "This paper studies short-maturity asymptotics for options on realized variance in local-stochastic volatility (LSV) models with non-zero correlation ρ between asset and volatility noises. Three complementary approaches are developed: a Hamiltonian first integral providing an energy conservation law, a one-parameter family of upper bounds reducing the problem to a one-dimensional Asian option rate function, and a perturbation expansion in powers of ρ. Numerical experiments in the Tanh local volatility model confirm accuracy, with applications to CBOE S&P 500 Variance Futures pricing.",
+    "zh": "本文研究局部随机波动率（LSV）模型中已实现方差期权的短到期渐近行为，重点处理资产与波动率噪声之间非零相关系数ρ的情形。通过哈密顿守恒律、α参数化上界族以及关于ρ的摄动展开三种互补方法，系统解决了Pirjol等人（2025）遗留的二维变分问题。数值实验在Tanh局部波动率模型中验证了方法的精度，结果可用于CBOE标普500方差期货的定价近似。"
+  },
+  "domain": [
+    "variance_options",
+    "derivatives",
+    "rough_volatility"
+  ],
+  "math_tools": [
+    "large_deviations",
+    "perturbation_expansion",
+    "euler_maclaurin",
+    "monte_carlo",
+    "fixed_point_theory"
+  ],
+  "prerequisites": [
+    {
+      "topic_id": "large_deviations_theory",
+      "level": "advanced",
+      "why": "The core asymptotics are governed by a variational rate function derived from large deviations principles."
+    },
+    {
+      "topic_id": "stochastic_volatility_models",
+      "level": "intermediate",
+      "why": "LSV models with correlated Brownian motions are the primary modeling framework."
+    },
+    {
+      "topic_id": "calculus_of_variations",
+      "level": "advanced",
+      "why": "The Euler-Lagrange system and Hamiltonian structure are central to solving the variational problem."
+    },
+    {
+      "topic_id": "asian_options_pricing",
+      "level": "intermediate",
+      "why": "The one-dimensional reduced problem is expressed in terms of the Asian option rate function."
+    },
+    {
+      "topic_id": "perturbation_methods",
+      "level": "intermediate",
+      "why": "A perturbation expansion in ρ around zero is derived with explicit coefficients."
+    }
+  ],
+  "main_theorems": [
+    {
+      "id": "thm:hamiltonian",
+      "env": "proposition",
+      "statement_tex": "Assume $\\sigma(v)\\equiv\\sigma_0$. Let $(g,h)$ be a smooth critical point of the\nconstrained variational problem~\\eqref{eq:varprob}. Define the Hamiltonian\n\\begin{equation}\\label{eq:H}\n\\mathcal{H}(t) = \\frac{1}{2(1-\\rho^2)}\\bigl(a(t)^2 - 2\\rho\\,a(t)\\,b(t) + b(t)^2\\bigr)\n  - \\lambda\\,e^{h(t)}\\eta^2(e^{g(t)}).\n\\end{equation}\nThen $\\mathcal{H}(t) = E$ for all $t\\in[0,1]$, where $E$ is a constant determined by\nthe boundary conditions.",
+      "section_number": "2",
+      "label": {
+        "zh": "哈密顿守恒律",
+        "en": "Hamiltonian First Integral"
+      },
+      "key_ideas": {
+        "zh": [
+          "能量守恒",
+          "欧拉-拉格朗日方程"
+        ],
+        "en": [
+          "energy conservation",
+          "Euler-Lagrange system"
+        ]
+      }
+    },
+    {
+      "id": "thm:alpha",
+      "env": "theorem",
+      "statement_tex": "Assume $\\sigma(v)\\equiv\\sigma_0$. For any $\\rho\\in(-1,1)$,\n\\begin{equation}\\label{eq:alpha_bound}\nI_\\rho(S_0,V_0,K) \\leq \\inf_{\\alpha\\in\\R}\\,C(\\alpha,\\rho)\\cdot J_\\alpha(V_0,K),\n\\end{equation}\nwhere\n\\begin{equation}\\label{eq:Calpha}\nC(\\alpha,\\rho) = \\frac{\\alpha^2 - 2\\alpha\\rho + 1}{1-\\rho^2},\n\\end{equation}\nand $J_\\alpha(V_0,K)$ is the one-dimensional rate function\n\\begin{equation}\\label{eq:Jalpha}\nJ_\\alpha(V_0,K) = \\inf_{\\substack{h(0)=\\log V_0 \\\\\n  \\int_0^1 G_\\alpha(e^{h(t)})\\,\\dd t = K}}\n  \\frac{1}{2\\sigma_0^2}\\int_0^1 \\bigl(h'(t)\\bigr)^2\\,\\dd t.\n\\end{equation}\nThe one-dimensional problem~\\eqref{eq:Jalpha} can be solved by the methods\nof~\\cite{PZ2023}, yielding a finite-dimensional optimization.",
+      "section_number": "3",
+      "label": {
+        "zh": "α参数化上界定理",
+        "en": "Alpha-Parametric Upper Bound"
+      },
+      "key_ideas": {
+        "zh": [
+          "一维降维",
+          "亚式期权速率函数"
+        ],
+        "en": [
+          "dimensional reduction",
+          "Asian option rate function"
+        ]
+      }
+    },
+    {
+      "id": "cor:prop17",
+      "env": "corollary",
+      "statement_tex": "Setting $\\alpha=\\rho$ in \\Cref{thm:alpha} gives $C(\\rho,\\rho)=1$ and\n\\[\nI_\\rho(S_0,V_0,K) \\leq J_\\rho(V_0,K).\n\\]",
+      "section_number": "3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "cor:strict",
+      "env": "corollary",
+      "statement_tex": "If the local volatility $\\eta(\\cdot)$ is non-constant, then there exists $\\alpha^*\\neq\\rho$\nsuch that $C(\\alpha^*,\\rho)\\cdot J_{\\alpha^*}(V_0,K) < J_\\rho(V_0,K)$. That is, the\noptimized alpha-parametric bound is strictly tighter than the Proposition~17 bound.",
+      "section_number": "3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "cor:exactconst",
+      "env": "corollary",
+      "statement_tex": "When $\\eta(x)\\equiv\\eta_0$ (constant), the alpha-parametric bound~\\eqref{eq:alpha_bound}\nis exact:\n\\begin{equation}\\label{eq:exact_const}\nI_\\rho(S_0,V_0,K) = J\\!\\left(V_0,\\,\\frac{K}{\\eta_0^2}\\right),\n\\end{equation}\nwhich is independent of~$\\rho$. Here $J(V_0,z)$ is the Asian option rate function\nfrom~\\cite{PZ2023}.",
+      "section_number": "3",
+      "label": {
+        "zh": "常数波动率精确性",
+        "en": "Exactness for Constant Local Volatility"
+      },
+      "key_ideas": {
+        "zh": [
+          "常数局部波动率",
+          "精确界"
+        ],
+        "en": [
+          "constant local volatility",
+          "exact bound"
+        ]
+      }
+    },
+    {
+      "id": "thm:perturb",
+      "env": "theorem",
+      "statement_tex": "Under \\Cref{ass:regularity} with $\\sigma(v)\\equiv\\sigma_0$, the rate function $I_\\rho$\nadmits the expansion\n\\begin{equation}\\label{eq:perturb}\nI_\\rho(S_0,V_0,K) = I_0(S_0,V_0,K) - \\rho\\int_0^1 a_0(t)\\,b_0(t)\\,\\dd t\n  + O(\\rho^2),\n\\end{equation}\nwhere $I_0 = I_{\\rho=0}$ is the uncorrelated rate function from Proposition~6\nof~\\cite{PWZ2025}, $(a_0,b_0)$ are the velocity variables~\\eqref{eq:ab} evaluated\nat the optimal trajectories $(g_0,h_0)$ for $\\rho=0$ (Remark~10 of~\\cite{PWZ2025}),\nand the implicit constant in $O(\\rho^2)$ depends on $V_0$, $K$, $\\sigma_0$, and\nthe $C^2$-norm of~$\\eta$.",
+      "section_number": "4",
+      "label": {
+        "zh": "相关系数摄动展开",
+        "en": "Perturbation Expansion in ρ"
+      },
+      "key_ideas": {
+        "zh": [
+          "ρ展开",
+          "无相关优化轨迹"
+        ],
+        "en": [
+          "rho expansion",
+          "uncorrelated optimizers"
+        ]
+      }
+    },
+    {
+      "id": "prop:rholimit",
+      "env": "proposition",
+      "statement_tex": "As $\\rho\\to\\pm 1$, the optimal alpha-parametric bound converges:\n\\[\n\\inf_\\alpha C(\\alpha,\\rho)\\cdot J_\\alpha(V_0,K) \\to I_{\\pm 1}(S_0,V_0,K),\n\\]\nwhere $I_{\\pm 1}$ is the rate function in Proposition~14 of~\\cite{PWZ2025}.",
+      "section_number": "5",
+      "label": {
+        "zh": "边界极限命题",
+        "en": "Boundary Limit as ρ→±1"
+      },
+      "key_ideas": {
+        "zh": [
+          "极端相关",
+          "界的收敛性"
+        ],
+        "en": [
+          "extreme correlation",
+          "bound convergence"
+        ]
+      }
+    },
+    {
+      "id": "prop:combined",
+      "env": "proposition",
+      "statement_tex": "For any $\\rho\\in(-1,1)$ and $K>0$:\n\\begin{enumerate}\n\\item $I_\\rho \\leq I_\\rho^{\\mathrm{comb}} \\leq\n  \\min\\bigl\\{I_0/(1-|\\rho|),\\; J(V_0,K/\\eta_0^2)/(1-\\rho^2)\\bigr\\}$.\n\\item When $\\eta$ is constant, $I_\\rho^{\\mathrm{comb}} = I_\\rho =\n  J(V_0,K/\\eta_0^2)$.\n\\end{enumerate}",
+      "section_number": "7",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    }
+  ],
+  "sections": [
+    {
+      "number": "1",
+      "title_tex": "Introduction"
+    },
+    {
+      "number": "1.1",
+      "title_tex": "Our contributions"
+    },
+    {
+      "number": "2",
+      "title_tex": "Hamiltonian Structure"
+    },
+    {
+      "number": "3",
+      "title_tex": "Alpha-Parametric Bounds"
+    },
+    {
+      "number": "4",
+      "title_tex": "Perturbation Expansion"
+    },
+    {
+      "number": "5",
+      "title_tex": "Boundary Analysis"
+    },
+    {
+      "number": "6",
+      "title_tex": "Numerical Experiments"
+    },
+    {
+      "number": "6.1",
+      "title_tex": "Computation of the alpha-parametric bound"
+    },
+    {
+      "number": "6.2",
+      "title_tex": "Results"
+    },
+    {
+      "number": "6.3",
+      "title_tex": "Structure of the optimal coupling parameter"
+    },
+    {
+      "number": "7",
+      "title_tex": "Combined Bound and Comparison with Logarithmic Coupling"
+    },
+    {
+      "number": "8",
+      "title_tex": "Conclusion"
+    }
+  ],
+  "related_papers": [
+    {
+      "slug": "variance_options",
+      "relation": "shared_domain",
+      "note": "Both study short-maturity asymptotics for variance options using large deviations and variational methods."
+    },
+    {
+      "slug": "var_ratio",
+      "relation": "shared_tool",
+      "note": "Both employ large deviations rate functions for volatility-related derivative pricing."
+    },
+    {
+      "slug": "discrete_vs_rough",
+      "relation": "shared_domain",
+      "note": "Both analyze volatility model asymptotics relevant to derivatives pricing."
+    }
+  ],
+  "figures": [],
+  "generation": {
+    "model": "claude-sonnet-4-6",
+    "generated_at": "2026-04-16T01:29:49.852915+00:00",
+    "prompt_version": "v1",
+    "langs": [
+      "en",
+      "zh"
+    ]
+  },
+  "repo": "structural",
+  "repo_root": "E:/Anaconda/structural_research",
+  "project_id": "p005",
+  "quality": {
+    "phase": 0,
+    "project_status": "active",
+    "significance_max": 16,
+    "tier": "B",
+    "significance_score": 9,
+    "critic_verdict": "PASS_WITH_MAJOR",
+    "dimensions": {
+      "correctness": "acceptable",
+      "rigor": "acceptable",
+      "novelty": "acceptable",
+      "framing": "strong",
+      "coherence": "strong"
+    },
+    "assessed_by": "unified_critic"
+  }
+}

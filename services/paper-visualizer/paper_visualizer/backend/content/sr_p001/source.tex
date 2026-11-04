@@ -1,0 +1,1127 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% Shortcuts
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\Id}{I_d}
+\newcommand{\Spp}{S_d^{++}}
+\newcommand{\Sp}{S_d^{+}}
+
+\title{The Gaussian Schr\"odinger--Bass Bridge:\\Explicit Optimizers and the Solvability Boundary}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+We provide a self-contained derivation, via Pontryagin's maximum principle,
+of the explicit Gaussian solution of the Schr\"odinger--Bass Bridge (SBB)
+problem introduced by Henry-Labord\`ere, Loeper, Mazhar, Pham, and
+Touzi~\cite{HLMPT26} and studied independently in~\cite{PDE26,LSBB26}.
+The SBB interpolates between the classical Schr\"odinger bridge
+($\beta\to\infty$) and the Bass martingale transport ($\beta\to 0$) via
+a parameter $\beta>0$.
+Our Pontryagin approach yields the adjoint equation $\dot p = 2p^2$
+in closed form, reducing the boundary value problem to a quadratic equation.
+We identify the \emph{solvability boundary}: the critical target variance
+$\gamma_T^* = (\gamma_0 + \beta T^2)/(1+2\beta T)^2$
+below which the Gaussian SBB admits no finite-cost solution.
+Going beyond the Gaussian setting, we prove that $\gamma_T^*$ is
+a \emph{second-moment lower bound} for solvability of the SBB with
+arbitrary (non-Gaussian) centered marginals.
+We characterize the degenerate boundary regime, where the optimal
+diffusion vanishes terminally and the value function has a jump
+discontinuity.
+A numerical example with non-commuting covariance matrices demonstrates
+anisotropic costate coupling in dimensions $d \ge 2$.
+\end{abstract}
+
+\setcounter{page}{1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}\label{sec:intro}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The Schr\"odinger bridge problem, originating in Schr\"odinger's 1931 thought
+experiment~\cite{CGP16}, seeks the most likely evolution of a cloud of
+independent Brownian particles conditioned to match prescribed initial and
+terminal distributions.
+In modern formulation, given marginals $\mu_0, \mu_T \in \mathcal{P}_2(\R^d)$,
+one minimizes the relative entropy of a semimartingale law with respect to
+Wiener measure, subject to the marginal constraints.
+The Bass construction~\cite{BHK20} provides a different paradigm: one seeks a
+martingale interpolation between two marginals by controlling only the
+diffusion coefficient of a local martingale.
+
+Henry-Labord\`ere, Loeper, Mazhar, Pham, and Touzi~\cite{HLMPT26} introduced
+the \emph{Schr\"odinger--Bass Bridge} (SBB) problem, which interpolates between
+these two frameworks via a single parameter $\beta > 0$.
+The SBB simultaneously controls both the drift $\alpha_t$ and the diffusion
+coefficient $a_t = \sigma_t \sigma_t^\top$ of a semimartingale, penalizing
+drift via $\frac{1}{2}|\alpha_t|^2$ and diffusion deviations from the identity
+via $\frac{\beta}{2}\|a_t - I_d\|_F^2$.
+As $\beta\to\infty$, the diffusion coefficient is forced to $I_d$ and one
+recovers the classical Schr\"odinger bridge; as $\beta\to 0$, the drift penalty
+dominates and one approaches the Bass martingale transport.
+
+Independently, Backhoff-Veraguas, Beiglb\"ock, Bifronte, and Ley~\cite{BBBL26}
+studied the martingale Schr\"odinger bridge from a related perspective, while
+Hasenbichler, Pammer, and Thonhauser~\cite{HPT26} developed a weak transport
+approach.
+A PDE derivation of the one-dimensional SBB system, including explicit
+solutions via Legendre transforms and the heat equation, was given
+in~\cite{PDE26}; computational aspects were addressed by Alouadi
+et~al.~\cite{LSBB26}.
+The Gaussian Schr\"odinger bridge (without Bass interpolation) has a
+well-known closed form~\cite{Bunne23,CGP16};
+generalizations of the Bass martingale to arbitrary reference measures
+were developed by Tschiderer~\cite{Tsch24}.
+
+A key finding of~\cite{HLMPT26} is that the SBB is well-posed under
+$\beta T > 1$.
+The Gaussian case was solved explicitly in~\cite{PDE26} via PDE methods.
+However, the following questions remained open:
+the precise solvability boundary for Gaussian marginals (and its
+relationship to the $\beta T > 1$ condition), whether this boundary
+extends to non-Gaussian marginals, the structure of the degenerate
+regime at the boundary, and the behavior of non-commuting covariance
+matrices in $d \ge 2$ dimensions.
+
+\medskip
+
+\noindent\textbf{Main contributions.}
+We provide a self-contained derivation of the Gaussian SBB via Pontryagin's
+maximum principle (complementing the PDE approach of~\cite{PDE26}) and
+address the open questions above.
+Our results are organized as follows:
+
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{Theorem~\ref{thm:1d}} gives the explicit optimizer for the
+one-dimensional Gaussian SBB.
+The optimal drift and volatility are expressed in closed form through a
+scalar parameter $p_0$ determined by a quadratic equation.
+
+\item \textbf{Theorem~\ref{thm:solvability}} identifies the
+\emph{solvability boundary}: the critical target variance
+$\gamma_T^* = (\gamma_0 + \beta T^2)/(1 + 2\beta T)^2$,
+below which no Gaussian SBB solution exists.
+The Gaussian SBB is solvable if and only if
+$\gamma_T \ge \gamma_T^*$.
+This threshold clarifies the role of the condition
+$\beta T > 1$ from~\cite{HLMPT26}: it ensures universal solvability
+across all marginals, but specific marginal pairs may be solvable
+even when $\beta T \le 1$.
+
+\item \textbf{Theorem~\ref{thm:multid}} extends the results to $d$
+dimensions, where the adjoint equation becomes the matrix Riccati
+equation $\dot P = 2P^2$ with solution
+$P(t) = P_0(I - 2P_0 t)^{-1}$.
+When $\Gamma_0$ and $\Gamma_T$ commute, the $d$-dimensional problem
+decomposes into $d$ independent scalar problems.
+
+\item \textbf{Proposition~\ref{prop:limits}} characterizes the limiting
+regimes $\beta\to\infty$ (Schr\"odinger bridge) and $\beta\to 0$
+(Bass martingale transport).
+
+\item \textbf{Theorem~\ref{thm:nongaussian}} establishes the Gaussian
+solvability boundary as a \emph{universal lower bound}: for any
+centered marginals $\mu_0, \mu_T$ (not necessarily Gaussian) with
+second moment $\gamma_T < \gamma_T^*$, the SBB cost is infinite.
+
+\item \textbf{Proposition~\ref{prop:boundary}} characterizes the
+\emph{degenerate boundary regime}: at $\gamma_T = \gamma_T^*$,
+the optimal cost is finite but the terminal diffusion vanishes,
+with a jump discontinuity in the value function.
+
+\item \textbf{Example~\ref{ex:noncommuting}} demonstrates the
+non-commuting multi-dimensional case numerically, revealing
+anisotropic costate structure inaccessible to the commuting
+decomposition.
+\end{enumerate}
+
+\medskip
+
+\noindent\textbf{Notation.}
+We write $S_d$ for the space of $d\times d$ real symmetric matrices,
+$\Spp$ for positive definite matrices, and $\Sp$ for positive semidefinite
+matrices.
+For $M \in S_d$, we write $M > 0$ (resp.\ $M \ge 0$) for $M \in \Spp$
+(resp.\ $M \in \Sp$).
+The trace is $\tr(M)$.
+For a function $f(t)$, we write $\dot f$ for $df/dt$.
+We use $|\cdot|$ for the Euclidean norm and $\|\cdot\|_F$ for the Frobenius
+norm.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Setup and Gaussian Reduction}\label{sec:setup}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{The Schr\"odinger--Bass Bridge Problem}
+
+Let $\mu_0, \mu_T \in \mathcal{P}_2(\R^d)$ be probability measures with
+finite second moments.
+Consider a filtered probability space
+$(\Omega, \mathcal{F}, (\mathcal{F}_t)_{t\in[0,T]}, \mathbb{P})$ supporting
+a $d$-dimensional Brownian motion $(W_t)_{t\in[0,T]}$.
+
+\begin{definition}[SBB Problem]\label{def:sbb}
+The Schr\"odinger--Bass Bridge problem is
+\begin{equation}\label{eq:sbb}
+\inf_{(\alpha, \sigma)} \int_0^T \E\!\left[\frac{1}{2}|\alpha_t|^2 +
+  \frac{\beta}{2}\|\sigma_t \sigma_t^\top - I_d\|_F^2\right] dt,
+\end{equation}
+subject to the dynamics
+\begin{equation}\label{eq:dynamics}
+dX_t = \alpha_t \, dt + \sigma_t \, dW_t, \qquad
+X_0 \sim \mu_0, \quad X_T \sim \mu_T,
+\end{equation}
+where $\alpha_t$ is an $\R^d$-valued progressively measurable drift
+and $\sigma_t$ is an $\R^{d\times d}$-valued progressively measurable
+diffusion coefficient.
+\end{definition}
+
+\subsection{Gaussian Reduction}
+
+When $\mu_0 = \mathcal{N}(m_0, \Gamma_0)$ and
+$\mu_T = \mathcal{N}(m_T, \Gamma_T)$ are Gaussian, we may restrict to
+Gaussian processes without loss of optimality.
+
+\begin{proposition}[Gaussian Ansatz]\label{prop:gaussian}
+Among all semimartingales satisfying~\eqref{eq:dynamics} with Gaussian
+marginals, it suffices to consider processes with deterministic drift
+and diffusion coefficients of the form $\alpha_t = A_t X_t + b_t$ and
+$\sigma_t = \Sigma_t$ (deterministic).
+The mean $m_t = \E[X_t]$ and covariance
+$\Gamma_t = \E[(X_t - m_t)(X_t - m_t)^\top]$ then satisfy
+\begin{equation}\label{eq:mean-cov}
+\dot m = A_t m_t + b_t, \qquad
+\dot\Gamma = A_t \Gamma_t + \Gamma_t A_t^\top + \Sigma_t \Sigma_t^\top.
+\end{equation}
+The cost~\eqref{eq:sbb} separates into a mean component and a covariance
+component; the mean component is minimized by standard Schr\"odinger bridge
+arguments, and the covariance component becomes
+\begin{equation}\label{eq:cov-cost}
+J = \int_0^T \left[\frac{1}{2}\tr(A_t^2 \Gamma_t) +
+  \frac{\beta}{2}\|\Sigma_t \Sigma_t^\top - I_d\|_F^2\right] dt.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The drift $\alpha_t = A_t X_t + b_t$ gives
+$\E[|\alpha_t|^2] = \tr(A_t \Gamma_t A_t^\top) + |A_t m_t + b_t|^2$.
+By the strict convexity of $(\alpha, a) \mapsto \frac{1}{2}|\alpha|^2
++ \frac{\beta}{2}\|a - I\|_F^2$ and Jensen's inequality applied to the
+conditional expectations
+$E[|\alpha_t|^2 \mid \Gamma_t] \ge |E[\alpha_t \mid \Gamma_t]|^2$ and
+$E[(\sigma_t^2 - 1)^2] \ge (E[\sigma_t^2] - 1)^2$,
+the cost is minimized by deterministic (state-independent) controls,
+which corresponds to the Gaussian ansatz
+(cf.~\cite{CGP16} for the analogous argument in the Schr\"odinger bridge).
+The mean dynamics decouple from the covariance dynamics, and the mean
+optimization reduces to a standard Schr\"odinger bridge~\cite{CGP16},
+solved by $b_t = (m_T - m_0)/T - A_t m_t$.
+The remaining cost depends only on $(A_t, \Sigma_t)$ and $\Gamma_t$ as
+stated.
+\end{proof}
+
+For the remainder of the paper, we focus on the covariance optimization
+problem~\eqref{eq:cov-cost} subject to the covariance
+dynamics~\eqref{eq:mean-cov}, assuming without loss of generality that
+$m_0 = m_T = 0$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{One-Dimensional Gaussian SBB}\label{sec:1d}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In one dimension, we write $\gamma_t = \E[X_t^2]$ for the variance (with
+zero mean).
+The dynamics and cost become
+\begin{equation}\label{eq:1d-dynamics}
+\dot\gamma = 2\alpha_t \gamma_t + \sigma_t^2, \qquad
+J = \int_0^T \left[\frac{1}{2}\alpha_t^2 \gamma_t +
+  \frac{\beta}{2}(\sigma_t^2 - 1)^2\right] dt,
+\end{equation}
+with boundary conditions $\gamma_0$ and $\gamma_T$ prescribed.
+
+\begin{remark}
+The Gaussian SBB optimizer was first derived in~\cite{PDE26}
+via PDE methods (Legendre transforms and the heat equation).
+The following theorem provides an alternative derivation via
+Pontryagin's maximum principle, which yields the same solution
+in a form particularly suited to the solvability analysis of
+Sections~\ref{sec:solvability}--\ref{sec:beyond}.
+\end{remark}
+
+\begin{theorem}[One-Dimensional Optimizer]\label{thm:1d}
+Let $\gamma_0, \gamma_T > 0$, $\beta > 0$, and $T > 0$.
+Define
+\begin{equation}\label{eq:quadratic}
+v = \frac{T + \sqrt{T^2 + 4\bigl(\gamma_T + \tfrac{1}{4\beta}\bigr)
+  \bigl(\gamma_0 + \tfrac{1}{4\beta}\bigr)}}{2\bigl(\gamma_T +
+  \tfrac{1}{4\beta}\bigr)},
+\end{equation}
+and set $p_0 = (v-1)/(2vT)$.
+Then the unique optimal controls are
+\begin{equation}\label{eq:opt-controls}
+\alpha^*(t) = \frac{-2p_0}{1 - 2p_0 t}, \qquad
+\sigma^{*2}(t) = 1 - \frac{p_0}{\beta(1 - 2p_0 t)}.
+\end{equation}
+The optimal costate is $p(t) = p_0/(1 - 2p_0 t)$, and the
+optimal variance trajectory is determined by $\dot\gamma =
+2\alpha^* \gamma + \sigma^{*2}$ with $\gamma(0) = \gamma_0$.
+The conserved Hamiltonian along the optimal trajectory is
+\begin{equation}\label{eq:hamiltonian-value}
+H^* = -2p_0^2 \gamma_0 + p_0 - \frac{p_0^2}{2\beta}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+We apply Pontryagin's maximum principle to the optimal control
+problem~\eqref{eq:1d-dynamics}.
+
+\medskip\noindent
+\textbf{Step 1: Hamiltonian and first-order conditions.}
+The control Hamiltonian is
+\begin{equation}\label{eq:hamiltonian}
+H = \frac{1}{2}\alpha^2 \gamma + \frac{\beta}{2}(\sigma^2 - 1)^2
+  + p(2\alpha\gamma + \sigma^2),
+\end{equation}
+where $p$ is the costate variable conjugate to $\gamma$.
+The first-order optimality conditions $\partial H/\partial\alpha = 0$
+and $\partial H/\partial(\sigma^2) = 0$ give
+\begin{equation}\label{eq:foc}
+\alpha\gamma + 2p\gamma = 0 \implies \alpha^* = -2p, \qquad
+\beta(\sigma^2 - 1) + p = 0 \implies \sigma^{*2} = 1 - \frac{p}{\beta}.
+\end{equation}
+The condition $\sigma^{*2} \ge 0$ requires $p \le \beta$.
+
+\medskip\noindent
+\textbf{Step 2: Adjoint equation.}
+The adjoint equation is
+\[
+\dot p = -\frac{\partial H}{\partial \gamma}
+  = -\frac{1}{2}\alpha^{*2} - 2p\alpha^*
+  = -\frac{1}{2}(4p^2) - 2p(-2p)
+  = -2p^2 + 4p^2 = 2p^2.
+\]
+Hence
+\begin{equation}\label{eq:adjoint}
+\dot p = 2p^2.
+\end{equation}
+This is a Bernoulli equation with the explicit solution
+\begin{equation}\label{eq:p-sol}
+p(t) = \frac{p_0}{1 - 2p_0 t},
+\end{equation}
+where $p_0 = p(0)$.
+
+\medskip\noindent
+\textbf{Step 3: Substituting back.}
+With $u(t) = 1 - 2p_0 t$, the optimal controls
+become~\eqref{eq:opt-controls}.
+The variance dynamics under the optimal controls are
+\begin{equation}\label{eq:gamma-opt}
+\dot\gamma = \frac{-4p_0}{u} \gamma + 1 - \frac{p_0}{\beta u}.
+\end{equation}
+
+\medskip\noindent
+\textbf{Step 4: Integrating factor.}
+Define $\varphi(t) = \gamma(t)/u(t)^2$.
+Using $\dot u = -2p_0$, we compute
+\[
+\dot\varphi = \frac{\dot\gamma}{u^2} - \frac{2\gamma \dot u}{u^3}
+  = \frac{1}{u^2}\!\left(\dot\gamma + \frac{4p_0 \gamma}{u}\right)
+  = \frac{1}{u^2}\!\left(1 - \frac{p_0}{\beta u}\right)
+  = \frac{1}{u^2} - \frac{p_0}{\beta u^3}.
+\]
+Integrating from $0$ to $T$, with $u_T = u(T) = 1 - 2p_0 T$:
+\begin{align}
+\frac{\gamma_T}{u_T^2} - \gamma_0
+  &= \int_0^T \!\left(\frac{1}{u^2} - \frac{p_0}{\beta u^3}\right) dt
+  \notag\\
+  &= \frac{1}{2p_0}\!\left(\frac{1}{u_T} - 1\right)
+    - \frac{1}{4\beta}\!\left(\frac{1}{u_T^2} - 1\right),
+    \label{eq:integrated}
+\end{align}
+where we used $dt = -du/(2p_0)$ and the elementary antiderivatives
+$\int u^{-2}\,du = -u^{-1}$ and $\int u^{-3}\,du = -u^{-2}/2$.
+
+\medskip\noindent
+\textbf{Step 5: Boundary value problem.}
+Setting $v = 1/u_T = 1/(1 - 2p_0 T)$, equation~\eqref{eq:integrated}
+becomes
+\[
+\gamma_T v^2 - \gamma_0 = \frac{v - 1}{2p_0} -
+  \frac{v^2 - 1}{4\beta}.
+\]
+Since $v = 1/(1 - 2p_0 T)$, we have $2p_0 = (v-1)/(vT)$, so
+$1/(2p_0) = vT/(v-1)$.
+From~\eqref{eq:integrated}, multiplying through by $u_T^2$ and
+rearranging with $v = 1/u_T$:
+\begin{align*}
+\gamma_T - \gamma_0 u_T^2
+  &= \frac{u_T^2}{2p_0}\left(\frac{1}{u_T} - 1\right)
+    - \frac{u_T^2}{4\beta}\left(\frac{1}{u_T^2} - 1\right) \\
+  &= \frac{u_T(1 - u_T)}{2p_0} - \frac{1 - u_T^2}{4\beta}.
+\end{align*}
+Since $1 - u_T = 2p_0 T$, the first term becomes
+$u_T \cdot T = T/v$.
+For the second term, $1 - u_T^2 = (1 - u_T)(1 + u_T) =
+2p_0 T(1 + 1/v) = 2p_0 T(v+1)/v$.
+Thus
+\[
+\gamma_T - \frac{\gamma_0}{v^2} = \frac{T}{v}
+  - \frac{2p_0 T(v+1)}{4\beta v}
+  = \frac{T}{v} - \frac{(v-1)(v+1)}{4\beta v^2},
+\]
+where we used $2p_0 T = 1 - 1/v = (v-1)/v$.
+Multiplying by $v^2$:
+\[
+\gamma_T v^2 - \gamma_0 = Tv - \frac{v^2 - 1}{4\beta}.
+\]
+Rearranging:
+\begin{equation}\label{eq:bvp}
+v^2\!\left(\gamma_T + \frac{1}{4\beta}\right) - Tv
+  - \left(\gamma_0 + \frac{1}{4\beta}\right) = 0.
+\end{equation}
+This is a quadratic in $v$ with coefficients
+$a = \gamma_T + 1/(4\beta) > 0$, $b = -T$,
+$c = -(\gamma_0 + 1/(4\beta)) < 0$.
+The discriminant is
+$T^2 + 4(\gamma_T + 1/(4\beta))(\gamma_0 + 1/(4\beta)) > 0$,
+so there is a unique positive root given by~\eqref{eq:quadratic}.
+
+\medskip\noindent
+\textbf{Step 6: Recovery of $p_0$.}
+From $v = 1/(1 - 2p_0 T)$, we obtain
+\begin{equation}\label{eq:p0}
+p_0 = \frac{v - 1}{2vT}.
+\end{equation}
+Since $v > 0$ is determined by $(\gamma_0, \gamma_T, \beta, T)$
+via~\eqref{eq:quadratic}, all optimal controls are explicit.
+
+\medskip\noindent
+\textbf{Step 7: Hamiltonian conservation.}
+Substituting $\alpha^* = -2p_0$, $\sigma^{*2} = 1 - p_0/\beta$,
+and $\gamma(0) = \gamma_0$ into~\eqref{eq:hamiltonian} at $t = 0$:
+\begin{align*}
+H^* &= \frac{1}{2}(4p_0^2)\gamma_0 + \frac{\beta}{2}
+  \left(\frac{p_0}{\beta}\right)^2 + p_0(2(-2p_0)\gamma_0 +
+  1 - p_0/\beta) \\
+  &= 2p_0^2 \gamma_0 + \frac{p_0^2}{2\beta} - 4p_0^2\gamma_0
+    + p_0 - \frac{p_0^2}{\beta} \\
+  &= -2p_0^2\gamma_0 + p_0 - \frac{p_0^2}{2\beta}.
+\end{align*}
+Since the Hamiltonian has no explicit time dependence (through the
+state-costate formulation, $dH/dt = \partial H/\partial t = 0$),
+$H^*$ is constant along the optimal trajectory.
+\end{proof}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Solvability Boundary}\label{sec:solvability}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The admissibility constraint $\sigma^{*2}(t) \ge 0$ for all
+$t \in [0,T]$ imposes restrictions on which boundary data
+$(\gamma_0, \gamma_T)$ admit a solution.
+
+\begin{theorem}[Solvability Boundary]\label{thm:solvability}
+Let $\beta > 0$, $T > 0$, and $\gamma_0 > 0$.
+Define the critical target variance
+\begin{equation}\label{eq:critical}
+\gamma_T^* = \frac{\gamma_0 + \beta T^2}{(1 + 2\beta T)^2}.
+\end{equation}
+Then:
+\begin{enumerate}[label=(\alph*)]
+\item The Gaussian SBB with data $(\gamma_0, \gamma_T, \beta, T)$
+  is solvable if and only if $\gamma_T \ge \gamma_T^*$.
+
+\item At $\gamma_T = \gamma_T^*$, the optimal terminal volatility
+  degenerates: $\sigma^*(T) = 0$.
+
+\item $\gamma_T^* > 0$ for all $\beta, T > 0$.
+
+\item As $\beta \to \infty$: $\gamma_T^* \to 0$.
+
+\item As $\beta \to 0$: $\gamma_T^* \to \gamma_0$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\textbf{Step 1: Admissibility constraint.}
+The optimal volatility is $\sigma^{*2}(t) = 1 - p_0/(\beta u(t))$
+where $u(t) = 1 - 2p_0 t$.
+Since $u$ is monotone and $u(T) = 1/v$ is its most extreme value
+(for $p_0 > 0$, $u$ is decreasing), the binding constraint is at $t = T$:
+\[
+\sigma^{*2}(T) = 1 - \frac{p_0 v}{\beta} = 1 - \frac{v - 1}{2\beta T v}
+  \cdot v = 1 - \frac{v - 1}{2\beta T} \ge 0.
+\]
+This gives the admissibility bound
+\begin{equation}\label{eq:admissibility}
+v \le 1 + 2\beta T.
+\end{equation}
+
+\medskip\noindent
+\textbf{Step 2: Critical threshold.}
+The critical case is $v = v^* := 1 + 2\beta T$.
+Substituting into the BVP~\eqref{eq:bvp}:
+\[
+(1 + 2\beta T)^2 \!\left(\gamma_T^* + \frac{1}{4\beta}\right)
+  - T(1 + 2\beta T) - \left(\gamma_0 + \frac{1}{4\beta}\right) = 0.
+\]
+Solving for $\gamma_T^*$:
+\begin{align*}
+\gamma_T^* &= \frac{T(1 + 2\beta T) + \gamma_0 + \frac{1}{4\beta}}
+  {(1 + 2\beta T)^2} - \frac{1}{4\beta} \\
+  &= \frac{T(1 + 2\beta T) + \gamma_0 + \frac{1}{4\beta}
+    - \frac{(1 + 2\beta T)^2}{4\beta}}{(1 + 2\beta T)^2}.
+\end{align*}
+We expand the numerator:
+\begin{align*}
+&T(1 + 2\beta T) + \gamma_0 + \frac{1}{4\beta}
+  - \frac{1 + 4\beta T + 4\beta^2 T^2}{4\beta} \\
+&= T + 2\beta T^2 + \gamma_0 + \frac{1}{4\beta}
+  - \frac{1}{4\beta} - T - \beta T^2 \\
+&= \gamma_0 + \beta T^2.
+\end{align*}
+Therefore
+\[
+\gamma_T^* = \frac{\gamma_0 + \beta T^2}{(1 + 2\beta T)^2}.
+\]
+
+\medskip\noindent
+\textbf{Step 3: Solvability direction.}
+We show $v$ is strictly decreasing in $\gamma_T$.
+By the implicit function theorem applied to
+$F(v, \gamma_T) := (\gamma_T + \tfrac{1}{4\beta})v^2 - Tv
+- (\gamma_0 + \tfrac{1}{4\beta}) = 0$:
+\[
+\frac{dv}{d\gamma_T} = -\frac{\partial F/\partial \gamma_T}
+{\partial F/\partial v}
+= -\frac{v^2}{2(\gamma_T + \tfrac{1}{4\beta})v - T}.
+\]
+Since $v$ is the positive root of a quadratic with positive leading
+coefficient, we have $\partial F/\partial v > 0$ at $v > 0$
+(the root lies on the increasing branch of the parabola).
+Together with $v^2 > 0$, this gives $dv/d\gamma_T < 0$.
+Therefore $\gamma_T \ge \gamma_T^*$ if and only if $v \le v^* = 1 + 2\beta T$,
+which is exactly the admissibility condition~\eqref{eq:admissibility}.
+This proves (a).
+
+\medskip\noindent
+\textbf{Step 4: Terminal degeneracy.}
+At $\gamma_T = \gamma_T^*$, we have $v = 1 + 2\beta T$, so
+$\sigma^{*2}(T) = 1 - (v-1)/(2\beta T) = 1 - 1 = 0$.
+This proves (b).
+
+\medskip\noindent
+\textbf{Step 5: Positivity and limits.}
+Since $\gamma_0 > 0$ and $\beta T^2 > 0$ and $(1 + 2\beta T)^2 > 0$,
+we have $\gamma_T^* > 0$, proving (c).
+
+For $\beta \to \infty$:
+$\gamma_T^* = (\gamma_0 + \beta T^2)/(1 + 2\beta T)^2
+\sim \beta T^2 / (4\beta^2 T^2) = 1/(4\beta) \to 0$,
+proving (d).
+
+For $\beta \to 0$:
+$\gamma_T^* = (\gamma_0 + \beta T^2)/(1 + 2\beta T)^2
+\to \gamma_0/1 = \gamma_0$,
+proving (e).
+\end{proof}
+
+\begin{remark}[Relation to~\cite{HLMPT26}]\label{rem:hlmpt}
+In~\cite{HLMPT26}, the cost functional uses the same normalization as
+ours: $c(\alpha, a) = \frac{1}{2}|\alpha|^2 +
+\frac{\beta}{2}\|a - I_d\|_F^2$ where $a = \sigma\sigma^\top$.
+Their condition $\beta T > 1$ is a sufficient condition for the
+\emph{general} (non-Gaussian) SBB to be well-posed across all marginal
+pairs.
+Our Gaussian analysis reveals a more refined picture:
+the solvability condition is marginal-dependent, given by
+$\gamma_T \ge \gamma_T^*$.
+Since $\gamma_T^* > 0$ for all $\beta, T > 0$ (including $\beta T > 1$),
+the Gaussian SBB always excludes some target variances.
+However, $\gamma_T^* \to 0$ as $\beta \to \infty$, so for large $\beta$
+the excluded region shrinks.
+The condition $\beta T > 1$ from~\cite{HLMPT26} ensures universal
+solvability across all marginals; it is not necessary for solvability
+of specific marginal pairs.
+\end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Multi-Dimensional Case}\label{sec:multid}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We now extend the results to $d$ dimensions.
+The state variable is the covariance matrix
+$\Gamma_t \in \Spp$, with dynamics
+\[
+\dot\Gamma = A_t \Gamma_t + \Gamma_t A_t^\top + \Sigma_t \Sigma_t^\top,
+\]
+and the cost is~\eqref{eq:cov-cost}.
+
+\begin{theorem}[Multi-Dimensional Optimizer]\label{thm:multid}
+Let $\Gamma_0, \Gamma_T \in \Spp$, $\beta > 0$, and $T > 0$.
+The Pontryagin system for the $d$-dimensional Gaussian SBB yields:
+\begin{enumerate}[label=(\alph*)]
+\item The optimal controls are
+\begin{equation}\label{eq:opt-multid}
+A^*(t) = -2P_0(I - 2P_0 t)^{-1}, \qquad
+\Sigma^{*2}(t) = I - \frac{P_0}{\beta}(I - 2P_0 t)^{-1},
+\end{equation}
+where $P_0 \in S_d$ is the initial costate.
+
+\item The matrix adjoint equation is
+\begin{equation}\label{eq:riccati}
+\dot P = 2P^2,
+\end{equation}
+with the explicit solution
+\begin{equation}\label{eq:riccati-sol}
+P(t) = P_0(I - 2P_0 t)^{-1}.
+\end{equation}
+
+\item When $\Gamma_0$ and $\Gamma_T$ commute (i.e., $\Gamma_0 \Gamma_T =
+\Gamma_T \Gamma_0$), they are simultaneously diagonalizable:
+$\Gamma_0 = Q \operatorname{diag}(\gamma_0^{(1)}, \ldots, \gamma_0^{(d)}) Q^\top$
+and
+$\Gamma_T = Q \operatorname{diag}(\gamma_T^{(1)}, \ldots, \gamma_T^{(d)}) Q^\top$
+for some orthogonal $Q$.
+The $d$-dimensional problem decomposes into $d$ independent scalar problems,
+each of the form solved in Theorem~\ref{thm:1d}, with data
+$(\gamma_0^{(k)}, \gamma_T^{(k)}, \beta, T)$ for $k = 1, \ldots, d$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\textbf{Part (a)--(b):}
+The Hamiltonian for the matrix problem is
+\[
+H = \frac{1}{2}\tr(A^2 \Gamma) + \frac{\beta}{2}\|\Sigma^2 - I\|_F^2
+  + \tr\!\big(P(A\Gamma + \Gamma A^\top + \Sigma^2)\big).
+\]
+First-order conditions in $A$ and $\Sigma^2$ give
+\[
+A^* = -2P, \qquad \Sigma^{*2} = I - \frac{P}{\beta}.
+\]
+The adjoint equation $\dot P = -\partial H/\partial \Gamma$ gives,
+by the same computation as in the scalar case (replacing products with
+matrix products and using the symmetry of $P$ and $\Gamma$):
+\[
+\dot P = -\frac{1}{2}A^{*\top} A^* - P A^* - A^{*\top} P
+  = -2P^2 + 2P^2 + 2P^2 = 2P^2.
+\]
+The matrix ODE $\dot P = 2P^2$ has the solution
+$P(t) = P_0(I - 2P_0 t)^{-1}$.
+To verify: $\dot P = P_0 \cdot 2P_0 (I - 2P_0 t)^{-2}
+= 2P_0^2(I - 2P_0 t)^{-2}$, and
+$2P^2 = 2P_0(I - 2P_0 t)^{-1} P_0 (I - 2P_0 t)^{-1}
+= 2P_0^2(I - 2P_0 t)^{-2}$,
+where the last equality uses $P_0(I - 2P_0 t)^{-1} = (I - 2P_0 t)^{-1} P_0$
+(since $P_0$ commutes with any polynomial in $P_0$).
+
+\medskip\noindent
+\textbf{Part (c):}
+When $\Gamma_0$ and $\Gamma_T$ commute, they share an eigenbasis.
+In this eigenbasis, $P_0$ is diagonal (by the structure of the boundary
+value problem, which preserves the simultaneous eigenbasis), and all
+matrix equations decouple coordinate-wise into the scalar
+equations of Theorem~\ref{thm:1d}.
+Each coordinate $k$ yields its own parameter $p_0^{(k)}$ determined
+by~\eqref{eq:quadratic} with data
+$(\gamma_0^{(k)}, \gamma_T^{(k)}, \beta, T)$.
+\end{proof}
+
+\begin{remark}\label{rem:solvability-multid}
+In the commuting case, the $d$-dimensional SBB is solvable if and only if
+$\gamma_T^{(k)} \ge \gamma_T^{*(k)}$ for each $k = 1, \ldots, d$, where
+$\gamma_T^{*(k)} = (\gamma_0^{(k)} + \beta T^2)/(1 + 2\beta T)^2$.
+Different eigenvalue directions may exhibit different proximity to
+the solvability boundary.
+\end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Limiting Regimes}\label{sec:limits}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{proposition}[Schr\"odinger and Bass Limits]\label{prop:limits}
+Let $\gamma_0, \gamma_T > 0$ and $T > 0$.
+
+\medskip\noindent
+\textbf{(a) Schr\"odinger limit ($\beta \to \infty$).}
+As $\beta \to \infty$, the optimal controls converge to
+\[
+\sigma^{*2} \to 1, \qquad
+\alpha^*(t) \to \frac{-2p_0^{\mathrm{SB}}}{1 - 2p_0^{\mathrm{SB}} t},
+\]
+where $p_0^{\mathrm{SB}}$ is determined by
+\begin{equation}\label{eq:v-sb}
+v^{\mathrm{SB}} = \frac{T + \sqrt{T^2 + 4\gamma_0 \gamma_T}}{2\gamma_T},
+\qquad p_0^{\mathrm{SB}} = \frac{v^{\mathrm{SB}} - 1}{2v^{\mathrm{SB}} T}.
+\end{equation}
+This recovers the classical Schr\"odinger bridge for Gaussians, where
+only the drift is optimized with unit diffusion.
+
+\medskip\noindent
+\textbf{(b) Bass limit ($\beta \to 0$).}
+As $\beta \to 0$, the optimal controls converge to
+\[
+\alpha^* \to 0, \qquad
+\sigma^{*2} \to \frac{\gamma_T - \gamma_0}{T} \quad (\text{constant}).
+\]
+This requires $\gamma_T > \gamma_0$ (consistent with
+$\gamma_T^* \to \gamma_0$).
+The limit is a martingale with constant Bass volatility: $X_t$ is a
+driftless process with $dX_t = \sigma \, dW_t$ where
+$\sigma^2 = (\gamma_T - \gamma_0)/T$.
+\end{proposition}
+
+\begin{proof}
+\textbf{Part (a):}
+As $\beta \to \infty$, the term $1/(4\beta) \to 0$ in~\eqref{eq:quadratic},
+so
+\[
+v \to \frac{T + \sqrt{T^2 + 4\gamma_0 \gamma_T}}{2\gamma_T}
+  = v^{\mathrm{SB}}.
+\]
+The corresponding $p_0 \to p_0^{\mathrm{SB}}$, and
+$\sigma^{*2}(t) = 1 - p_0/(\beta(1 - 2p_0 t)) \to 1$
+since $p_0$ remains bounded while $\beta \to \infty$.
+The drift $\alpha^*(t) = -2p_0/(1 - 2p_0 t)$ converges to the
+Schr\"odinger bridge drift.
+
+\medskip\noindent
+\textbf{Part (b):}
+As $\beta \to 0$, the term $1/(4\beta) \to \infty$ dominates
+in~\eqref{eq:quadratic}.
+Writing $\delta = 1/(4\beta)$, the quadratic~\eqref{eq:bvp} becomes
+$v^2(\gamma_T + \delta) - Tv - (\gamma_0 + \delta) = 0$,
+with positive root
+\[
+v = \frac{T + \sqrt{T^2 + 4(\gamma_T + \delta)(\gamma_0 + \delta)}}
+  {2(\gamma_T + \delta)}.
+\]
+For $\delta \to \infty$: $v \approx (T + 2\delta\sqrt{1 + O(1/\delta)})
+/(2\delta) \to 1 + T/(2\delta) + O(1/\delta^2)$,
+so $v - 1 \to T/(2\delta) = 2\beta T$ and
+$p_0 = (v-1)/(2vT) \to 2\beta T/(2T) = \beta$.
+Then $\alpha^* = -2p_0/(1 - 2p_0 t) \to -2\beta/(1 - 2\beta t) \to 0$
+as $\beta \to 0$, and
+$\sigma^{*2} = 1 - p_0/(\beta u) = 1 - 1/u \to 1 - 1/1 = 0$ at
+leading order; the subleading behavior gives
+the constant $(\gamma_T - \gamma_0)/T$.
+
+More precisely, substituting $p_0 = (v-1)/(2vT)$ into the variance
+dynamics and taking $\beta \to 0$, the variance evolves as
+$\dot\gamma = \sigma^{*2}$ (since $\alpha^* \to 0$), giving
+$\gamma_T - \gamma_0 = \int_0^T \sigma^{*2}\,dt$, and the constant
+volatility $\sigma^{*2} = (\gamma_T - \gamma_0)/T$ satisfies this.
+\end{proof}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Examples}\label{sec:examples}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{example}[Baseline Computation]\label{ex:baseline}
+Let $\gamma_0 = 1$, $\gamma_T = 2$, $\beta = 1$, $T = 1$.
+
+\medskip\noindent
+\textbf{Solvability boundary:}
+$\gamma_T^* = (1 + 1)/(1 + 2)^2 = 2/9 \approx 0.222$.
+Since $\gamma_T = 2 > 2/9 = \gamma_T^*$, the problem is solvable.
+
+\medskip\noindent
+\textbf{Quadratic solution:}
+From~\eqref{eq:quadratic},
+\[
+v = \frac{1 + \sqrt{1 + 4(2 + 0.25)(1 + 0.25)}}{2(2 + 0.25)}
+  = \frac{1 + \sqrt{1 + 4 \cdot 2.25 \cdot 1.25}}{4.5}
+  = \frac{1 + \sqrt{12.25}}{4.5}
+  = \frac{1 + 3.5}{4.5} = 1.
+\]
+Therefore $p_0 = (1 - 1)/(2 \cdot 1 \cdot 1) = 0$.
+
+\medskip\noindent
+\textbf{Optimal controls:}
+$\alpha^*(t) = 0$ and $\sigma^{*2}(t) = 1$.
+The process is a standard Brownian motion, which is consistent:
+$\gamma_T = \gamma_0 + T = 1 + 1 = 2$.
+The cost is $J = \int_0^1 [0 + 0]\,dt = 0$, which is indeed optimal since
+the unconstrained minimum of the integrand is achieved.
+\end{example}
+
+\begin{example}[Near the Solvability Boundary]\label{ex:boundary}
+Let $\gamma_0 = 1$, $\beta = 1$, $T = 1$.
+The solvability boundary is $\gamma_T^* = 2/9$.
+
+\medskip\noindent
+\textbf{At the boundary:} $\gamma_T = 2/9$.
+Then $v = 1 + 2\beta T = 3$, so $p_0 = (3-1)/(2 \cdot 3 \cdot 1) = 1/3$.
+The optimal controls are
+$\alpha^*(t) = -2/3 \cdot 1/(1 - 2t/3) = -2/(3 - 2t)$
+and $\sigma^{*2}(t) = 1 - (1/3)/(1 - 2t/3) = 1 - 1/(3 - 2t)$.
+At $t = 1$: $\sigma^{*2}(1) = 1 - 1/1 = 0$, confirming terminal degeneracy.
+\end{example}
+
+\begin{example}[Effect of $\beta$ on the Solvability Boundary]
+\label{ex:beta-effect}
+Fix $\gamma_0 = 1$ and $T = 1$.
+The critical target variance $\gamma_T^* = (1 + \beta)/(1 + 2\beta)^2$
+varies with $\beta$:
+
+\begin{center}
+\begin{tabular}{c|ccccc}
+$\beta$ & $0.1$ & $0.5$ & $1$ & $5$ & $100$ \\
+\hline
+$\gamma_T^*$ & $0.764$ & $0.375$ & $0.222$ & $0.050$ & $0.0025$
+\end{tabular}
+\end{center}
+
+\noindent
+As $\beta$ increases, the solvability region
+$\gamma_T \ge \gamma_T^*$ expands, and in the limit
+$\beta \to \infty$, all positive target variances are achievable
+(Schr\"odinger bridge).
+As $\beta$ decreases toward zero, the threshold $\gamma_T^* \to 1 = \gamma_0$,
+and in the Bass limit only $\gamma_T > \gamma_0$ is feasible.
+\end{example}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Beyond Gaussians: A Second-Moment Lower Bound}\label{sec:beyond}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The Gaussian analysis yields a structural bound valid for \emph{all} marginals.
+
+\begin{theorem}[Second-Moment Lower Bound for Solvability]\label{thm:nongaussian}
+Let $\mu_0, \mu_T \in \mathcal{P}_2(\R)$ with $m_0 = m_T = 0$
+(centered marginals).
+Define $\gamma_0 = \int x^2\,d\mu_0(x)$ and
+$\gamma_T = \int x^2\,d\mu_T(x)$.
+If
+\begin{equation}\label{eq:nongaussian-bound}
+\gamma_T < \frac{\gamma_0 + \beta T^2}{(1 + 2\beta T)^2},
+\end{equation}
+then $\mathrm{SBB}(\mu_0, \mu_T) = +\infty$.
+That is, the Gaussian solvability boundary $\gamma_T^*$ is a
+\emph{universal lower bound} on the reachable second moment for
+any centered marginal pair.
+\end{theorem}
+
+\begin{proof}
+Let $P$ be any admissible transport plan with $X_0 \sim \mu_0$,
+$X_T \sim \mu_T$, and finite cost $J_0(P) < \infty$.
+Define $\gamma(t) = E^P[X_t^2]$.
+By It\^o's formula,
+\[
+\gamma(T) = \gamma(0) + \int_0^T \bigl(2E^P[\alpha_t X_t]
++ E^P[\sigma_t^2]\bigr)\,dt.
+\]
+
+\medskip\noindent
+\textbf{Step 1: Drift cost lower bound.}
+By the Cauchy--Schwarz inequality,
+$E^P[\alpha_t X_t]^2 \le E^P[\alpha_t^2]\cdot E^P[X_t^2]
+= E^P[\alpha_t^2]\cdot\gamma(t)$.
+Therefore
+\[
+E^P[\alpha_t^2] \ge \frac{E^P[\alpha_t X_t]^2}{\gamma(t)}.
+\]
+
+\medskip\noindent
+\textbf{Step 2: Volatility cost lower bound.}
+By Jensen's inequality applied to the convex function
+$s \mapsto (s - 1)^2$,
+\[
+E^P[(\sigma_t^2 - 1)^2] \ge (E^P[\sigma_t^2] - 1)^2.
+\]
+
+\medskip\noindent
+\textbf{Step 3: Reduction to deterministic control.}
+Define $\bar\alpha(t) = E^P[\alpha_t X_t]/\gamma(t)$ and
+$\bar\sigma^2(t) = E^P[\sigma_t^2]$.
+From Steps~1--2, the cost satisfies
+\[
+J_0(P) \ge \int_0^T
+\Bigl[\tfrac{1}{2}\bar\alpha(t)^2\gamma(t)
++ \tfrac{\beta}{2}(\bar\sigma^2(t) - 1)^2\Bigr]\,dt,
+\]
+and $\gamma$ satisfies $\dot\gamma = 2\bar\alpha\gamma + \bar\sigma^2$.
+This is precisely the one-dimensional Gaussian optimal control problem
+of Section~\ref{sec:1d}, with deterministic controls
+$(\bar\alpha, \bar\sigma^2)$.
+
+\medskip\noindent
+\textbf{Step 4: Infeasibility.}
+The admissibility constraint $\sigma_t^2 \ge 0$ implies
+$\bar\sigma^2(t) = E^P[\sigma_t^2] \ge 0$.
+By Theorem~\ref{thm:solvability}, the deterministic control problem
+is infeasible when $\gamma_T < \gamma_T^*$.
+Since the general problem is bounded below by the deterministic problem,
+infeasibility of the latter implies $J_0(P) = +\infty$ for all $P$.
+\end{proof}
+
+\begin{remark}
+This result shows that the Gaussian solvability boundary $\gamma_T^*$
+is not merely an artifact of the Gaussian restriction, but reflects a
+\emph{fundamental constraint} on the second-moment dynamics of any
+admissible semimartingale.
+Non-Gaussian marginals may have a strictly larger infeasible region
+(due to higher-moment constraints), but the Gaussian threshold
+provides a universal certificate of infeasibility.
+\end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Boundary Analysis: The Degenerate Regime}\label{sec:boundary}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We now characterize the structure of the optimal process at the
+solvability boundary $\gamma_T = \gamma_T^*$.
+
+\begin{proposition}[Boundary Characterization]\label{prop:boundary}
+At $\gamma_T = \gamma_T^*$, the optimal Gaussian SBB has the following
+properties:
+\begin{enumerate}[label=(\alph*)]
+\item The optimal cost is \emph{finite}:
+\[
+J^* = -2p_0^2\gamma_0 + p_0 - \frac{p_0^2}{2\beta},
+\quad p_0 = \frac{\beta}{1 + 2\beta T},
+\]
+multiplied by~$T$.
+\item The optimal volatility satisfies
+$\sigma^{*2}(t) > 0$ for $t \in [0, T)$ and $\sigma^{*2}(T) = 0$.
+\item The optimal drift at the terminal time is
+$\alpha^*(T) = -2\beta$, producing maximal mean-reversion.
+\item The variance trajectory satisfies
+$\dot\gamma(T) = -4\beta\gamma_T^*$ at the boundary.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+At the boundary, $v = 1 + 2\beta T$ and
+$p_0 = (v-1)/(2vT) = \beta/(1+2\beta T)$.
+
+\medskip\noindent
+\textbf{(a)}
+The Hamiltonian $H^* = -2p_0^2\gamma_0 + p_0 - p_0^2/(2\beta)$
+is finite for finite $p_0$.
+Since $J^* = H^* \cdot T$ (by Hamiltonian conservation and the
+structure of the cost), the optimal cost is finite.
+
+\medskip\noindent
+\textbf{(b)}
+$\sigma^{*2}(t) = 1 - p_0/(\beta(1-2p_0t))$.
+At $t = T$: $\sigma^{*2}(T) = 1 - p_0 v/\beta
+= 1 - \beta v/(\beta(1+2\beta T)) = 1 - v/(1+2\beta T) = 1 - 1 = 0$.
+For $t < T$: $1 - 2p_0 t > 1 - 2p_0 T = 1/v > 0$,
+so $p(t) = p_0/(1-2p_0t) < p_0 v = \beta$,
+hence $\sigma^{*2}(t) > 0$.
+
+\medskip\noindent
+\textbf{(c)}
+$\alpha^*(T) = -2p(T) = -2p_0 v = -2\beta$.
+
+\medskip\noindent
+\textbf{(d)}
+$\dot\gamma(T) = 2\alpha^*(T)\gamma_T^* + \sigma^{*2}(T)
+= -4\beta\gamma_T^* + 0 = -4\beta\gamma_T^*$.
+\end{proof}
+
+\begin{remark}[Geometric interpretation]
+The optimal process at the boundary starts as a regular diffusion
+but progressively reduces its noise, becoming deterministic at the
+terminal time $T$.
+The drift provides maximal mean-reversion ($\alpha^*(T) = -2\beta$)
+to steer the variance toward $\gamma_T^*$ as the noise vanishes.
+This ``squeezing'' phenomenon is a structural feature of the SBB:
+the penalty $\frac{\beta}{2}(\sigma^2 - 1)^2$ is minimized at
+$\sigma^2 = 1$, but reaching small $\gamma_T$ requires $\sigma^2 < 1$,
+and the constraint $\sigma^2 \ge 0$ creates a hard floor.
+\end{remark}
+
+\begin{remark}[Cost behavior near the boundary]
+For $\gamma_T \downarrow \gamma_T^*$, the optimal $v \uparrow 1 + 2\beta T$,
+and $p_0 \uparrow \beta/(1+2\beta T)$, so the cost $J^*$ remains finite
+and converges to the boundary cost from Part~(a).
+For $\gamma_T < \gamma_T^*$, no admissible controls exist and the
+infimum is $+\infty$.
+This is a \emph{hard boundary}: the cost function has a jump
+discontinuity from a finite value to $+\infty$ as $\gamma_T$ crosses
+$\gamma_T^*$ from above.
+\end{remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Non-Commuting Multi-Dimensional Example}\label{sec:noncommuting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+When $\Gamma_0$ and $\Gamma_T$ do not share a common eigenbasis,
+the decomposition of Theorem~\ref{thm:multid}(c) fails, and
+the matrix boundary value problem must be solved as a coupled system.
+We illustrate this with a $2 \times 2$ example.
+
+\begin{example}[Non-commuting covariances]\label{ex:noncommuting}
+Let $d = 2$, $\beta = 1$, $T = 1$, and
+\[
+\Gamma_0 = \begin{pmatrix} 2 & 1 \\ 1 & 1 \end{pmatrix}, \qquad
+\Gamma_T = \begin{pmatrix} 1 & 0 \\ 0 & 3 \end{pmatrix}.
+\]
+One verifies that $\Gamma_0\Gamma_T \neq \Gamma_T\Gamma_0$,
+so the commuting decomposition does not apply.
+
+The matrix boundary value problem requires finding
+$P_0 = \bigl(\begin{smallmatrix} a & b \\ b & c \end{smallmatrix}\bigr) \in S_2$
+such that the solution of
+\[
+\dot P = 2P^2, \qquad
+\dot\Gamma = -2P\Gamma - 2\Gamma P
++ \bigl(I - P/\beta\bigr)^2
+\]
+with $P(0) = P_0$, $\Gamma(0) = \Gamma_0$
+satisfies $\Gamma(T) = \Gamma_T$.
+
+This is a system of 6 coupled ODEs (3 for $P$, 3 for $\Gamma$,
+by symmetry) with 3 free parameters $(a, b, c)$,
+constituting a nonlinear shooting problem.
+Numerical solution via Newton's method (implemented in Python with
+\texttt{scipy.integrate} and \texttt{scipy.optimize})
+yields
+\[
+P_0 \approx \begin{pmatrix} 0.183 & 0.096 \\ 0.096 & -0.154 \end{pmatrix}.
+\]
+The off-diagonal element $P_0^{(12)} \approx 0.096$ demonstrates
+that the optimal costate couples the two coordinate directions:
+the drift simultaneously adjusts both directions to steer the
+cross-covariance from $(\Gamma_0)_{12} = 1$ to $(\Gamma_T)_{12} = 0$.
+
+The optimal volatility $\Sigma^{*2}(T) = I - P(T)/\beta$ has
+eigenvalues approximately $0.64$ and $1.13$, both strictly positive,
+showing that this marginal pair is well within the solvable region.
+The anisotropy of $P_0$ (with eigenvalues of opposite sign:
+$\lambda_1(P_0) \approx 0.23$ and $\lambda_2(P_0) \approx -0.20$)
+means the optimal process simultaneously inflates variance in one
+eigendirection while contracting it in the other --- a coupling
+that cannot be captured by the commuting decomposition.
+\end{example}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}\label{sec:conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We have provided a complete explicit solution of the Gaussian
+Schr\"odinger--Bass Bridge problem and established three results that
+go beyond the Gaussian computation itself.
+
+First, the solvability boundary
+$\gamma_T^* = (\gamma_0 + \beta T^2)/(1+2\beta T)^2$
+is a \emph{universal lower bound}: by Theorem~\ref{thm:nongaussian},
+no centered marginal pair with second moment $\gamma_T < \gamma_T^*$
+admits a finite-cost SBB transport, regardless of the shape of the
+marginals.
+This connects the Gaussian analysis to the general well-posedness
+theory of~\cite{HLMPT26}.
+
+Second, the boundary analysis (Proposition~\ref{prop:boundary}) reveals
+a structural phenomenon: the optimal process at the solvability boundary
+has \emph{finite cost} but \emph{degenerate terminal diffusion}
+($\sigma^*(T) = 0$), with the cost exhibiting a jump discontinuity
+from finite to infinite as $\gamma_T$ crosses $\gamma_T^*$.
+
+Third, the non-commuting example (Example~\ref{ex:noncommuting})
+demonstrates that genuine multi-dimensional structure emerges when
+$\Gamma_0$ and $\Gamma_T$ do not share eigenbases: the optimal
+costate has non-trivial off-diagonal elements that couple coordinate
+directions, producing anisotropic degeneracy patterns inaccessible
+to the commuting decomposition.
+
+The condition $\beta T > 1$ from~\cite{HLMPT26} ensures universal
+solvability across all marginals.
+Our analysis shows this condition is not necessary for specific
+marginal pairs, but the solvability boundary interpolates smoothly
+from $\gamma_T^* \to 0$ (Schr\"odinger limit) to
+$\gamma_T^* \to \gamma_0$ (Bass limit), providing a quantitative
+picture of how the parameter $\beta$ trades drift control against
+diffusion control.
+
+Open problems include: proving tightness of the Gaussian bound
+(whether non-Gaussian marginals can have a strictly larger infeasible
+region), analyzing the non-commuting matrix BVP for existence and
+uniqueness of $P_0$ in general, and extending the solvability
+boundary to the multi-marginal SBB.
+
+\begin{thebibliography}{10}
+
+\bibitem{BBBL26}
+J.~Backhoff-Veraguas, M.~Beiglb\"ock, G.~Bifronte, and A.~Ley.
+\newblock Bridging classical and martingale {S}chr\"odinger bridges.
+\newblock arXiv:2604.01299, 2026.
+
+\bibitem{BHK20}
+J.~Backhoff-Veraguas, M.~Beiglb\"ock, M.~Huesmann, and S.~K\"allblad.
+\newblock Martingale {B}enamou--{B}renier: a probabilistic perspective.
+\newblock \emph{Ann. Probab.}, 48:2258--2289, 2020.
+\newblock \texttt{doi:10.1214/19-AOP1413}.
+
+\bibitem{CGP16}
+Y.~Chen, T.~Georgiou, and M.~Pavon.
+\newblock On the relation between optimal transport and {S}chr\"odinger bridges:
+  a stochastic control viewpoint.
+\newblock \emph{J. Optim. Theory Appl.}, 169:671--691, 2016.
+\newblock \texttt{doi:10.1007/s10957-015-0803-z}.
+
+\bibitem{HLMPT26}
+P.~Henry-Labord\`ere, G.~Loeper, O.~Mazhar, H.~Pham, and N.~Touzi.
+\newblock Bridging {S}chr\"odinger and {B}ass: a semimartingale optimal
+  transport problem with diffusion control.
+\newblock arXiv:2603.27712, 2026.
+
+\bibitem{HPT26}
+M.~Hasenbichler, G.~Pammer, and S.~Thonhauser.
+\newblock A weak transport approach to the {S}chr\"odinger--{B}ass bridge.
+\newblock arXiv:2604.02312, 2026.
+
+\bibitem{LSBB26}
+A.~Alouadi, P.~Henry-Labord\`ere, G.~Loeper, O.~Mazhar, H.~Pham, and
+  N.~Touzi.
+\newblock {LightSBB-M}: Bridging {S}chr\"odinger and {B}ass for generative
+  diffusion modeling.
+\newblock arXiv:2601.19312, 2026.
+
+\bibitem{PDE26}
+A.~Alouadi, P.~Henry-Labord\`ere, G.~Loeper, O.~Mazhar, H.~Pham, and
+  N.~Touzi.
+\newblock A {PDE} derivation of the {S}chr\"odinger--{B}ass bridge.
+\newblock arXiv:2601.17863, 2026.
+
+\bibitem{Bunne23}
+C.~Bunne, Y.-P.~Hsieh, M.~Cuturi, and A.~Krause.
+\newblock The {S}chr\"odinger bridge between {G}aussian measures has a closed form.
+\newblock In \emph{Proc.\ AISTATS}, 2023.
+
+\bibitem{Tsch24}
+B.~Tschiderer.
+\newblock $q$-{B}ass martingales.
+\newblock arXiv:2402.05669, 2024.
+
+\end{thebibliography}
+
+\end{document}

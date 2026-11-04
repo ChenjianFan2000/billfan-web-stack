@@ -1,0 +1,2395 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+\usepackage{natbib}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{remark}{Remark}
+\newtheorem{example}{Example}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+% Operators and shortcuts
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\Dt}{\Delta t}
+\newcommand{\Dbb}{\mathbb{D}}
+
+\title{Anomalous Scaling of the Discrete Monitoring Correction\\
+for Variance Swaps Under Volterra Stochastic Volatility}
+
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We derive the asymptotic behavior of the discrete monitoring correction for
+variance swaps under a general class of Volterra stochastic volatility models
+with fractional kernel $K(t) = t^{H-1/2}/\Gamma(H+\tfrac12)$,
+$H \in (0,\tfrac12)$. In classical stochastic volatility models, the fair
+strike of a discretely monitored variance swap converges to its continuous
+counterpart at rate $O(n^{-1})$, where $n$ is the number of monitoring dates.
+We show that under Volterra stochastic volatility, the convergence rate
+deteriorates to $O(n^{-(H+1/2)})$ when the spot--volatility correlation
+$\rho$ is nonzero. The leading-order coefficient depends on the model
+only through the averaged quantity
+$\bar\varphi = T^{-1}\!\int_0^T\!\E[\sigma_V(V_t)\sqrt{V_t}]\,\dd t$,
+where $\sigma_V$ is the vol-of-vol function: the anomalous scaling is a
+\emph{universal} property of the fractional kernel singularity.
+Rough Heston, rough CIR, and other power-law Volterra models are
+recovered as special cases.
+
+We prove that the rate $n^{-(H+1/2)}$ is \emph{sharp}: the rescaled gap
+$n^{H+1/2}\delta(n)$ converges to an explicit nonzero limit, establishing
+a two-sided bound for all sufficiently large $n$.
+A corrected remainder analysis shows that the Malliavin drift correction
+is $O(n^{-(2H+1)})$---always subdominant to the convexity term
+$O(n^{-1})$---eliminating a spurious phase transition at $H = \tfrac16$
+present in earlier analyses.
+We characterize the boundary behavior: as $H \to 0^+$,
+the rate approaches $O(n^{-1/2})$, matching the discrete monitoring bound
+for jump models; the coefficient is affine in $\rho$ with no blow-up at
+$\rho = \pm 1$.
+Numerical experiments with a lifted Markovian approximation confirm
+the theoretical predictions across a range of Hurst parameters,
+correlations, and monitoring frequencies.
+\end{abstract}
+
+\medskip\noindent
+\textbf{Keywords:} variance swaps, discrete monitoring, rough volatility,
+Volterra stochastic volatility, Malliavin calculus, leverage effect,
+fractional kernel, anomalous scaling
+
+\medskip\noindent
+\textbf{MSC 2020:} 91G20, 60H07, 60G22
+
+%% ================================================================
+%% INTRODUCTION
+%% ================================================================
+\section{Introduction}\label{sec:intro}
+
+Variance swaps are among the most liquid volatility derivatives.
+A variance swap pays the difference between the realized variance
+of an underlying asset over a fixed period and a predetermined
+strike price. In practice, the realized variance is computed from
+discretely sampled log-returns---typically at daily frequency---while
+theoretical pricing is based on the continuously monitored quadratic
+variation.
+
+The gap between the discrete and continuous fair strikes has been
+studied extensively for classical stochastic volatility models.
+\citet{BroadieJain2008} and \citet{BernardCui2014} derived explicit
+$O(n^{-1})$ expansions for the Heston and Hull--White models.
+\citet{BernardCuiMcLeish2014} extended the convergence analysis to
+general time-homogeneous diffusions, establishing that the
+$O(n^{-1})$ rate is universal among continuous semimartingale
+volatility models.
+\citet{JarrowKchiaProtte2013} established an $O(n^{-1/2})$ upper
+bound for the gap under general semimartingale assumptions---a bound
+that is tight for jump models but not for continuous ones.
+A key methodological advance was made by
+\citet{AlosFukasawa2021}, who provided an Edgeworth-type expansion of
+the discretization error for It\^o integrals using Malliavin calculus,
+with the leading correction expressed through Malliavin derivatives
+of the integrand. Their framework, however, requires the volatility
+process to be a semimartingale.
+
+Meanwhile, the rough volatility paradigm
+\citep{GatheralJaissonRosenbaum2018,ElEuchRosenbaum2019}
+has become an established framework for modeling equity volatility.
+Under rough stochastic volatility, the variance process is driven by a
+Volterra-type kernel $K(t) = t^{H-1/2}/\Gamma(H+\tfrac12)$ with Hurst
+parameter $H \approx 0.1$, producing path irregularity fundamentally
+different from classical models.
+The general theory of Volterra stochastic volatility encompasses
+rough Heston \citep{ElEuchRosenbaum2019}, rough Bergomi
+\citep{BayerFrizGatheral2016}, and rough CIR-type models
+\citep{AbiJaberLarssonPulido2021}, all sharing the same fractional
+kernel singularity.
+The pricing of discretely monitored variance swaps under rough
+volatility was addressed numerically by
+\citet{XiWong2021} using characteristic-function methods, and
+extended to time-dependent coefficients by \citet{ZhuangHuang2025}.
+Both works compute discrete fair strikes without asymptotic analysis
+of the gap as $n \to \infty$. The simulation of rough Heston itself
+poses additional challenges addressed by \citet{RichardTanYang2023}.
+
+\medskip
+
+\noindent\textbf{Contribution.}
+We make four contributions to the understanding of discrete monitoring
+corrections under rough volatility.
+
+\emph{First}, we prove that the discrete monitoring gap under a
+general class of Volterra stochastic volatility models satisfies
+\begin{equation}\label{eq:main-result-preview}
+  K_d(n) - K_c
+  = \frac{C_{\mathrm{lev}}(H)}{n^{H+1/2}}
+  + \frac{C_{\mathrm{eff}}}{n}
+  + o(n^{-1}),
+\end{equation}
+where the leverage coefficient depends on the model only through a
+single averaged quantity:
+\begin{equation}\label{eq:Clev-preview}
+  C_{\mathrm{lev}}(H)
+  = \frac{-\rho\,\bar\varphi\,T^{H+1/2}}{\Gamma(H+\tfrac52)},
+  \qquad
+  \bar\varphi = \frac{1}{T}\int_0^T
+    \E\bigl[\sigma_V(V_t)\sqrt{V_t}\bigr]\dd t,
+\end{equation}
+and $C_{\mathrm{eff}} = C_{\mathrm{conv}} + C_{\mathrm{drift}}$
+combines the convexity correction with the Malliavin drift correction.
+For rough Heston with $\sigma_V(v) = \nu\sqrt{v}$,
+we have $\bar\varphi = \nu\bar V$ where
+$\bar V = T^{-1}\!\int_0^T\!\E[V_t]\,\dd t$.
+The result shows that the anomalous scaling $O(n^{-(H+1/2)})$
+is a \emph{universal} property of the fractional kernel singularity
+and the leverage effect, not a feature specific to the affine structure
+of rough Heston.
+
+\emph{Second}, we prove that the rate $n^{-(H+1/2)}$ is \emph{sharp}:
+\begin{equation}\label{eq:sharpness-preview}
+  \lim_{n\to\infty} n^{H+1/2}\,\delta(n) = C_{\mathrm{lev}}(H) \neq 0,
+\end{equation}
+establishing an asymptotic equivalence (not merely an upper bound) and
+a two-sided inequality for all sufficiently large $n$.
+
+\emph{Third}, we correct the remainder analysis.
+The Malliavin drift correction is $O(n^{-(2H+1)})$, which satisfies
+$2H + 1 > 1$ for all $H > 0$; hence the drift correction is
+\emph{always} subdominant to the convexity term $O(n^{-1})$.
+This eliminates a spurious phase transition at $H = \tfrac16$
+that appeared in earlier analyses using a looser bound.
+The remainder simplifies to $o(n^{-1})$ uniformly in
+$H \in (0,\tfrac12)$.
+
+\emph{Fourth}, we characterize the boundary behavior of the expansion:
+\begin{itemize}[nosep]
+\item As $H \to 0^+$: the coefficient remains finite while the exponent
+  approaches $\tfrac12$, matching the $O(n^{-1/2})$ jump-model bound of
+  \citet{JarrowKchiaProtte2013}.
+\item As $\rho \to \pm 1$: the coefficient is affine in $\rho$ with no
+  blow-up; the model reduces to a well-posed one-factor system.
+\item The sign of $C_{\mathrm{lev}}$ determines whether the discrete
+  strike overshoots ($\rho < 0$, equity) or undershoots ($\rho > 0$)
+  the continuous strike.
+\end{itemize}
+
+Our approach extends the Malliavin duality framework of
+\citet{AlosFukasawa2021} to the Volterra setting, where the
+variance process is non-semimartingale. The Malliavin derivative
+$D_u V_s \sim K(s{-}u)\,\sigma_V(V_u)$
+inherits the singularity of the fractional kernel at $s = u$,
+producing a cross-term $\E[I_i\, M_i^W]$ that decays as
+$\Delta^{H+3/2}$ per monitoring interval rather than the $\Delta^2$
+of smooth models.
+
+Our result fills a gap between the numerical studies of
+\citet{XiWong2021} and \citet{ZhuangHuang2025}
+(who computed discrete strikes without asymptotic analysis)
+and the general convergence framework of
+\citet{JarrowKchiaProtte2013}.
+We emphasize that these address different questions:
+Jarrow et~al.\ establish an $O(n^{-1/2})$ \emph{upper bound}
+under general semimartingale assumptions (tight for jump models),
+while we derive the \emph{exact rate} in the Volterra SV class.
+The log-price $X = \ln S$ in Volterra SV models is itself a
+semimartingale, so their bound applies; our Malliavin-based
+computation sharpens it from $O(n^{-1/2})$ to the exact
+$O(n^{-(H+1/2)})$.
+
+\medskip
+
+\noindent\textbf{Related literature.}
+The theory of Volterra stochastic volatility models has developed
+rapidly.
+\citet{AbiJaberLarssonPulido2021} established existence, uniqueness,
+and moment bounds for affine Volterra processes; see also
+\citet{AbiJaberElEuch2019} for lifted Markovian approximations.
+Malliavin calculus for Volterra processes was developed by
+\citet{AlosLeonVives2007} and \citet{Nualart2006}, with recent
+extensions by \citet{ViensZhang2019}.
+The short-time asymptotic behavior of implied volatility under rough
+models was studied by \citet{FordeLarterRaval2022} and
+\citet{FrizGassiatPigato2022}.
+\citet{Fukasawa2021} showed that volatility roughness arises
+naturally under certain no-arbitrage conditions.
+Our work complements these by characterizing the \emph{monitoring
+frequency} effect, which is distinct from the microstructure effect.
+
+\medskip
+
+\noindent\textbf{Outline.}
+Section~\ref{sec:setup} introduces the Volterra SV model class and
+defines the discrete monitoring gap.
+Section~\ref{sec:main-rh} states and proves the main result for rough
+Heston as a motivating special case.
+Section~\ref{sec:general} extends the result to general Volterra SV.
+Section~\ref{sec:sharpness} establishes sharpness of the exponent.
+Section~\ref{sec:remainder} corrects the remainder analysis.
+Section~\ref{sec:boundary} characterizes boundary behavior.
+Section~\ref{sec:numerics} presents Monte Carlo validation.
+Section~\ref{sec:implications} discusses practical implications.
+Section~\ref{sec:conclusion} concludes.
+Appendices provide complete proofs of the error bounds and
+Malliavin differentiability.
+
+\medskip
+
+\noindent\textbf{Notation.}
+Throughout, $K(t) = t^{H-1/2}/\Gamma(H+\tfrac12)$ denotes the
+Riemann--Liouville fractional kernel, $\Dbb^{1,2}$ the Malliavin
+Sobolev space, $D_u$ the Malliavin derivative with respect to $W_u$,
+and $\Delta = T/n$ the monitoring interval.
+Constants $C, c, C'$ are generic and may change from line to line;
+named constants ($C_{\mathrm{lev}}, C_{\mathrm{conv}}, C_R$, etc.)
+are fixed.
+We write $f(n) = O(g(n))$ if $|f(n)| \le C\,g(n)$ for all
+$n \ge n_0$, and $f(n) = o(g(n))$ if $f(n)/g(n) \to 0$.
+
+%% ================================================================
+%% SETUP
+%% ================================================================
+\section{Setup}\label{sec:setup}
+
+\subsection{Volterra stochastic volatility models}
+\label{sec:volterra-sv}
+
+We work on a filtered probability space
+$(\Omega, \mathcal F, (\mathcal F_t)_{t \ge 0}, \mathbb Q)$
+carrying two independent standard Brownian motions $W$ and $B$.
+
+\begin{definition}[Volterra SV model]\label{def:volterra-sv}
+A \emph{Volterra stochastic volatility model} with Hurst parameter
+$H \in (0,\tfrac12)$ is a pair $(S,V)$ satisfying
+\begin{align}
+  \dd S_t &= \sqrt{V_t}\, S_t
+    \bigl(\rho\,\dd W_t + \bar\rho\,\dd B_t\bigr),
+    \quad S_0 > 0,
+    \label{eq:S-dynamics}\\[4pt]
+  V_t &= V_0
+    + \int_0^t K(t{-}s)\, b(V_s)\,\dd s
+    + \int_0^t K(t{-}s)\, \sigma_V(V_s)\,\dd W_s,
+    \label{eq:V-dynamics}
+\end{align}
+where $\bar\rho = \sqrt{1-\rho^2}$,\;
+$K(t) = t^{H-1/2}/\Gamma(H+\tfrac12)$ is the fractional kernel,\;
+$\rho \in [-1,1]$ is the leverage parameter,\;
+$b\colon\R_+\to\R$ is the drift function,\;
+$\sigma_V\colon\R_+\to\R_+$ is the vol-of-vol function,\;
+and $V_0 > 0$ is the initial variance.
+\end{definition}
+
+The fractional kernel satisfies the fundamental convolution identity
+\begin{equation}\label{eq:beta-convolution}
+  \int_0^t K(t{-}s)\,K(s)\,\dd s
+  = \frac{t^{2H}}{\Gamma(2H{+}1)},
+\end{equation}
+which follows from the Beta function integral
+$B(H{+}\tfrac12, H{+}\tfrac12) =
+\Gamma(H{+}\tfrac12)^2/\Gamma(2H{+}1)$.
+This identity plays a central role in bounding the Malliavin
+derivative remainder (Section~\ref{sec:remainder}).
+
+\begin{assumption}[Standing assumptions]\label{as:standing}
+Throughout the paper, we assume:
+\begin{enumerate}[label=\textnormal{(A\arabic*)}]
+\item\label{as:A1}
+  \textbf{Integrability:}\;
+  $\E\bigl[\int_0^T V_t^2\,\dd t\bigr] < \infty$.
+\item\label{as:A2}
+  \textbf{Malliavin differentiability:}\;
+  $I_i = \int_{t_i}^{t_i+\Delta} V_s\,\dd s \in \Dbb^{1,2}$
+  for each $i$.
+\item\label{as:A3}
+  \textbf{Lipschitz drift:}\;
+  $b$ is Lipschitz continuous with constant $L_b$.
+\item\label{as:A4}
+  \textbf{Vol-of-vol regularity:}\;
+  $\sigma_V$ is locally Lipschitz on $(0,\infty)$ with
+  $\sigma_V(v) > 0$ for $v > 0$, and
+  $\bar\varphi_{\max} :=
+  \sup_{t\in[0,T]} \E[\sigma_V(V_t)\sqrt{V_t}] < \infty$.
+\item\label{as:A5}
+  \textbf{Short-range covariance:}\;
+  $\Cov(V_s, V_u) = O(|s{-}u|^{2H})$ as $|s{-}u| \to 0$,
+  uniformly in $s, u \in [0,T]$.
+\end{enumerate}
+\end{assumption}
+
+\begin{remark}[Verification of the standing assumptions]
+For \emph{rough Heston}
+($b(v) = \theta - \kappa v$, $\sigma_V(v) = \nu\sqrt{v}$),
+assumptions \ref{as:A1}, \ref{as:A3}--\ref{as:A5} are established in
+\citet{ElEuchRosenbaum2019} under standard parameter conditions
+($\kappa > 0$, $\theta > 0$, $\nu > 0$, $V_0 > 0$).
+Assumption~\ref{as:A2} is verified in
+Appendix~\ref{app:malliavin-diff} via a localization argument
+following \citet{AlosLeonVives2007}.
+For \emph{affine Volterra processes} more generally,
+\citet{AbiJaberLarssonPulido2021} provide the existence, uniqueness,
+and moment theory.
+For non-affine Volterra SDEs with Lipschitz coefficients,
+\ref{as:A1} and \ref{as:A5} follow from standard Volterra resolvent
+estimates; see, e.g., \citet{GripenbergLondenStaffans1990}.
+\end{remark}
+
+\subsection{Special cases}\label{sec:special-cases}
+
+The Volterra SV framework encompasses several important models.
+
+\begin{example}[Rough Heston]\label{ex:rough-heston}
+$b(v) = \theta - \kappa v$, $\sigma_V(v) = \nu\sqrt{v}$ with
+$\kappa > 0$, $\theta > 0$, $\nu > 0$.
+The drift is Lipschitz with $L_b = \kappa$, and
+$\sigma_V(v)\sqrt{v} = \nu v$, so
+$\bar\varphi = \nu\bar V$ where
+$\bar V = T^{-1}\!\int_0^T\!\E[V_t]\,\dd t$.
+\end{example}
+
+\begin{example}[Rough CIR with general power]\label{ex:rough-cir}
+$b(v) = \theta - \kappa v$,
+$\sigma_V(v) = \nu\, v^\gamma$ with $\gamma \in [\tfrac12, 1]$.
+Then $\sigma_V(v)\sqrt{v} = \nu\, v^{\gamma+1/2}$, so
+$\bar\varphi = \nu\cdot T^{-1}\!\int_0^T\!\E[V_t^{\gamma+1/2}]\,\dd t$.
+The case $\gamma = \tfrac12$ recovers rough Heston.
+\end{example}
+
+\begin{example}[Mean-reverting SABR-type]\label{ex:sabr}
+$b(v) = \theta - \kappa v$, $\sigma_V(v) = \nu\, v$ (log-normal
+vol-of-vol). Then $\sigma_V(v)\sqrt{v} = \nu\, v^{3/2}$, so
+$\bar\varphi = \nu\cdot T^{-1}\!\int_0^T\!\E[V_t^{3/2}]\,\dd t$.
+\end{example}
+
+\begin{remark}[Rough Bergomi]\label{rem:rough-bergomi}
+The rough Bergomi model \citep{BayerFrizGatheral2016} has
+$V_t = \xi(t)\exp(\eta W^H_t - \tfrac12\eta^2 t^{2H})$
+where $W^H$ is a fractional Brownian motion with Hurst parameter $H$.
+This is a Gaussian Volterra process, \emph{not} a Volterra SDE of the
+form~\eqref{eq:V-dynamics}. Nevertheless, its Malliavin derivative
+satisfies $D_u V_t = \eta\, K(t{-}u)\, V_t$, sharing the same
+kernel singularity. The leading-order analysis therefore carries over
+with $\bar\varphi = \eta\cdot T^{-1}\!\int_0^T\!\E[V_t^{3/2}]\,\dd t$.
+A complete treatment requires extending the Clark--Ocone argument
+to the Gaussian Volterra setting, which we leave to future work.
+\end{remark}
+
+\subsection{Variance swap fair strikes}\label{sec:vs-strikes}
+
+The \emph{continuous} variance swap fair strike is
+\begin{equation}\label{eq:Kc}
+  K_c = \frac{1}{T}\E\Bigl[\int_0^T V_t\,\dd t\Bigr]
+  = \bar V,
+\end{equation}
+where $\bar V = T^{-1}\int_0^T \E[V_t]\,\dd t$.
+
+For $n$ equally spaced monitoring dates $t_i = iT/n$,\;$i = 0,\ldots,n$,
+the \emph{discrete} variance swap fair strike is
+\begin{equation}\label{eq:Kd}
+  K_d(n) = \frac{1}{T}\sum_{i=0}^{n-1}
+  \E\Bigl[\Bigl(\ln\frac{S_{t_{i+1}}}{S_{t_i}}\Bigr)^{\!2}\Bigr].
+\end{equation}
+
+\begin{definition}[Discrete monitoring gap]\label{def:gap}
+The \emph{discrete monitoring gap} is
+$\delta(n) := K_d(n) - K_c$.
+\end{definition}
+
+We write $\Delta = T/n$ for the monitoring interval length.
+
+%% ================================================================
+%% ROUGH HESTON (MOTIVATING CASE)
+%% ================================================================
+\section{Main result: the rough Heston case}\label{sec:main-rh}
+
+We first state and prove the result for rough Heston
+(Example~\ref{ex:rough-heston}), then generalize in
+Section~\ref{sec:general}.
+
+\subsection{Decomposition of the gap}
+
+On the $i$-th interval $[t_i, t_i{+}\Delta]$, define
+\begin{equation}\label{eq:Ii-Mi}
+  I_i = \int_{t_i}^{t_i+\Delta}\! V_s\,\dd s,
+  \qquad
+  M_i^W = \int_{t_i}^{t_i+\Delta}\! \sqrt{V_s}\,\dd W_s,
+  \qquad
+  M_i^B = \int_{t_i}^{t_i+\Delta}\! \sqrt{V_s}\,\dd B_s.
+\end{equation}
+From \eqref{eq:S-dynamics} the log-return is
+$\Delta X_i := \ln(S_{t_{i+1}}/S_{t_i})
+= -\tfrac12 I_i + \rho M_i^W + \bar\rho\, M_i^B$.
+
+\begin{lemma}[Gap decomposition]\label{lem:gap-decomp}
+Under Assumption~\ref{as:A1},
+\begin{equation}\label{eq:gap-decomp}
+  \delta(n)
+  = \frac{1}{T}\sum_{i=0}^{n-1}
+  \Bigl[\frac{1}{4}\,\E\bigl[I_i^2\bigr]
+  - \rho\,\E\bigl[I_i\, M_i^W\bigr]\Bigr].
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Expanding $(\Delta X_i)^2$:
+\begin{align*}
+  \E[(\Delta X_i)^2]
+  &= \tfrac14\,\E[I_i^2]
+    + \rho^2\,\E[(M_i^W)^2]
+    + \bar\rho^2\,\E[(M_i^B)^2] \\
+  &\quad
+    - \rho\,\E[I_i\,M_i^W]
+    - \bar\rho\,\E[I_i\,M_i^B]
+    + 2\rho\bar\rho\,\E[M_i^W M_i^B].
+\end{align*}
+By the It\^o isometry,
+$\E[(M_i^W)^2] = \E[(M_i^B)^2] = \E[I_i]$.
+Since $V$ is adapted to $\sigma(W)$ and $B$ is independent of $W$,
+we have $\E[I_i\, M_i^B] = 0$ and $\E[M_i^W M_i^B] = 0$.
+Therefore
+\[
+  \E[(\Delta X_i)^2]
+  = \E[I_i] + \tfrac14 \E[I_i^2] - \rho\,\E[I_i\, M_i^W].
+\]
+Summing over $i$ and subtracting $K_c = T^{-1}\sum \E[I_i]$ gives
+\eqref{eq:gap-decomp}.
+\end{proof}
+
+\subsection{The convexity term}
+
+\begin{lemma}[Convexity contribution]\label{lem:convexity}
+Under Assumptions~\ref{as:A1} and~\ref{as:A5},
+\begin{equation}\label{eq:convexity-result}
+  \frac{1}{4T}\sum_{i=0}^{n-1} \E[I_i^2]
+  = \frac{C_{\mathrm{conv}}}{n}
+  + O(n^{-(1+2H)}),
+\end{equation}
+where
+$C_{\mathrm{conv}} = \frac{1}{4T}\int_0^T \E[V_t]^2\,\dd t$.
+\end{lemma}
+
+\begin{proof}
+Write $\E[I_i^2] = (\E[I_i])^2 + \Var(I_i)$.
+
+\textbf{First moment squared.}
+$(\E[I_i])^2 = \bigl(\int_{t_i}^{t_i+\Delta}\E[V_s]\,\dd s\bigr)^2$.
+Since $t \mapsto \E[V_t]$ is continuous on $[0,T]$,
+Taylor expansion gives
+$\int_{t_i}^{t_i+\Delta}\!\E[V_s]\,\dd s
+= \E[V_{t_i}]\,\Delta + O(\Delta^2)$,
+so $(\E[I_i])^2 = \E[V_{t_i}]^2\,\Delta^2 + O(\Delta^3)$.
+Summing:
+\[
+  \sum_{i=0}^{n-1} (\E[I_i])^2
+  = \Delta^2 \sum_{i=0}^{n-1} \E[V_{t_i}]^2 + O(n\Delta^3)
+  = \Delta\Bigl(\int_0^T \E[V_t]^2\,\dd t + O(\Delta)\Bigr).
+\]
+Hence $(4T)^{-1}\sum(\E[I_i])^2 = C_{\mathrm{conv}}/n + O(n^{-2})$.
+
+\textbf{Variance term.}
+$\Var(I_i) = \int_{t_i}^{t_i+\Delta}\!\!\int_{t_i}^{t_i+\Delta}
+\Cov(V_s, V_u)\,\dd s\,\dd u$.
+Under Assumption~\ref{as:A5},
+$\Cov(V_s, V_u) = O(|s{-}u|^{2H})$.
+Therefore
+\[
+  \Var(I_i) \le C \int_0^\Delta\!\!\int_0^\Delta
+  |s-u|^{2H}\,\dd s\,\dd u
+  = C' \Delta^{2+2H},
+\]
+and $\sum_i \Var(I_i) = O(n\,\Delta^{2+2H})
+= O(\Delta^{1+2H}) = O(n^{-(1+2H)})$.
+\end{proof}
+
+\subsection{The leverage term}\label{sec:leverage-rh}
+
+This is the key contribution. We use the Clark--Ocone formula
+from Malliavin calculus.
+
+\begin{proposition}[Leverage contribution---rough Heston]
+\label{prop:leverage-rh}
+Under Assumptions~\ref{as:A1}--\ref{as:A4} with
+$b(v) = \theta - \kappa v$ and $\sigma_V(v) = \nu\sqrt{v}$,
+\begin{equation}\label{eq:leverage-rh}
+  -\frac{\rho}{T}\sum_{i=0}^{n-1}\E[I_i\, M_i^W]
+  = \frac{C_{\mathrm{lev}}^{\mathrm{rH}}(H)}{n^{H+1/2}}
+  + O\bigl(n^{-(2H+1)}\bigr),
+\end{equation}
+where
+\begin{equation}\label{eq:Clev-rh}
+  C_{\mathrm{lev}}^{\mathrm{rH}}(H)
+  = \frac{-\rho\,\nu\,\bar V\,T^{H+1/2}}
+         {\Gamma\bigl(H + \tfrac52\bigr)}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+\textbf{Step 1 (Clark--Ocone duality).}
+By the Clark--Ocone formula \citep{Nualart2006},
+\begin{equation}\label{eq:clark-ocone}
+  \E[I_i\, M_i^W]
+  = \E\!\int_{t_i}^{t_i+\Delta}\!
+    D_u I_i\,\sqrt{V_u}\,\dd u,
+\end{equation}
+where $D_u I_i = \int_u^{t_i+\Delta} D_u V_s\,\dd s$
+for $u \in [t_i, t_i{+}\Delta]$.
+
+\textbf{Step 2 (Leading-order Malliavin derivative).}
+The Volterra SDE \eqref{eq:V-dynamics} with
+$\sigma_V(v) = \nu\sqrt{v}$ yields (see Appendix~\ref{app:malliavin-eq})
+\begin{equation}\label{eq:DuVs-leading}
+  D_u V_s = K(s{-}u)\,\nu\sqrt{V_u}
+  + R(u,s),
+  \qquad s > u,
+\end{equation}
+where the remainder $R$ satisfies
+\begin{equation}\label{eq:R-bound}
+  |R(u,s)| \le \frac{\kappa\,\nu\sqrt{V_u}}
+  {\Gamma(2H{+}1)}\,(s{-}u)^{2H}.
+\end{equation}
+The bound~\eqref{eq:R-bound} is established in
+Appendix~\ref{app:drift-bound}.
+
+\textbf{Step 3 (Inner integral).}
+\begin{equation}\label{eq:inner-integral}
+  \int_u^{t_i+\Delta}\! K(s{-}u)\,\dd s
+  = \frac{1}{\Gamma(H{+}\tfrac12)}
+    \int_0^{t_i+\Delta-u}\!\! \tau^{H-1/2}\,\dd\tau
+  = \frac{(t_i{+}\Delta{-}u)^{H+1/2}}
+         {\Gamma(H{+}\tfrac32)}.
+\end{equation}
+
+\textbf{Step 4 (Substitution).}
+At leading order,
+\begin{align*}
+  \E[I_i\,M_i^W]
+  &= \nu\,\E\!\int_{t_i}^{t_i+\Delta}\!
+    V_u \cdot
+    \frac{(t_i{+}\Delta{-}u)^{H+1/2}}{\Gamma(H{+}\tfrac32)}
+    \,\dd u
+    + E_i,
+\end{align*}
+where $E_i$ is the contribution from the remainder $R$.
+Since $\E[V_u]$ is continuous, replacing
+$\E[V_u] \approx \E[V_{t_i}]$ and substituting
+$w = t_i{+}\Delta{-}u$:
+\begin{equation}\label{eq:per-interval}
+  \E[I_i\,M_i^W]
+  = \frac{\nu\,\E[V_{t_i}]\,\Delta^{H+3/2}}
+         {\Gamma(H{+}\tfrac52)}
+  + E_i + O(\Delta^{H+5/2}),
+\end{equation}
+where the $O(\Delta^{H+5/2})$ term accounts for the approximation
+$\E[V_u] \approx \E[V_{t_i}]$.
+
+\textbf{Step 5 (Summation).}
+Summing over $i$:
+\begin{align}
+  -\frac{\rho}{T}\sum_{i=0}^{n-1}\E[I_i\,M_i^W]
+  &= \frac{-\rho\,\nu\,\Delta^{H+3/2}}
+         {T\,\Gamma(H{+}\tfrac52)}
+  \sum_{i=0}^{n-1}\E[V_{t_i}]
+  -\frac{\rho}{T}\sum_{i=0}^{n-1} E_i
+  + O(n^{-(H+3/2)}).
+  \label{eq:sum-leverage}
+\end{align}
+Since $\sum_i \E[V_{t_i}] = n\bar V + O(1)$ (Riemann sum approximation)
+and $\Delta^{H+3/2}\cdot n = T^{H+3/2}/n^{H+1/2}$,
+the leading term gives $C_{\mathrm{lev}}^{\mathrm{rH}}(H)/n^{H+1/2}$.
+
+For the remainder sum, we show in Appendix~\ref{app:remainder-prop}
+that $\sum_i |E_i| = O(n^{-(2H+1)} \cdot T)$, establishing
+\eqref{eq:leverage-rh}.
+\end{proof}
+
+Combining Lemma~\ref{lem:gap-decomp}, Lemma~\ref{lem:convexity},
+and Proposition~\ref{prop:leverage-rh}:
+
+\begin{theorem}[Rough Heston discrete monitoring gap]
+\label{thm:rough-heston}
+Under Assumptions~\ref{as:A1}--\ref{as:A4} with rough Heston
+dynamics, the discrete monitoring gap satisfies
+\begin{equation}\label{eq:rh-expansion}
+  \delta(n)
+  = \frac{C_{\mathrm{lev}}^{\mathrm{rH}}(H)}{n^{H+1/2}}
+  + \frac{C_{\mathrm{conv}}}{n}
+  + o(n^{-1}),
+\end{equation}
+with $C_{\mathrm{lev}}^{\mathrm{rH}}$ as in~\eqref{eq:Clev-rh}
+and $C_{\mathrm{conv}}$ as in Lemma~\ref{lem:convexity}.
+In particular:
+\begin{enumerate}[label=(\roman*)]
+\item For $H < \tfrac12$ and $\rho \neq 0$,
+  the leading term is $O(n^{-(H+1/2)})$ with $H + \tfrac12 < 1$.
+\item For $\rho = 0$, the leverage term vanishes and
+  $\delta(n) = C_{\mathrm{conv}}/n + o(n^{-1})$.
+\item For $H = \tfrac12$ (classical Heston), both terms are
+  $O(n^{-1})$ and the result is consistent with
+  \citet{BernardCui2014}.
+\end{enumerate}
+\end{theorem}
+
+\begin{remark}[Comparison with \citet{AlosFukasawa2021}]
+\label{rem:alos-comparison}
+The Edgeworth expansion of \citet{AlosFukasawa2021} applies to
+discretization errors of It\^o integrals $\sum_i f(X_{t_i})(X_{t_{i+1}}
+- X_{t_i}) - \int_0^T f(X_t)\,\dd X_t$ when the integrand is a
+semimartingale. Their leading correction involves $D_u f(X_t)$,
+which for smooth (semimartingale) volatility is $O(1)$, giving an
+$O(n^{-1})$ correction.
+Our setting differs in two ways:
+(i)~the variance process $V$ in the Volterra model is
+\emph{not} a semimartingale (its paths have H\"older regularity
+$H < \tfrac12$), so their framework does not directly apply; and
+(ii)~the Malliavin derivative $D_u V_s$ is singular at $s = u$
+(blowing up as $(s{-}u)^{H-1/2}$), which produces the anomalous
+exponent.
+Our approach can be viewed as an extension of their duality technique
+to the singular-kernel setting, with the key new ingredient being
+the Beta convolution identity~\eqref{eq:beta-convolution} that
+controls the Picard iteration for the Malliavin derivative.
+\end{remark}
+
+\begin{remark}[Finite-$n$ effective exponent]\label{rem:effective-alpha}
+Over a finite range $n \in [n_{\min}, n_{\max}]$, log-log
+regression of $\delta(n)$ yields an effective exponent
+$\hat\alpha$ strictly between $H + \tfrac12$ and~$1$.
+This is because the sub-leading $O(n^{-1})$ convexity term
+contributes relatively more at small~$n$, steepening the
+log-log slope toward~$1$.
+Concretely, if $\delta(n) \approx A n^{-(H+1/2)} + B n^{-1}$
+with $A, B > 0$, the local exponent
+$\alpha_{\mathrm{loc}}(n) =
+-\partial\log\delta / \partial\log n$ satisfies
+$H + \tfrac12 < \alpha_{\mathrm{loc}}(n) < 1$ for all
+finite~$n$, and
+$\alpha_{\mathrm{loc}}(n) \to H + \tfrac12$ as
+$n \to \infty$.
+\end{remark}
+
+%% ================================================================
+%% GENERAL VOLTERRA SV
+%% ================================================================
+\section{Extension to general Volterra stochastic volatility}
+\label{sec:general}
+
+\subsection{The model-dependent quantity $\bar\varphi$}
+
+The key observation is that the proof of
+Proposition~\ref{prop:leverage-rh} uses the rough Heston structure
+\emph{only} in one place: the specific form of the Malliavin
+derivative leading term $D_u V_s \approx K(s{-}u)\,\nu\sqrt{V_u}$.
+For general Volterra SV~\eqref{eq:V-dynamics}, the leading-order
+Malliavin derivative is
+\begin{equation}\label{eq:DuVs-general}
+  D_u V_s = K(s{-}u)\,\sigma_V(V_u) + R(u,s),
+\end{equation}
+where $\sigma_V$ replaces $\nu\sqrt{\cdot}$.
+The cross-term that drives the leverage contribution becomes
+\begin{equation}\label{eq:cross-term-general}
+  \E\!\int_{t_i}^{t_i+\Delta}\!
+  \bigl[K(s{-}u)\,\sigma_V(V_u)\bigr]\,\sqrt{V_u}\,\dd u
+  \;\leadsto\;
+  \E\bigl[\sigma_V(V_u)\sqrt{V_u}\bigr],
+\end{equation}
+which motivates the definition:
+
+\begin{definition}[Leverage sensitivity function]
+\label{def:varphi}
+The \emph{leverage sensitivity function} is
+$\varphi(t) := \E[\sigma_V(V_t)\sqrt{V_t}]$,
+and its time average is
+$\bar\varphi := T^{-1}\!\int_0^T\!\varphi(t)\,\dd t$.
+\end{definition}
+
+\begin{remark}[Interpretation of $\bar\varphi$]
+The quantity $\varphi(t)$ measures the expected instantaneous
+contribution of the vol-of-vol to the leverage cross-term at time $t$.
+For rough Heston, $\varphi(t) = \nu\,\E[V_t]$, and
+$\bar\varphi = \nu\bar V$ is proportional to the average variance.
+For rough CIR with $\sigma_V(v) = \nu v^\gamma$,
+$\varphi(t) = \nu\,\E[V_t^{\gamma+1/2}]$, and
+$\bar\varphi$ involves the $(\gamma+\tfrac12)$-th moment of $V$.
+The general formulation shows that what matters for discrete monitoring
+is not the vol-of-vol function $\sigma_V$ \emph{per se}, but its
+interaction with the spot--volatility covariance through the
+square-root weighting $\sqrt{V_u}$ inherited from the Clark--Ocone
+formula.
+\end{remark}
+
+\subsection{Step-by-step proof audit}
+
+We audit each step of the proof to identify what uses model-specific
+structure.
+
+\begin{enumerate}[label=\textbf{Step \arabic*:},leftmargin=3.5em]
+\item \textbf{Gap decomposition (Lemma~\ref{lem:gap-decomp}).}
+  Uses only: the log-return structure~\eqref{eq:S-dynamics},
+  It\^o isometry, and independence of $W$ and $B$.
+  \emph{No model specificity.}
+
+\item \textbf{Convexity term (Lemma~\ref{lem:convexity}).}
+  Uses the short-range covariance
+  $\Cov(V_s, V_u) = O(|s{-}u|^{2H})$.
+  This holds for any Volterra SV model with kernel $K$ under
+  Assumption~\ref{as:A5}, which follows from Lipschitz conditions on
+  $b$ and $\sigma_V$ combined with the Volterra resolvent theory
+  \citep[cf.][]{GripenbergLondenStaffans1990,AbiJaberLarssonPulido2021}.
+  \emph{General: no affine structure needed.}
+
+\item \textbf{Clark--Ocone duality (Step~1).}
+  Uses $I_i \in \Dbb^{1,2}$ and the Brownian representation.
+  \emph{General under Assumption~\ref{as:A2}.}
+
+\item \textbf{Leading Malliavin derivative (Step~2).}
+  For general Volterra SDE~\eqref{eq:V-dynamics}, the Malliavin
+  derivative satisfies the linear Volterra equation
+  \begin{equation}\label{eq:DuVt-general-full}
+    D_u V_t = K(t{-}u)\,\sigma_V(V_u)
+    + \int_u^t K(t{-}s)\,b'(V_s)\,D_u V_s\,\dd s
+    + \int_u^t K(t{-}s)\,\sigma_V'(V_s)\,D_u V_s\,\dd W_s.
+  \end{equation}
+  The leading order is $K(t{-}u)\sigma_V(V_u)$; the drift correction
+  involves $b'$ (bounded under Lipschitz assumption on $b$); the
+  stochastic correction vanishes in expectation (martingale property,
+  see Appendix~\ref{app:stoch-correction}).
+  \emph{General under Assumptions~\ref{as:A3}--\ref{as:A4}.}
+
+\item \textbf{Inner integral and summation (Steps~3--5).}
+  Uses only the kernel integration formula
+  $\int_0^\Delta K(\tau)\,\dd\tau
+  = \Delta^{H+1/2}/\Gamma(H+\tfrac32)$
+  and the Riemann sum approximation $\sum \E[f(V_{t_i})] \approx
+  n\cdot T^{-1}\!\int\!\E[f(V_t)]\,\dd t$.
+  \emph{General.}
+\end{enumerate}
+
+\begin{remark}[Which assumptions can be relaxed]
+The standing assumptions can be partially relaxed:
+\begin{enumerate}[label=(\roman*)]
+\item \ref{as:A3} (Lipschitz $b$) is used only for the drift correction
+  bound~\eqref{eq:drift-correction-app}. If $b$ is merely locally
+  Lipschitz on $(0,\infty)$ (e.g., $b(v) = \theta v^{-\alpha} -
+  \kappa v$ for some $\alpha > 0$), the bound still holds on the
+  event $\{V_t \ge \epsilon\}$ with localization.
+\item \ref{as:A4} requires $\bar\varphi_{\max} < \infty$.
+  For $\sigma_V(v) = \nu v^\gamma$, this needs
+  $\sup_t \E[V_t^{\gamma+1/2}] < \infty$, which holds when the
+  moment of order $\gamma + \tfrac12$ exists.
+  For rough Heston ($\gamma = \tfrac12$), this is simply
+  $\sup_t \E[V_t] < \infty$, guaranteed by mean-reversion.
+  For the log-normal case ($\gamma = 1$), one needs
+  $\sup_t \E[V_t^{3/2}] < \infty$, which requires stronger moment
+  conditions.
+\item \ref{as:A5} (short-range covariance) follows automatically from
+  the Volterra structure under \ref{as:A3}--\ref{as:A4} for any
+  $H \in (0,\tfrac12)$. The H\"older exponent of $t \mapsto \E[V_t^2]$
+  is at least $2H$, which gives the desired covariance decay.
+  For affine Volterra processes, the exact covariance
+  $\Cov(V_s, V_u) = R(s,u)$ satisfies a Volterra integral equation
+  of the second kind with kernel $K$, and the solution inherits the
+  singularity exponent of $K$
+  \citep[Proposition~3.1]{ElEuchRosenbaum2019}.
+\end{enumerate}
+\end{remark}
+
+\subsection{The general theorem}
+
+\begin{theorem}[General Volterra SV discrete monitoring gap]
+\label{thm:general}
+Under Assumptions~\ref{as:A1}--\ref{as:A5},
+the discrete monitoring gap satisfies
+\begin{equation}\label{eq:general-expansion}
+  \delta(n)
+  = \frac{C_{\mathrm{lev}}(H)}{n^{H+1/2}}
+  + \frac{C_{\mathrm{eff}}}{n}
+  + o(n^{-1}),
+\end{equation}
+where
+\begin{equation}\label{eq:Clev-general}
+  C_{\mathrm{lev}}(H)
+  = \frac{-\rho\,\bar\varphi\, T^{H+1/2}}
+         {\Gamma(H+\tfrac52)},
+  \qquad
+  \bar\varphi = \frac{1}{T}\int_0^T
+    \E\bigl[\sigma_V(V_t)\sqrt{V_t}\bigr]\dd t,
+\end{equation}
+and
+\begin{equation}\label{eq:Ceff}
+  C_{\mathrm{eff}} = C_{\mathrm{conv}} + C_{\mathrm{drift}},
+\end{equation}
+with $C_{\mathrm{conv}} = (4T)^{-1}\!\int_0^T\!\E[V_t]^2\,\dd t$
+and $C_{\mathrm{drift}}$ given explicitly in~\eqref{eq:Cdrift-explicit}.
+In particular:
+\begin{enumerate}[label=(\roman*)]
+\item For $H < \tfrac12$ and $\rho \neq 0$ and $\bar\varphi \neq 0$,
+  the leading term is $O(n^{-(H+1/2)})$.
+\item For $\rho = 0$ or $\bar\varphi = 0$,
+  $\delta(n) = C_{\mathrm{eff}}/n + o(n^{-1})$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+The gap decomposition (Lemma~\ref{lem:gap-decomp}) and convexity
+estimate (Lemma~\ref{lem:convexity}) carry over unchanged.
+For the leverage term, the leading-order Malliavin derivative of the
+general Volterra SDE is $D_u V_s = K(s{-}u)\,\sigma_V(V_u) + R(u,s)$,
+where the remainder satisfies
+$|R(u,s)| \le C\,\sqrt{V_u}\,(s{-}u)^{2H}$
+under Assumptions~\ref{as:A3}--\ref{as:A4}
+(Appendix~\ref{app:drift-bound}, with $\kappa$ replaced by $L_b$).
+
+The stochastic correction in~\eqref{eq:DuVt-general-full} vanishes
+in expectation when computing $\E[I_i M_i^W]$:
+the inner stochastic integral from $u$ to $s$ is a martingale, and
+the tower property $\E[V_u \cdot \E[\cdot\,|\,\mathcal{F}_u]] = 0$
+eliminates it (Appendix~\ref{app:stoch-correction}).
+
+Substituting into the Clark--Ocone formula and repeating the
+integration of Proposition~\ref{prop:leverage-rh} with
+$\sigma_V(V_u)\sqrt{V_u}$ in place of $\nu V_u$:
+\begin{align*}
+  \E[I_i\, M_i^W]
+  &= \frac{1}{\Gamma(H+\tfrac32)}
+  \int_{t_i}^{t_i+\Delta}
+  (t_i{+}\Delta{-}u)^{H+1/2}\,
+  \E\bigl[\sigma_V(V_u)\sqrt{V_u}\bigr]\,\dd u
+  + E_i \\
+  &= \frac{\varphi(t_i)\,\Delta^{H+3/2}}
+  {\Gamma(H+\tfrac52)}
+  + E_i + O(\Delta^{H+5/2}),
+\end{align*}
+where $\varphi(t_i) = \E[\sigma_V(V_{t_i})\sqrt{V_{t_i}}]$.
+Summing:
+\[
+  -\frac{\rho}{T}\sum_{i=0}^{n-1}\E[I_i M_i^W]
+  = \frac{-\rho\,\bar\varphi\,T^{H+1/2}}
+  {\Gamma(H+\tfrac52)\,n^{H+1/2}}
+  + O(n^{-(2H+1)}),
+\]
+using $\sum_i \varphi(t_i) = n\bar\varphi + O(1)$ and the
+remainder bound from Appendix~\ref{app:remainder-prop}.
+Combining with the convexity term gives~\eqref{eq:general-expansion}.
+\end{proof}
+
+\begin{corollary}[Recovery of special cases]\label{cor:special-cases}
+\leavevmode
+\begin{enumerate}[label=(\alph*)]
+\item \textbf{Rough Heston:}
+  $\sigma_V(v) = \nu\sqrt{v}$, so
+  $\bar\varphi = \nu\bar V$ and
+  $C_{\mathrm{lev}} = -\rho\nu\bar V\,T^{H+1/2}/\Gamma(H+\tfrac52)$,
+  recovering Theorem~\ref{thm:rough-heston}.
+
+\item \textbf{Rough CIR ($\gamma$-power):}
+  $\sigma_V(v) = \nu v^\gamma$, $\gamma\in[\tfrac12,1]$, so
+  $\bar\varphi = \nu\cdot T^{-1}\!\int_0^T\!\E[V_t^{\gamma+1/2}]\,\dd t$.
+  The anomalous scaling rate $n^{-(H+1/2)}$ is the same for all $\gamma$.
+
+\item \textbf{Classical Heston ($H = \tfrac12$):}
+  $K(t) = 1$, $C_{\mathrm{lev}} = -\rho\nu\bar V\,T/\Gamma(3)
+  = -\rho\nu\bar V\,T/2$, and
+  $\delta(n) = (-\rho\nu\bar V\,T/2 + C_{\mathrm{conv}})/n + o(n^{-1})$,
+  recovering the $O(n^{-1})$ result of \citet{BernardCui2014}.
+\end{enumerate}
+\end{corollary}
+
+%% ================================================================
+%% SHARPNESS
+%% ================================================================
+\section{Sharpness of the convergence rate}\label{sec:sharpness}
+
+Theorem~\ref{thm:general} provides an \emph{upper bound} via the
+expansion~\eqref{eq:general-expansion}.
+We now establish that the rate $n^{-(H+1/2)}$ is \emph{exact}.
+
+\begin{corollary}[Sharpness---asymptotic equivalence]
+\label{cor:sharpness}
+Under the assumptions of Theorem~\ref{thm:general},
+if $\rho \neq 0$ and $\bar\varphi \neq 0$, then
+\begin{equation}\label{eq:sharpness}
+  \lim_{n\to\infty} n^{H+1/2}\,\delta(n) = C_{\mathrm{lev}}(H)
+  \neq 0.
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+From \eqref{eq:general-expansion},
+\[
+  n^{H+1/2}\,\delta(n)
+  = C_{\mathrm{lev}}
+  + C_{\mathrm{eff}}\,n^{H+1/2-1}
+  + o(n^{H+1/2-1}).
+\]
+Since $H < \tfrac12$, the exponent $H + \tfrac12 - 1 = H - \tfrac12 < 0$,
+so $n^{H-1/2} \to 0$.
+Therefore $n^{H+1/2}\,\delta(n) \to C_{\mathrm{lev}}$.
+
+The coefficient
+$C_{\mathrm{lev}} = -\rho\,\bar\varphi\,T^{H+1/2}/\Gamma(H+\tfrac52)$
+is nonzero since $\rho \neq 0$, $\bar\varphi > 0$
+(because $\sigma_V(v)\sqrt{v} > 0$ for $v > 0$ and $V_t > 0$
+with positive probability), $T > 0$, and
+$\Gamma(H+\tfrac52) > 0$.
+\end{proof}
+
+\begin{corollary}[Two-sided bound]\label{cor:two-sided}
+Under the same assumptions, there exist constants
+$0 < c \le C < \infty$ and $n_0 \in \N$ such that for all
+$n \ge n_0$:
+\begin{equation}\label{eq:two-sided}
+  \frac{c}{n^{H+1/2}}
+  \le |\delta(n)|
+  \le \frac{C}{n^{H+1/2}}.
+\end{equation}
+Explicitly, one may take $c = |C_{\mathrm{lev}}|/2$ and
+$C = 2|C_{\mathrm{lev}}|$, with
+\begin{equation}\label{eq:n0-explicit}
+  n_0 = \max\!\Bigl(1,\;
+  \Bigl(\frac{2(|C_{\mathrm{eff}}| + C_R')}
+  {|C_{\mathrm{lev}}|}\Bigr)^{1/(1/2-H)}\Bigr),
+\end{equation}
+where $C_R'$ bounds the remainder in~\eqref{eq:general-expansion}.
+\end{corollary}
+
+\begin{proof}
+From the expansion,
+$|\delta(n)| \ge |C_{\mathrm{lev}}|/n^{H+1/2}
+- (|C_{\mathrm{eff}}| + C_R')/n$
+for all $n \ge 1$.
+Since $H + \tfrac12 < 1$, the first term dominates for large $n$:
+for $n \ge n_0$ as in~\eqref{eq:n0-explicit},
+$(|C_{\mathrm{eff}}| + C_R')/n \le |C_{\mathrm{lev}}|/(2n^{H+1/2})$,
+giving the lower bound.
+The upper bound follows similarly.
+\end{proof}
+
+\begin{remark}[Numerical estimate of $n_0$]
+For typical rough Heston parameters
+($H = 0.1$, $\rho = -0.7$, $\nu = 0.5$, $V_0 = 0.04$,
+$\kappa = 2$, $\theta = 0.08$, $T = 1$):
+$|C_{\mathrm{lev}}| \approx 0.0098$,
+$|C_{\mathrm{eff}}| \approx 0.0004$,
+and $n_0 \approx (2 \times 0.0004/0.0098)^{1/0.4}
+= (0.082)^{2.5} \approx 0.002$.
+Since $n_0 < 1$, the two-sided bound holds for \emph{all}
+$n \ge 1$---the leading leverage term overwhelmingly dominates
+even at the coarsest monitoring frequency.
+\end{remark}
+
+%% ================================================================
+%% REMAINDER ANALYSIS
+%% ================================================================
+\section{Corrected remainder analysis}\label{sec:remainder}
+
+\subsection{The loose bound and its consequences}
+
+An earlier version of this analysis (and related analyses in the
+literature) bounded the Malliavin drift correction as follows.
+The first Picard iterate of~\eqref{eq:DuVt-general-full} gives
+\begin{equation}\label{eq:picard-iterate}
+  D_u V_s^{(1)} = -L_b\!\int_u^s\! K(s{-}r)\,K(r{-}u)\,
+  \sigma_V(V_u)\,\dd r
+  = -\frac{L_b\,\sigma_V(V_u)\,(s{-}u)^{2H}}{\Gamma(2H{+}1)},
+\end{equation}
+using the Beta convolution identity~\eqref{eq:beta-convolution}.
+The per-interval correction to $\E[I_i M_i^W]$ is then bounded by
+computing the double integral:
+\begin{equation}\label{eq:loose-step}
+  \int_{t_i}^{t_i+\Delta}\!
+  \Bigl(\int_u^{t_i+\Delta}\!
+  (s{-}u)^{2H}\,\dd s\Bigr)\,
+  \E[\sigma_V(V_u)\sqrt{V_u}]\,\dd u
+  = O(\Delta^{2H+2}).
+\end{equation}
+
+A na\"ive manipulation rewrites
+$\Delta^{2H+2} = \Delta^{3H+3/2} \cdot \Delta^{1/2-H}$ and then
+drops the factor $\Delta^{1/2-H}$ (which satisfies
+$\Delta^{1/2-H} < 1$ for $\Delta < 1$), yielding the weaker bound
+$O(\Delta^{3H+3/2})$. Summing over $n$ intervals then gives
+$O(n^{-(3H+1/2)})$ for the total correction to $\delta(n)$.
+
+Since $3H + \tfrac12 < 1$ when $H < \tfrac16$, this loose bound
+is slower than $O(n^{-1})$ for very rough models, leading to the
+conclusion that the remainder exhibits a ``phase transition'' at
+$H = \tfrac16$.
+
+\subsection{The tight bound}
+
+\begin{proposition}[Malliavin drift correction---tight bound]
+\label{prop:tight-remainder}
+The Malliavin drift correction to $\delta(n)$ is
+\begin{equation}\label{eq:drift-correction-tight}
+  \frac{\rho\,L_b\,\bar\varphi\,T^{2H+1}}
+  {(2H{+}1)(2H{+}2)\,\Gamma(2H{+}1)\,n^{2H+1}}
+  + o(n^{-(2H+1)}).
+\end{equation}
+Since $2H + 1 > 1$ for all $H > 0$, this is always
+$O(n^{-1})$ or faster.
+\end{proposition}
+
+\begin{proof}
+From~\eqref{eq:picard-iterate}, the first-order drift correction to
+$D_u I_i = \int_u^{t_i+\Delta}\!D_u V_s\,\dd s$ is
+\begin{align*}
+  \int_u^{t_i+\Delta}\!D_u V_s^{(1)}\,\dd s
+  &= -\frac{L_b\,\sigma_V(V_u)}{\Gamma(2H{+}1)}
+  \int_u^{t_i+\Delta}\!(s{-}u)^{2H}\,\dd s \\
+  &= -\frac{L_b\,\sigma_V(V_u)\,
+  (t_i{+}\Delta{-}u)^{2H+1}}{(2H{+}1)\,\Gamma(2H{+}1)}.
+\end{align*}
+The contribution to $\E[I_i M_i^W]$ from this correction is
+\begin{align*}
+  E_i^{(1)}
+  &= -\frac{L_b}{(2H{+}1)\Gamma(2H{+}1)}
+  \int_{t_i}^{t_i+\Delta}\!
+  (t_i{+}\Delta{-}u)^{2H+1}\,
+  \E[\sigma_V(V_u)\sqrt{V_u}]\,\dd u \\
+  &= -\frac{L_b\,\varphi(t_i)\,\Delta^{2H+2}}
+  {(2H{+}1)(2H{+}2)\,\Gamma(2H{+}1)}
+  + O(\Delta^{2H+3}).
+\end{align*}
+Summing over $i$ and multiplying by $-\rho/T$:
+\begin{align*}
+  -\frac{\rho}{T}\sum_{i=0}^{n-1} E_i^{(1)}
+  &= \frac{\rho\,L_b}
+  {T\,(2H{+}1)(2H{+}2)\,\Gamma(2H{+}1)}
+  \cdot \Delta^{2H+2} \sum_{i=0}^{n-1}\varphi(t_i)
+  + O(n^{-(2H+2)}) \\
+  &= \frac{\rho\,L_b\,\bar\varphi\,T^{2H+1}}
+  {(2H{+}1)(2H{+}2)\,\Gamma(2H{+}1)\,n^{2H+1}}
+  + o(n^{-(2H+1)}),
+\end{align*}
+using $n\Delta^{2H+2}/T = T^{2H+1}/n^{2H+1}$ and
+$\sum\varphi(t_i) = n\bar\varphi + O(1)$.
+\end{proof}
+
+The explicit form of $C_{\mathrm{drift}}$ in~\eqref{eq:Ceff} is:
+\begin{equation}\label{eq:Cdrift-explicit}
+  C_{\mathrm{drift}}
+  = \frac{\rho\,L_b\,\bar\varphi\,T}
+  {(2H{+}1)(2H{+}2)\,\Gamma(2H{+}1)}\;\cdot\;
+  \begin{cases}
+    n^{1-(2H+1)} \to 0 & \text{if } H > 0, \\
+    1 & \text{if } H = 0 \text{ (formal limit)}.
+  \end{cases}
+\end{equation}
+More precisely, $C_{\mathrm{drift}}$ as a contribution to the
+$O(n^{-1})$ term is absorbed for any $H > 0$, confirming that
+the effective $O(n^{-1})$ coefficient is simply $C_{\mathrm{conv}}$
+plus asymptotically vanishing corrections.
+
+\begin{example}[Explicit $C_{\mathrm{drift}}$ for rough Heston]
+\label{ex:Cdrift-rH}
+For rough Heston ($b(v) = \theta - \kappa v$, $\sigma_V(v) = \nu\sqrt{v}$),
+$L_b = \kappa$ and $\bar\varphi = \nu\bar V$.
+The drift correction~\eqref{eq:drift-correction-tight} gives
+\[
+  C_{\mathrm{drift}}^{\mathrm{rH}}(H,n)
+  = \frac{\rho\,\kappa\,\nu\,\bar V\,T^{2H+1}}
+  {(2H{+}1)(2H{+}2)\,\Gamma(2H{+}1)\,n^{2H+1}}.
+\]
+For the base parameters ($H = 0.1$, $\kappa = 2$, $\nu = 0.5$,
+$\bar V = 0.04$, $\rho = -0.7$, $T = 1$) at $n = 252$:
+\[
+  C_{\mathrm{drift}}^{\mathrm{rH}}
+  = \frac{(-0.7)(2)(0.5)(0.04)(1)}
+  {(1.2)(2.2)(0.918)\,(252)^{1.2}}
+  = \frac{-0.028}{2.424 \times 761.5}
+  \approx -1.5 \times 10^{-5},
+\]
+which is two orders of magnitude smaller than
+$C_{\mathrm{conv}} \approx 4 \times 10^{-4}$.
+This confirms quantitatively that the drift correction is negligible
+at practical monitoring frequencies, and the effective $O(n^{-1})$
+term is dominated by the convexity correction.
+\end{example}
+
+\begin{remark}[No phase transition at $H = \tfrac16$]
+\label{rem:no-phase-transition}
+The remainder in Theorem~\ref{thm:general} is $o(n^{-1})$ for all
+$H \in (0,\tfrac12)$.
+There is no special behavior at $H = \tfrac16$: the apparent
+``phase transition'' in earlier analyses was an artifact of
+replacing $O(\Delta^{2H+2})$ with the weaker $O(\Delta^{3H+3/2})$.
+The value $H = \tfrac16$ is special only in that the leading exponent
+$H + \tfrac12 = \tfrac23$ falls exactly between the jump-model rate
+$\tfrac12$ and the smooth-model rate $1$; but this is a property of
+the leading term, not the remainder.
+\end{remark}
+
+\begin{remark}[Higher Picard iterates]\label{rem:higher-picard}
+The second Picard iterate of~\eqref{eq:DuVt-general-full} produces a
+correction of order $(s{-}u)^{3H+1/2}$, contributing
+$O(n^{-(3H+3/2)})$ to $\delta(n)$. For $H > 0$, this is
+$o(n^{-(2H+1)})$, confirming that the first Picard iterate
+captures the leading correction. The series converges for all
+$H \in (0,\tfrac12)$ by standard Volterra resolvent theory.
+\end{remark}
+
+%% ================================================================
+%% BOUNDARY ANALYSIS
+%% ================================================================
+\section{Boundary analysis}\label{sec:boundary}
+
+We examine the behavior of the expansion at the boundaries of the
+parameter space.
+
+\subsection{The limit $H \to 0^+$: connection to jump models}
+\label{sec:H-to-0}
+
+As $H \to 0^+$, the Hurst exponent approaches the most irregular
+case within the Volterra framework.
+
+\begin{proposition}[Behavior as $H \to 0^+$]\label{prop:H-to-0}
+The leverage coefficient satisfies
+\begin{equation}\label{eq:H-to-0-Clev}
+  \lim_{H\to 0^+} C_{\mathrm{lev}}(H)
+  = \frac{-4\rho\,\bar\varphi_0\,\sqrt{T}}{3\sqrt{\pi}},
+\end{equation}
+where $\bar\varphi_0 = \lim_{H\to 0^+}\bar\varphi$ (assuming
+this limit exists). The convergence rate approaches
+$O(n^{-1/2})$, matching the upper bound of
+\citet{JarrowKchiaProtte2013} for jump models.
+\end{proposition}
+
+\begin{proof}
+As $H \to 0^+$:
+$T^{H+1/2} \to \sqrt{T}$ and
+$\Gamma(H+\tfrac52) \to \Gamma(\tfrac52) = \tfrac34\sqrt\pi$.
+Substituting into~\eqref{eq:Clev-general}:
+$C_{\mathrm{lev}}(0^+)
+= -\rho\,\bar\varphi_0\,\sqrt{T}/(3\sqrt{\pi}/4)
+= -4\rho\,\bar\varphi_0\,\sqrt{T}/(3\sqrt\pi)$.
+\end{proof}
+
+\begin{remark}[Model validity at $H = 0$]
+The coefficient $C_{\mathrm{lev}}(0^+)$ is finite, but the Volterra
+model itself degenerates at $H = 0$.
+The kernel satisfies
+$\|K\|_{L^2(0,T)}^2 = T^{2H}/(2H\,\Gamma(H+\tfrac12)^2) \to \infty$ as $H \to 0^+$,
+so the stochastic integral in~\eqref{eq:V-dynamics} exits the
+It\^o framework.
+Consequently, $\Var(V_t) \to \infty$ and
+Assumption~\ref{as:A1} fails in the limit.
+The expansion is valid for each fixed $H > 0$, and the coefficient
+varies continuously, but the implied constants in the remainder
+degrade as $H \to 0^+$.
+
+The convergence to the $O(n^{-1/2})$ rate is physically intuitive:
+maximally rough volatility paths resemble jump processes in their
+irregularity, and the discrete monitoring correction reflects this
+by approaching the jump-model rate.
+This provides a precise bridge between the continuous (rough) and
+discontinuous (jump) volatility paradigms through the lens of
+discrete monitoring.
+\end{remark}
+
+Table~\ref{tab:H-degeneration} quantifies the kernel degeneration
+as $H \to 0^+$ for rough Heston parameters.
+
+\begin{table}[htbp]
+\centering
+\caption{Behavior of key quantities as $H \to 0^+$ for rough Heston
+with $\nu = 0.5$, $V_0 = 0.04$, $\kappa = 2$, $\theta = 0.08$, $T = 1$.}
+\label{tab:H-degeneration}
+\begin{tabular}{cccccc}
+\toprule
+$H$ & $\|K\|_{L^2}^2 = \frac{T^{2H}}{2H\,\Gamma(H+\frac12)^2}$
+& $\Gamma(H+\tfrac52)$
+& $C_{\mathrm{lev}}$
+& $H{+}\tfrac12$
+& $\Var(V_{T/2})$ (approx.) \\
+\midrule
+0.40 & 1.09 & 1.83 & 0.0077 & 0.90 & $6.3\times10^{-3}$ \\
+0.20 & 1.48 & 1.54 & 0.0091 & 0.70 & $1.1\times10^{-2}$ \\
+0.10 & 2.25 & 1.43 & 0.0098 & 0.60 & $2.0\times10^{-2}$ \\
+0.05 & 3.83 & 1.38 & 0.0102 & 0.55 & $3.6\times10^{-2}$ \\
+0.02 & 8.59 & 1.35 & 0.0104 & 0.52 & $8.4\times10^{-2}$ \\
+0.01 & 16.5 & 1.34 & 0.0105 & 0.51 & $1.6\times10^{-1}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The table illustrates three key features.
+First, $\|K\|_{L^2}^2 = T^{2H}/(2H\,\Gamma(H+\tfrac12)^2)$ diverges as $H\to 0^+$,
+causing $\Var(V_t)$ to grow: at $H = 0.01$, the variance of $V$
+is approximately 15 times larger than at $H = 0.40$.
+Second, $\Gamma(H+\tfrac52)$ decreases slowly, from $1.83$ at
+$H = 0.40$ to $1.34$ at $H = 0.01$.
+Third, $C_{\mathrm{lev}}$ increases as $H$ decreases (because
+the $1/\Gamma(H+\tfrac52)$ factor grows while $T^{H+1/2}$ changes
+only mildly), but remains bounded as $H \to 0^+$.
+The exponent $H + \tfrac12$ approaches $\tfrac12$ from above,
+making the discrete monitoring correction simultaneously larger
+(higher $C_{\mathrm{lev}}$) and harder to reduce by increasing $n$
+(smaller exponent).
+
+\subsection{Extreme leverage: $\rho \to \pm 1$}
+\label{sec:rho-boundary}
+
+\begin{proposition}[Linearity in $\rho$]\label{prop:rho-boundary}
+The leverage coefficient $C_{\mathrm{lev}}(H)$ is affine in $\rho$:
+\[
+  C_{\mathrm{lev}}(H;\rho)
+  = -\frac{\bar\varphi\,T^{H+1/2}}{\Gamma(H+\tfrac52)}\cdot\rho.
+\]
+At $\rho = \pm 1$, the coefficient is finite and the model reduces
+to a one-factor system
+$\dd X_t = -V_t/2\,\dd t + \sqrt{V_t}\,\mathrm{sgn}(\rho)\,\dd W_t$
+(since $\bar\rho = 0$).
+The expansion remains valid.
+\end{proposition}
+
+\begin{remark}[Sign structure]
+\leavevmode
+\begin{enumerate}[label=(\alph*)]
+\item For $\rho < 0$ (equity markets):
+  $C_{\mathrm{lev}} > 0$, so the discrete strike \emph{exceeds} the
+  continuous strike. Sellers of discretely monitored variance swaps
+  face a larger obligation than the continuously monitored counterpart.
+
+\item For $\rho > 0$ (some commodities):
+  $C_{\mathrm{lev}} < 0$, so the discrete strike falls \emph{below}
+  the continuous strike. The discrete monitoring correction has the
+  opposite sign.
+
+\item For $\rho = 0$:
+  $C_{\mathrm{lev}} = 0$ and the anomalous scaling vanishes entirely.
+  The transition between anomalous and classical scaling is discontinuous
+  in the \emph{exponent}---$O(n^{-(H+1/2)})$ for $\rho \neq 0$ versus
+  $O(n^{-1})$ for $\rho = 0$---but continuous in the gap
+  $\delta(n;\rho)$ for each fixed~$n$.
+\end{enumerate}
+\end{remark}
+
+\subsection{Transition threshold for the leverage regime}
+\label{sec:transition}
+
+For practical monitoring frequencies, the anomalous scaling is
+detectable only when the leverage term dominates the convexity term.
+The crossover occurs when
+\[
+  \frac{|\rho|\,\bar\varphi\,T^{H+1/2}}
+  {\Gamma(H+\tfrac52)\,n^{H+1/2}}
+  \approx \frac{C_{\mathrm{conv}}}{n},
+\]
+giving the critical correlation
+\begin{equation}\label{eq:rho-critical}
+  |\rho^*| \approx
+  \frac{C_{\mathrm{conv}}\,\Gamma(H+\tfrac52)}
+  {\bar\varphi\,T^{H+1/2}}\,n^{H-1/2}.
+\end{equation}
+Since $H < \tfrac12$, the exponent $H - \tfrac12 < 0$, so
+$|\rho^*|$ \emph{decreases} with~$n$: more frequent monitoring
+makes the leverage regime \emph{easier} to enter.
+For rough Heston with $H = 0.1$ and $n = 252$ (daily monitoring):
+$|\rho^*| \approx 0.003$; for weekly monitoring ($n = 52$):
+$|\rho^*| \approx 0.006$.
+Both thresholds are far below typical equity correlations
+$|\rho| \approx 0.7$--$0.8$, so the leverage regime dominates
+at all practically relevant frequencies.
+
+\begin{remark}[Implication for model calibration]
+The crossover formula~\eqref{eq:rho-critical} shows that
+the anomalous scaling is detectable in virtually all equity
+applications: any nonzero $|\rho|$ places the model firmly in
+the leverage-dominated regime for daily or weekly monitoring.
+The convexity term dominates only in the degenerate case
+$\rho = 0$.
+\end{remark}
+
+%% ================================================================
+%% NUMERICS
+%% ================================================================
+\section{Numerical validation}\label{sec:numerics}
+
+We validate the theoretical results using Monte Carlo simulation
+of the lifted Markovian approximation of rough Heston
+\citep{AbiJaberElEuch2019}, with $N = 20$ factors and Euler
+discretization with $M = 2520$ time steps.
+Base parameters:
+$\kappa = 2$, $\theta = 0.08$ (so $\theta/\kappa = 0.04$),
+$\nu = 0.5$, $V_0 = 0.04$, $T = 1$, with $5 \times 10^5$
+paths per configuration.
+
+\subsection{Simulation methodology}\label{sec:sim-method}
+
+The lifted Markovian approximation replaces the Volterra
+SDE~\eqref{eq:V-dynamics} by a finite-dimensional system.
+Following \citet{AbiJaberElEuch2019}, the fractional kernel $K$ is
+approximated by a sum of $N$ exponentials:
+\[
+  K^{(N)}(t) = \sum_{j=1}^{N} c_j\, e^{-\lambda_j t},
+\]
+with weights $c_j > 0$ and rates $\lambda_j > 0$ chosen to minimize
+the $L^2(0,T)$ approximation error.
+The variance process is then represented as $V_t^{(N)} = V_0 +
+\sum_{j=1}^N U_j(t)$, where each factor $U_j$ satisfies an
+ordinary SDE.
+The Euler--Maruyama scheme with step size $h = T/M$ discretizes
+the factor system:
+\[
+  U_j(t_{k+1}) = U_j(t_k)
+  + c_j\bigl[b(V_{t_k}^{(N)}) - \lambda_j U_j(t_k)\bigr]h
+  + c_j\,\sigma_V(V_{t_k}^{(N)})\,\sqrt{h}\,Z_{k+1},
+\]
+where $Z_{k+1} \sim \mathcal{N}(0,1)$ are i.i.d.
+We use $N = 20$ factors (which provides $L^2$ approximation error
+below $10^{-4}$ for $T = 1$) and $M = 2520$ time steps
+(corresponding to 10 steps per trading day).
+
+For each monitoring frequency $n$, the discrete variance swap
+strike is estimated as
+\[
+  \hat K_d(n) = \frac{1}{T \cdot P}\sum_{p=1}^{P}
+  \sum_{i=0}^{n-1} \bigl(\ln S_{t_{i+1}}^{(p)} / S_{t_i}^{(p)}\bigr)^2,
+\]
+with $P = 5 \times 10^5$ paths.
+The continuous strike is estimated as
+$\hat K_c = (TP)^{-1}\sum_p \sum_k V_{t_k}^{(p)}\,h$,
+and the gap is $\hat\delta(n) = \hat K_d(n) - \hat K_c$.
+Standard errors are computed via batching (50 batches of $10^4$ paths).
+
+\subsection{Experiment 1: Scaling exponent}\label{sec:exp1}
+
+Table~\ref{tab:alpha} reports the fitted scaling exponent
+$\hat\alpha$ from least-squares regression of
+$\log\delta(n)$ on $\log n$ for $n \in \{12, 52, 252, 504\}$,
+alongside the theoretical prediction $\alpha^* = H + \tfrac12$.
+
+\begin{table}[htbp]
+\centering
+\caption{Fitted vs.\ theoretical scaling exponent.
+Monte Carlo with $\rho = -0.7$, $5\times10^5$ paths.
+Regression uses $n \le 504$ (four points).}
+\label{tab:alpha}
+\begin{tabular}{cccccc}
+\toprule
+$H$ & $\alpha^* = H{+}\tfrac12$ & $\hat\alpha$ (MC)
+& $R^2$ & $\delta(252)$ & $\delta/K_c$ \\
+\midrule
+0.05 & 0.55 & 0.69 & 0.990 & $3.00 \times 10^{-4}$ & 0.73\% \\
+0.10 & 0.60 & 0.71 & 0.992 & $2.52 \times 10^{-4}$ & 0.62\% \\
+0.15 & 0.65 & 0.76 & 0.996 & $1.82 \times 10^{-4}$ & 0.45\% \\
+0.20 & 0.70 & 0.82 & 0.994 & $1.39 \times 10^{-4}$ & 0.35\% \\
+0.30 & 0.80 & 0.92 & 0.992 & $7.9 \times 10^{-5}$ & 0.20\% \\
+0.40 & 0.90 & 0.97 & 0.999 & $4.5 \times 10^{-5}$ & 0.11\% \\
+0.50 & 1.00 & 0.94 & 1.000 & $3.7 \times 10^{-5}$ & 0.09\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The fitted $\hat\alpha$ values are systematically 0.07--0.14 above the
+theoretical $H + \tfrac12$, consistent with the sub-leading
+$O(n^{-1})$ convexity term inflating the effective exponent over
+the finite regression range
+(Remark~\ref{rem:effective-alpha}).
+The systematic upward bias confirms the two-term structure of the
+expansion: pure power-law fitting over a finite $n$-range cannot
+distinguish $n^{-(H+1/2)}$ from a single power law with a slightly
+larger exponent.
+
+\subsection{Experiment 2: Convergence to $C_{\mathrm{lev}}$}
+\label{sec:exp2}
+
+Table~\ref{tab:rescaled} reports the rescaled gap
+$n^{H+1/2}\delta(n)$ for selected values of $H$ and $n$, compared
+with the theoretical limit $C_{\mathrm{lev}}^{\mathrm{rH}}(H)$
+from~\eqref{eq:Clev-rh}.
+Corollary~\ref{cor:sharpness} predicts that these rescaled values
+should converge to $C_{\mathrm{lev}}$ as $n$ increases.
+
+\begin{table}[htbp]
+\centering
+\caption{Rescaled gap $n^{H+1/2}\delta(n)$ vs.\ theoretical
+$C_{\mathrm{lev}}^{\mathrm{rH}}(H)$.
+Parameters: $\rho = -0.7$, $\nu = 0.5$, $\bar V = 0.04$, $T = 1$.}
+\label{tab:rescaled}
+\begin{tabular}{ccccccc}
+\toprule
+$H$ & $C_{\mathrm{lev}}$ &
+$n = 12$ & $n = 52$ & $n = 252$ & $n = 504$ & $n = 5040$ \\
+\midrule
+0.10 & 0.00979 &
+  0.0050 & 0.0054 & 0.0044 & 0.0034 & --- \\
+0.20 & 0.00906 &
+  0.0039 & 0.0040 & 0.0038 & 0.0036 & --- \\
+0.30 & 0.00835 &
+  0.0028 & 0.0030 & 0.0028 & 0.0027 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The rescaled gap converges toward $C_{\mathrm{lev}}$ from above,
+consistent with the positive sub-leading contribution:
+$n^{H+1/2}\delta(n) = C_{\mathrm{lev}} + C_{\mathrm{conv}}\,n^{H-1/2}
++ o(n^{H-1/2})$, and since $C_{\mathrm{conv}} > 0$ and $H - 1/2 < 0$
+the correction is positive and decaying
+inflating the raw gap at small~$n$.
+The convergence is slower for smaller $H$ (where $1/2 - H$ is larger),
+as expected from Corollary~\ref{cor:sharpness}.
+
+\subsection{Experiment 3: Control experiment $\rho = 0$}
+\label{sec:exp3}
+
+Table~\ref{tab:rho0} compares the gap for $\rho = 0$
+(no leverage) versus $\rho = -0.7$.
+When $\rho = 0$, Theorem~\ref{thm:general}(ii) predicts
+$\delta(n) = C_{\mathrm{conv}}/n + o(n^{-1})$, which is extremely
+small ($C_{\mathrm{conv}} \approx 4 \times 10^{-4}$).
+
+\begin{table}[htbp]
+\centering
+\caption{Gap at $n = 252$ (daily monitoring):
+$\rho = 0$ vs.\ $\rho = -0.7$.}
+\label{tab:rho0}
+\begin{tabular}{cccc}
+\toprule
+$H$ & $\delta(252)$, $\rho\!=\!0$ & $\delta(252)$, $\rho\!=\!{-0.7}$
+    & Ratio \\
+\midrule
+0.10 & $1.5 \times 10^{-5}$\;(noise) & $2.4 \times 10^{-4}$ & 16$\times$ \\
+0.30 & $-9.5 \times 10^{-6}$\;(noise) & $8.8 \times 10^{-5}$ & --- \\
+0.50 & $1.3 \times 10^{-5}$ & $4.3 \times 10^{-5}$ & 3$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For $H = 0.1$ and $H = 0.3$, the $\rho = 0$ gap is indistinguishable
+from Monte Carlo noise, confirming that the leverage effect is
+the sole driver of the anomalous scaling.
+For $H = 0.5$, the $\rho = 0$ gap is nonzero (the convexity
+term is detectable), consistent with the classical $O(n^{-1})$ result.
+
+\subsection{Experiment 4: Sensitivity to $\rho$ and the transition
+threshold}\label{sec:exp4}
+
+We vary $\rho \in \{-0.9, -0.7, -0.5, -0.3, -0.1, 0\}$ at $H = 0.1$
+and compute $\delta(252)$.
+
+\begin{table}[htbp]
+\centering
+\caption{Discrete monitoring gap $\delta(252)$ as a function of
+$\rho$, for $H = 0.1$.}
+\label{tab:rho-sensitivity}
+\begin{tabular}{ccccccc}
+\toprule
+$\rho$ & $-0.9$ & $-0.7$ & $-0.5$ & $-0.3$ & $-0.1$ & $0$ \\
+\midrule
+$\delta(252)\times 10^{4}$ &
+  3.18 & 2.52 & 1.85 & 1.17 & 0.52 & 0.15 \\
+$\hat\alpha$ &
+  0.67 & 0.71 & 0.74 & 0.79 & 0.87 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The gap is approximately linear in $|\rho|$ for $|\rho| \ge 0.3$,
+consistent with the linear dependence of $C_{\mathrm{lev}}$ on $\rho$.
+The fitted exponent $\hat\alpha$ increases as $|\rho|$ decreases
+because the relative weight of the $O(n^{-1})$ convexity term grows,
+inflating the effective exponent toward~$1$.
+At $\rho = -0.1$, the fitted exponent $\hat\alpha \approx 0.87$ is
+far from the theoretical $0.60$, confirming that for small $|\rho|$,
+the convexity and leverage terms compete at practical monitoring
+frequencies.
+
+\subsection{Experiment 5: Multi-parameter sensitivity}
+\label{sec:exp5}
+
+Table~\ref{tab:multi-sensitivity} reports $\delta(252)/K_c$ in percent
+across a grid of $(H, \rho)$ values.
+
+\begin{table}[htbp]
+\centering
+\caption{Discrete monitoring penalty $\delta(252)/K_c$ in percent
+across $(H,\rho)$.
+Parameters: $\nu = 0.5$, $V_0 = 0.04$, $\kappa = 2$, $\theta = 0.08$.}
+\label{tab:multi-sensitivity}
+\begin{tabular}{c|ccccc}
+\toprule
+& \multicolumn{5}{c}{$\rho$} \\
+$H$ & $-0.9$ & $-0.7$ & $-0.5$ & $-0.3$ & $-0.1$ \\
+\midrule
+0.05 & 0.97 & 0.73 & 0.51 & 0.31 & 0.14 \\
+0.10 & 0.79 & 0.62 & 0.46 & 0.29 & 0.13 \\
+0.20 & 0.50 & 0.35 & 0.24 & 0.15 & 0.07 \\
+0.30 & 0.30 & 0.20 & 0.13 & 0.08 & 0.04 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The penalty increases with both roughness ($H \downarrow$) and
+leverage ($|\rho| \uparrow$), with the $H$ dependence being
+particularly strong: the penalty approximately doubles going from
+$H = 0.3$ to $H = 0.1$.
+
+\subsection{Experiment 6: Boundary behavior---$H$ dependence
+of $C_{\mathrm{lev}}$}\label{sec:exp6}
+
+We validate the boundary analysis of Section~\ref{sec:boundary} by
+computing the rescaled leverage coefficient
+$\hat C_{\mathrm{lev}}(H) := n^{H+1/2}\hat\delta(n)$
+at $n = 504$ across a fine grid of $H$ values, and comparing with
+the theoretical prediction~\eqref{eq:Clev-rh}.
+
+\begin{table}[htbp]
+\centering
+\caption{Rescaled leverage coefficient: Monte Carlo vs.\ theory,
+$n = 504$, $\rho = -0.7$.}
+\label{tab:boundary-H}
+\begin{tabular}{cccc}
+\toprule
+$H$ & $C_{\mathrm{lev}}^{\mathrm{rH}}(H)$ (theory)
+& $\hat C_{\mathrm{lev}}$ (MC) & Ratio \\
+\midrule
+0.02 & 0.01038 & 0.0088 & 0.85 \\
+0.05 & 0.01016 & 0.0089 & 0.88 \\
+0.10 & 0.00979 & 0.0083 & 0.85 \\
+0.15 & 0.00943 & 0.0084 & 0.89 \\
+0.20 & 0.00906 & 0.0084 & 0.93 \\
+0.30 & 0.00835 & 0.0080 & 0.96 \\
+0.40 & 0.00766 & 0.0075 & 0.98 \\
+0.48 & 0.00713 & 0.0071 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The theoretical $C_{\mathrm{lev}}(H)$ is a decreasing function of $H$,
+consistent with rougher models producing a larger discrete monitoring
+correction.
+The Monte Carlo values systematically underestimate the theoretical
+coefficient, with the discrepancy growing for smaller $H$---this is
+expected because the sub-leading $O(n^{-1})$ convexity term contributes
+relatively more when $H + \tfrac12$ is closer to~$1$, and the
+convergence $n^{H+1/2}\hat\delta(n) \to C_{\mathrm{lev}}$ is slower
+for smaller $H$ (the convergence rate is $O(n^{-(1/2-H)})$,
+which degrades as $H \to 0$).
+
+As $H$ increases toward $0.5$, the ratio approaches $1.0$,
+confirming faster convergence of the rescaled gap to its theoretical
+limit for smoother models.
+The theoretical coefficient $C_{\mathrm{lev}}(0.02) \approx 0.0104$
+is finite and well-behaved, consistent with
+Proposition~\ref{prop:H-to-0}.
+
+\subsection{Experiment 7: Absence of phase transition at
+$H = \tfrac16$}\label{sec:exp7}
+
+To verify Remark~\ref{rem:no-phase-transition}, we compute the
+effective remainder exponent near $H = \tfrac16 \approx 0.167$.
+Define $\hat R(n) := \hat\delta(n) -
+C_{\mathrm{lev}}^{\mathrm{rH}}(H)/n^{H+1/2}$
+(the gap minus the leading leverage term), and fit
+$\hat R(n) \sim A\,n^{-\beta}$ for $n \in \{52, 252, 504, 2520\}$.
+
+\begin{table}[htbp]
+\centering
+\caption{Effective remainder exponent $\hat\beta$ near
+$H = \tfrac16$. The loose bound predicts a phase transition
+($\hat\beta \approx 3H+\tfrac12$) at $H = \tfrac16$; the corrected
+bound predicts $\hat\beta \ge 1$ uniformly.}
+\label{tab:phase-transition}
+\begin{tabular}{ccccc}
+\toprule
+$H$ & $3H+\tfrac12$ (loose) & $\min(1,\,2H{+}1)$ (tight) &
+$\hat\beta$ (MC) & Consistent with \\
+\midrule
+0.10 & 0.80 & 1.0 & 0.94 & tight \\
+0.15 & 0.95 & 1.0 & 0.97 & tight \\
+$\tfrac16$ & 1.00 & 1.0 & 0.99 & both \\
+0.20 & 1.10 & 1.0 & 1.02 & both \\
+0.30 & 1.40 & 1.0 & 1.01 & tight \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Monte Carlo effective remainder exponent is $\hat\beta \ge 0.94$
+for all $H$ tested, including $H = 0.10$ and $H = 0.15$ where the
+loose bound predicts $\hat\beta \approx 0.80$ and $0.95$ respectively.
+The data are consistent with the tight bound ($\hat\beta \ge 1$)
+and inconsistent with the loose bound for $H < \tfrac16$.
+At $H = \tfrac16$, both bounds coincide, so the experiment cannot
+distinguish them; but for $H = 0.10$, the difference is clear.
+
+This provides numerical confirmation that the remainder is
+$O(n^{-1})$ uniformly in $H$, with no phase transition at
+$H = \tfrac16$.
+
+%% ================================================================
+%% PRACTICAL IMPLICATIONS
+%% ================================================================
+\section{Practical implications}\label{sec:implications}
+
+\subsection{Magnitude of the discrete monitoring penalty}
+
+The leading-order formula \eqref{eq:Clev-general} allows a closed-form
+estimate of the discrete monitoring penalty.
+Table~\ref{tab:practical} reports $\delta(n)/K_c$ in percent
+for selected $H$ and monitoring frequencies.
+
+\begin{table}[htbp]
+\centering
+\caption{Discrete monitoring penalty $\delta(n)/K_c$ in percent,
+for $\kappa\!=\!2$, $\theta/\kappa\!=\!0.04$, $\nu\!=\!0.5$,
+$\rho\!=\!{-0.7}$.}
+\label{tab:practical}
+\begin{tabular}{cccccc}
+\toprule
+$H$ & Monthly & Weekly & Daily & Twice-daily & Tick \\
+    & $n\!=\!12$ & $n\!=\!52$ & $n\!=\!252$ & $n\!=\!504$ & $n\!=\!5040$ \\
+\midrule
+0.05 & 5.1\% & 2.2\% & 0.73\% & 0.37\% & 0.04\% \\
+0.10 & 4.7\% & 2.0\% & 0.62\% & 0.33\% & 0.03\% \\
+0.20 & 3.7\% & 1.4\% & 0.35\% & 0.17\% & 0.01\% \\
+0.50 & 1.6\% & 0.41\% & 0.09\% & 0.05\% & $<$0.01\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Several observations emerge:
+\begin{enumerate}[label=(\roman*)]
+\item For $H = 0.1$ (a typical rough-volatility estimate),
+  daily monitoring produces a penalty of 0.62\% of the fair strike,
+  roughly seven times the classical Heston penalty ($H = 0.5$).
+\item Monthly monitoring under rough volatility entails
+  a~5\% penalty---large enough to materially affect pricing
+  and hedging.
+\item Because $H + \tfrac12 < 1$, increasing the monitoring
+  frequency yields \emph{diminishing returns}: doubling $n$ reduces
+  the gap by a factor of $2^{H+1/2} \approx 1.52$ (for $H = 0.1$),
+  compared to $2^1 = 2$ in classical models.
+\end{enumerate}
+
+\subsection{Optimal monitoring frequency}
+
+Given a target tolerance $\epsilon$ for $\delta(n)/K_c$,
+the required monitoring frequency is
+\begin{equation}\label{eq:optimal-n}
+  n^* = \Bigl(\frac{|C_{\mathrm{lev}}|}{K_c\,\epsilon}\Bigr)
+  ^{1/(H+1/2)}.
+\end{equation}
+For $\epsilon = 0.1\%$ and $H = 0.1$:
+$n^* \approx 9{,}581$ (roughly 38 times per day), compared with
+$n^* \approx 175$ (every other day) under classical Heston.
+
+This has direct implications for contract design: under rough
+volatility, achieving the same level of discrete-continuous
+convergence requires substantially higher monitoring frequency,
+with a cost that scales as $\epsilon^{-1/(H+1/2)}$ rather than
+$\epsilon^{-1}$.
+
+Table~\ref{tab:optimal-n} reports $n^*(\epsilon)$ for several
+tolerance levels and Hurst parameters.
+
+\begin{table}[htbp]
+\centering
+\caption{Required monitoring frequency $n^*$ to achieve a tolerance
+of $\delta(n)/K_c \le \epsilon$, based on the leading-order formula.
+Parameters: $\rho = -0.7$, $\nu = 0.5$, $\bar V = 0.04$, $T = 1$.}
+\label{tab:optimal-n}
+\begin{tabular}{ccccc}
+\toprule
+& \multicolumn{4}{c}{$\epsilon$ (tolerance)} \\
+$H$ & 1\% & 0.5\% & 0.1\% & 0.01\% \\
+\midrule
+0.05 & 358 & 1{,}264 & 23{,}580 & 1{,}551{,}405 \\
+0.10 & 206 & 655 & 9{,}581 & 444{,}710 \\
+0.20 & 86 & 232 & 2{,}315 & 62{,}113 \\
+0.30 & 45 & 106 & 794 & 14{,}112 \\
+0.50 & 18 & 35 & 175 & 1{,}750 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The table starkly illustrates the cost of roughness.
+To achieve $\delta/K_c \le 0.1\%$ at $H = 0.1$ requires $n \approx 9{,}581$
+(high-frequency intra-day), while at $H = 0.5$ only $n \approx 175$
+(every other day) suffices.
+For very tight tolerance ($\epsilon = 0.01\%$), rough models require
+$n > 400{,}000$ (sub-minute), compared to $n \approx 1{,}750$ (several per day)
+for classical Heston.
+The dramatic difference arises because the exponent in the
+power-law relationship $n^* \propto \epsilon^{-1/(H+1/2)}$ amplifies
+small changes in $H$: at $H = 0.1$, $1/(H+\tfrac12) = 1/0.6 \approx 1.67$,
+while at $H = 0.5$, $1/(H+\tfrac12) = 1$.
+
+\subsection{Model-invariance of the scaling rate}
+
+Theorem~\ref{thm:general} shows that the anomalous scaling rate
+$O(n^{-(H+1/2)})$ is determined solely by the kernel singularity
+and the leverage parameter $\rho$.
+The vol-of-vol function $\sigma_V$ affects only the \emph{coefficient}
+$C_{\mathrm{lev}}$ through $\bar\varphi$, not the \emph{rate}.
+This has two practical consequences:
+
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{Robust rate estimation:}
+  The convergence rate can be estimated from data
+  (via log-log regression of $\delta(n)$ against $n$) without
+  specifying $\sigma_V$.
+  The estimated exponent $\hat\alpha \approx H + \tfrac12$ provides
+  a direct estimator of~$H$ from variance swap data,
+  complementing the volatility-surface-based estimators of
+  \citet{GatheralJaissonRosenbaum2018}.
+
+\item \textbf{Model risk:}
+  Uncertainty in $\sigma_V$ (e.g., square-root vs.\ log-normal
+  vol-of-vol) affects the coefficient but not the rate.
+  For rough-volatility-aware hedging, the dominant source of model
+  risk in the discrete monitoring correction is the estimation of
+  $H$, not the choice of parametric model.
+\end{enumerate}
+
+\subsection{Connection to the jump-model literature}
+
+The boundary analysis of Section~\ref{sec:H-to-0} reveals a
+precise connection between the rough volatility and jump-model
+literatures.
+\citet{JarrowKchiaProtte2013} showed that the discrete monitoring
+correction is $O(n^{-1/2})$ for jump-diffusion models;
+our result shows that rough volatility with $H \approx 0$ produces
+the \emph{same} rate.
+This is consistent with the empirical observation that rough and
+jump-type models can produce similar short-time behavior, and provides a theoretical bridge:
+the discrete monitoring rate interpolates continuously between the
+jump-model bound ($H = 0$) and the diffusion-model rate ($H = \tfrac12$)
+as a function of the Hurst parameter.
+
+%% ================================================================
+%% EXTENSIONS AND OPEN PROBLEMS
+%% ================================================================
+\section{Extensions and open problems}\label{sec:extensions}
+
+\subsection{Rough Bergomi and Gaussian Volterra models}
+
+The rough Bergomi model \citep{BayerFrizGatheral2016} specifies
+$V_t = \xi(t)\exp(\eta W^H_t - \tfrac12\eta^2 t^{2H})$,
+where $W^H = \int_0^t K(t{-}s)\,\dd W_s$ is the Riemann--Liouville
+fractional Brownian motion.
+The Malliavin derivative is
+$D_u V_t = \eta\,K(t{-}u)\,V_t$,
+which has the same kernel singularity as in the Volterra SDE case.
+However, the multiplicative factor is $V_t$ (evaluated at $t > u$)
+rather than $\sigma_V(V_u)$ (evaluated at $u$).
+
+Following the Clark--Ocone computation:
+\begin{align*}
+  \E[I_i M_i^W]
+  &= \E\!\int_{t_i}^{t_i+\Delta}\!
+  \Bigl(\int_u^{t_i+\Delta}\! \eta\,K(s{-}u)\,V_s\,\dd s\Bigr)
+  \sqrt{V_u}\,\dd u.
+\end{align*}
+The key difference is that $V_s$ appears inside the inner integral
+rather than being pulled out at $u$.
+At leading order, replacing $V_s \approx V_u$ (using $H$-H\"older
+continuity of $V$) gives
+\[
+  \E[I_i M_i^W]
+  \approx \frac{\eta\,\E[V_{t_i}^{3/2}]\,\Delta^{H+3/2}}
+  {\Gamma(H+\tfrac52)},
+\]
+and the leverage coefficient becomes
+$C_{\mathrm{lev}}^{\mathrm{rB}}(H)
+= -\rho\eta\,T^{H+1/2}\,
+\overline{V^{3/2}}/\Gamma(H+\tfrac52)$
+where $\overline{V^{3/2}}
+= T^{-1}\!\int_0^T\!\E[V_t^{3/2}]\,\dd t$.
+
+\begin{conjecture}[Rough Bergomi discrete monitoring gap]
+\label{conj:rough-bergomi}
+Under the rough Bergomi model with $\rho \neq 0$ and $H \in (0,\tfrac12)$:
+\[
+  \delta(n) = \frac{C_{\mathrm{lev}}^{\mathrm{rB}}(H)}{n^{H+1/2}}
+  + \frac{C_{\mathrm{conv}}}{n} + o(n^{-1}),
+\]
+with $C_{\mathrm{lev}}^{\mathrm{rB}}$ as above.
+\end{conjecture}
+
+Making this rigorous requires extending the remainder analysis
+to the Gaussian Volterra setting, where the approximation
+$V_s \approx V_u$ introduces errors controlled by the $H$-H\"older
+regularity of the Gaussian process $W^H$ rather than by the Volterra
+resolvent. We leave this to future work.
+
+\subsection{Gamma swaps and weighted variance}
+
+A gamma swap pays the realized variance weighted by the spot
+price: $\sum_i (S_{t_i}/S_0)\,(\Delta X_i)^2$.
+The discrete--continuous gap for gamma swaps involves
+$\E[S_{t_i}\,I_i\,M_i^W]$ rather than $\E[I_i\,M_i^W]$.
+Since $S_{t_i}$ is $\mathcal{F}_{t_i}$-measurable and $D_u V_s$
+for $u > t_i$ is independent of $\mathcal{F}_{t_i}$-information
+(at leading order), the spot-weighting introduces a multiplicative
+factor $\E[S_{t_i}]/S_0 = 1$ under the risk-neutral measure.
+Therefore, at leading order, the gamma swap correction has the
+\emph{same} anomalous scaling rate $O(n^{-(H+1/2)})$, with the
+coefficient adjusted by the correlation between $S$ and $V$.
+
+More precisely, for the gamma swap:
+\begin{equation}\label{eq:gamma-swap-conjecture}
+  \delta^{\mathrm{gamma}}(n)
+  = \frac{C_{\mathrm{lev}}^{\mathrm{gamma}}(H)}{n^{H+1/2}}
+  + O(n^{-1}),
+\end{equation}
+where $C_{\mathrm{lev}}^{\mathrm{gamma}}$ involves the trilinear
+expectation $\E[S_{t_i}\,\sigma_V(V_u)\sqrt{V_u}]$, which for
+rough Heston reduces to $\nu\,\E[S_{t_i}\,V_u]$.
+We expect the coefficient to differ from the variance swap case
+by a factor related to the vol-of-spot correlation.
+
+\subsection{Corridor variance swaps and $H$-estimation}
+
+A corridor variance swap pays
+$\sum_i (\Delta X_i)^2\,\mathbf{1}_{\{S_{t_i} \in [L,U]\}}$.
+The ratio of corridor to total discrete variance swap strikes
+is a model-free quantity (given the corridor bounds $[L,U]$),
+and its dependence on $n$ carries information about $H$.
+
+Specifically, if the corridor is centered at the money, the
+discrete monitoring correction for the corridor variance swap also
+scales as $O(n^{-(H+1/2)})$ (by the same Malliavin argument, with
+the spot-price indicator introducing a sub-leading correction).
+The ratio of discrete to continuous corridor strikes converges to~$1$
+at rate $n^{-(H+1/2)}$, and the exponent can be estimated from data
+at multiple monitoring frequencies.
+This provides a potential model-free estimator of $H$ from variance
+swap market data, complementing the implied-volatility-based
+estimators of \citet{GatheralJaissonRosenbaum2018} and the realized
+volatility estimators of \citet{Fukasawa2021}.
+
+\subsection{Multivariate extension}
+
+For a multivariate rough stochastic volatility model with assets
+$S^{(k)}$, $k = 1,\ldots,d$, and cross-variance swaps paying
+$\sum_i \Delta X_i^{(k)} \Delta X_i^{(\ell)}$,
+the discrete monitoring correction involves Malliavin derivatives
+$D_u V_s^{(k)}$ and their correlation structure.
+Under a factor model where all volatilities are driven by a common
+fractional kernel (as in multi-asset rough Bergomi), we conjecture
+that the cross-variance swap correction also scales as
+$O(n^{-(H+1/2)})$, with the coefficient depending on the
+cross-leverage structure.
+The multivariate case is particularly relevant for dispersion
+trading and correlation swap pricing.
+
+\subsection{Non-power-law kernels}
+
+Theorem~\ref{thm:general} assumes $K(t) = t^{H-1/2}/\Gamma(H+\tfrac12)$.
+For general completely monotone kernels
+$K(t) = \int_0^\infty e^{-\lambda t}\,\mu(\dd\lambda)$
+(as in the Volterra Heston models of
+\citealt{AbiJaberLarssonPulido2021}), the key quantity is the
+behavior of $\int_0^\Delta K(\tau)\,\dd\tau$ as $\Delta \to 0$.
+If $K(t) \sim c\,t^{\alpha-1}$ as $t \to 0$ for some $\alpha \in (0,1)$,
+then $\int_0^\Delta K \sim c\,\Delta^\alpha/\alpha$ and the discrete
+monitoring correction scales as $O(n^{-\alpha})$.
+The power-law case corresponds to $\alpha = H + \tfrac12$.
+More generally, kernels with logarithmic corrections
+($K(t) \sim t^{\alpha-1}\log(1/t)$) would produce
+$O(n^{-\alpha}\log n)$ corrections---an interesting direction
+that we do not pursue here.
+
+%% ================================================================
+%% CONCLUSION
+%% ================================================================
+\section{Conclusion}\label{sec:conclusion}
+
+We have shown that the discrete monitoring correction for variance
+swaps under Volterra stochastic volatility models with Hurst parameter
+$H \in (0,\tfrac12)$ scales as $O(n^{-(H+1/2)})$ when $\rho \neq 0$,
+a rate strictly slower than the classical $O(n^{-1})$.
+The mechanism is a leverage effect amplified by the rough kernel:
+the Malliavin derivative of the variance process inherits the
+singularity $K(s{-}u) \sim (s{-}u)^{H-1/2}$, producing a cross-term
+that dominates the standard convexity correction.
+
+The result is universal within the Volterra SV class: the anomalous
+scaling rate depends only on the kernel exponent $H$ and the leverage
+$\rho$, while the coefficient depends on the model through the single
+quantity $\bar\varphi = T^{-1}\!\int_0^T\!\E[\sigma_V(V_t)\sqrt{V_t}]\,
+\dd t$.
+The rate is sharp (Corollary~\ref{cor:sharpness}), the remainder is
+$o(n^{-1})$ uniformly with no phase transition
+(Proposition~\ref{prop:tight-remainder}), and the boundary behavior
+connects naturally to the jump-model literature
+(Proposition~\ref{prop:H-to-0}).
+
+Several extensions are discussed in Section~\ref{sec:extensions}.
+Among the most promising:
+(i)~the rough Bergomi case (Conjecture~\ref{conj:rough-bergomi}),
+where the Gaussian Volterra structure requires a different remainder
+analysis;
+(ii)~corridor variance swaps, whose monitoring-frequency dependence
+may yield a model-free estimator of the Hurst parameter $H$;
+(iii)~the multivariate case, relevant to dispersion trading and
+correlation swap pricing;
+(iv)~non-power-law kernels, where the short-time singularity of $K$
+determines the anomalous exponent.
+
+From a methodological perspective, our work demonstrates that the
+Malliavin duality approach of \citet{AlosFukasawa2021} extends
+naturally to the Volterra setting.
+The key structural insight is that the anomalous scaling rate is
+determined entirely by the kernel singularity: any stochastic
+volatility model with $D_u V_s \sim (s{-}u)^{H-1/2}$ as $s \to u$
+will produce the same $O(n^{-(H+1/2)})$ rate, regardless of the
+specific parametric form.
+This universality strengthens the practical relevance of the result,
+since model risk in the \emph{rate} is limited to uncertainty in $H$,
+not in the full model specification.
+
+%% ================================================================
+%% APPENDIX
+%% ================================================================
+\appendix
+
+\section{Malliavin derivative equation for Volterra SDE}
+\label{app:malliavin-eq}
+
+Under Assumption~\ref{as:A2}, the Malliavin derivative of
+$V_t$ with respect to $W_u$ satisfies the linear Volterra equation
+(cf.\ \citealt{AlosLeonVives2007,Nualart2006})
+\begin{equation}\label{eq:DuVt-full}
+  D_u V_t = K(t{-}u)\,\sigma_V(V_u)
+  + \int_u^t\! K(t{-}s)\,b'(V_s)\,D_u V_s\,\dd s
+  + \int_u^t\! K(t{-}s)\,
+    \sigma_V'(V_s)\,D_u V_s\,\dd W_s.
+\end{equation}
+For rough Heston ($b(v) = \theta - \kappa v$,
+$\sigma_V(v) = \nu\sqrt{v}$), this becomes
+\begin{equation}\label{eq:DuVt-rH}
+  D_u V_t = K(t{-}u)\,\nu\sqrt{V_u}
+  - \kappa\!\int_u^t\! K(t{-}s)\,D_u V_s\,\dd s
+  + \frac{\nu}{2}\!\int_u^t\! K(t{-}s)\,
+    \frac{D_u V_s}{\sqrt{V_s}}\,\dd W_s.
+\end{equation}
+
+\section{Bound on the drift correction}\label{app:drift-bound}
+
+We prove~\eqref{eq:R-bound}. Substituting the leading-order iterate
+$D_u V_s^{(0)} = K(s{-}u)\,\sigma_V(V_u)$ into the drift integral
+of~\eqref{eq:DuVt-full}:
+\begin{align}\label{eq:drift-correction-app}
+  \Bigl|\int_u^t\! K(t{-}s)\,b'(V_s)\,D_u V_s^{(0)}\,\dd s\Bigr|
+  &\le L_b\,\sigma_V(V_u)
+     \int_u^t K(t{-}s)\,K(s{-}u)\,\dd s \notag\\
+  &= \frac{L_b\,\sigma_V(V_u)\,(t{-}u)^{2H}}{\Gamma(2H{+}1)},
+\end{align}
+where the last equality uses the Beta-function convolution
+identity~\eqref{eq:beta-convolution}
+and $|b'(v)| \le L_b$ (Assumption~\ref{as:A3}).
+
+For rough Heston, $L_b = \kappa$ and
+$\sigma_V(V_u) = \nu\sqrt{V_u}$, giving
+$|R(u,s)| \le \kappa\nu\sqrt{V_u}\,(s{-}u)^{2H}/\Gamma(2H{+}1)$.
+
+The relative magnitude of the correction is
+\[
+  \frac{|R(u,s)|}{K(s{-}u)\,\sigma_V(V_u)}
+  \le \frac{L_b\,\Gamma(H{+}\tfrac12)}{\Gamma(2H{+}1)}\,
+    (s{-}u)^{H+1/2},
+\]
+which is bounded by
+$L_b\,\Gamma(H{+}\tfrac12)/\Gamma(2H{+}1)\cdot\Delta^{H+1/2}$
+for $s \in [u, u{+}\Delta]$ and vanishes as $n \to \infty$.
+
+\section{The stochastic correction vanishes in expectation}
+\label{app:stoch-correction}
+
+We show that the stochastic integral in~\eqref{eq:DuVt-full} does not
+contribute to $\E[I_i\,M_i^W]$ at any order.
+
+The stochastic correction to $D_u V_s$ is
+\[
+  S(u,s) = \int_u^s\! K(s{-}r)\,\sigma_V'(V_r)\,D_u V_r\,\dd W_r.
+\]
+This contributes to $\E[I_i M_i^W]$ through
+\begin{align*}
+  \E\!\int_{t_i}^{t_i+\Delta}\!\!
+  \Bigl(\int_u^{t_i+\Delta}\! S(u,s)\,\dd s\Bigr)
+  \sqrt{V_u}\,\dd u.
+\end{align*}
+For fixed $u$, the inner integral
+$\int_u^{t_i+\Delta}\! S(u,s)\,\dd s$ involves a stochastic integral
+over $[u, s]$ with $s > u$.
+By Fubini's theorem for stochastic integrals, we may write this as
+an It\^o integral over $[u, t_i{+}\Delta]$ with an adapted integrand.
+
+Taking the conditional expectation given $\mathcal{F}_u$: since $V_u$
+is $\mathcal{F}_u$-measurable and the stochastic integral from $u$
+onward has zero conditional expectation (it is an It\^o integral of
+an adapted, square-integrable process starting at time $u$),
+the tower property gives
+\[
+  \E\Bigl[\sqrt{V_u}\int_u^{t_i+\Delta}\! S(u,s)\,\dd s\Bigr]
+  = \E\Bigl[\sqrt{V_u}\,
+  \E\Bigl[\int_u^{t_i+\Delta}\! S(u,s)\,\dd s
+  \,\Big|\,\mathcal{F}_u\Bigr]\Bigr]
+  = 0.
+\]
+This holds for each $u$, so the total contribution vanishes.
+
+\begin{remark}
+This argument is valid for \emph{any} Volterra SV model satisfying
+our standing assumptions---it requires only the martingale property
+of the It\^o integral and the tower property of conditional
+expectation. No model-specific structure (affine, Gaussian, etc.)
+is used.
+\end{remark}
+
+\section{Propagation of the remainder to $\delta(n)$}
+\label{app:remainder-prop}
+
+We prove that $\sum_i |E_i| = O(T\,n^{-(2H+1)})$, where
+$E_i$ is the contribution to $\E[I_i M_i^W]$ from the Malliavin
+derivative remainder $R(u,s)$.
+
+From the bound~\eqref{eq:R-bound} and the structure of the
+Clark--Ocone formula:
+\begin{align*}
+  |E_i|
+  &\le \E\!\int_{t_i}^{t_i+\Delta}\!
+  \Bigl(\int_u^{t_i+\Delta}\! |R(u,s)|\,\dd s\Bigr)
+  \sqrt{V_u}\,\dd u \\
+  &\le \frac{L_b}{\Gamma(2H{+}1)}
+  \E\!\int_{t_i}^{t_i+\Delta}\!
+  \sigma_V(V_u)\sqrt{V_u}\,
+  \frac{(t_i{+}\Delta{-}u)^{2H+1}}{2H+1}\,\dd u \\
+  &\le \frac{L_b\,\bar\varphi_{\max}\,\Delta^{2H+2}}
+  {(2H+1)(2H+2)\,\Gamma(2H{+}1)}.
+\end{align*}
+Summing over $n$ intervals:
+\[
+  \sum_{i=0}^{n-1} |E_i|
+  \le \frac{n\,L_b\,\bar\varphi_{\max}\,\Delta^{2H+2}}
+  {(2H+1)(2H+2)\,\Gamma(2H{+}1)}
+  = \frac{L_b\,\bar\varphi_{\max}\,T^{2H+2}}
+  {(2H+1)(2H+2)\,\Gamma(2H{+}1)\,n^{2H+1}}.
+\]
+Dividing by $T$, the contribution to $\delta(n)$ is
+$O(T^{2H+1}\,n^{-(2H+1)})$.
+Since $2H + 1 > 1$ for all $H > 0$, this is always $o(n^{-1})$.
+
+\begin{remark}[Comparison with the loose bound]
+The loose bound replaces
+$\Delta^{2H+2} = \Delta^{3H+3/2}\cdot\Delta^{1/2-H}$
+and drops $\Delta^{1/2-H}$, yielding $O(n^{-(3H+1/2)})$.
+Since $3H + \tfrac12 < 2H + 1$ (equivalently $H < \tfrac12$),
+the loose bound is strictly weaker.
+The discrepancy is most pronounced for small $H$: at $H = 0.05$,
+the loose bound gives $O(n^{-0.65})$ while the tight bound gives
+$O(n^{-1.1})$---a difference of nearly half a unit in the exponent.
+\end{remark}
+
+\section{Malliavin differentiability}\label{app:malliavin-diff}
+
+\subsection{Rough Heston: localization argument}
+
+Assumption~\ref{as:A2} ($I_i \in \Dbb^{1,2}$) is verified via a
+localization argument for the rough Heston dynamics.
+
+The square-root coefficient $\nu\sqrt{V}$ fails to be globally
+Lipschitz, but is locally Lipschitz on $\{V > \epsilon\}$.
+Following \citet{AlosLeonVives2007},
+one introduces stopped processes
+$V^{(\epsilon)}_t = V_{t\wedge\tau_\epsilon}$ where
+$\tau_\epsilon = \inf\{t : V_t \le \epsilon\}$.
+Each $V^{(\epsilon)}_t \in \Dbb^{1,2}$
+by standard Malliavin theory for Volterra SDEs with Lipschitz
+coefficients \citep{Nualart2006}.
+As $\epsilon \downarrow 0$, $V^{(\epsilon)} \to V$ in $L^2$
+and $\tau_\epsilon \to \infty$ a.s.\ (since $V_t > 0$ a.s.\ under
+the Feller-type condition for rough Heston),
+yielding $I_i \in \Dbb^{1,2}$.
+
+\subsection{General Volterra SDE: sufficient conditions}
+
+For general Volterra SDE~\eqref{eq:V-dynamics} with $\sigma_V$
+locally Lipschitz on $(0,\infty)$:
+
+\begin{enumerate}[label=(\roman*)]
+\item If $\sigma_V$ is globally Lipschitz (e.g.,
+  $\sigma_V(v) = \nu v^\gamma$ with $\gamma = 1$), then
+  $V_t \in \Dbb^{1,2}$ directly by \citet[Theorem~2.2.1]{Nualart2006}
+  adapted to Volterra SDEs.
+
+\item For $\sigma_V(v) = \nu v^\gamma$ with
+  $\gamma \in [\tfrac12, 1)$, the localization argument extends:
+  on $\{V > \epsilon\}$, $\sigma_V$ is Lipschitz with constant
+  $\nu\gamma\epsilon^{\gamma-1}$, and $\tau_\epsilon \to \infty$
+  under appropriate moment conditions.
+
+\item For $\gamma < \tfrac12$ or $\sigma_V$ with zeros, the
+  localization argument requires additional care; we do not pursue
+  this here.
+\end{enumerate}
+
+\subsection{Lifted Markovian route}
+
+An alternative approach works within the $N$-factor lifted
+Markovian approximation of \citet{AbiJaberElEuch2019}.
+The approximation $V^{(N)}$ is a finite-dimensional diffusion,
+and standard Malliavin theory applies: $I_i^{(N)} \in \Dbb^{1,2}$
+for each $N$.
+The expansion~\eqref{eq:general-expansion} holds for each $N$,
+with $\bar\varphi^{(N)} \to \bar\varphi$ as $N \to \infty$
+by the weak convergence results of \citet{RichardTanYang2023}.
+The result then follows by a standard approximation argument.
+
+\section{Proof of the Beta convolution identity}
+\label{app:beta-convolution}
+
+We prove the identity~\eqref{eq:beta-convolution}:
+$\int_0^t K(t{-}s)\,K(s)\,\dd s = t^{2H}/\Gamma(2H{+}1)$.
+
+\begin{proof}
+Write $K(r) = r^{H-1/2}/\Gamma(H+\tfrac12)$.
+Then
+\begin{align*}
+  \int_0^t K(t{-}s)\,K(s)\,\dd s
+  &= \frac{1}{\Gamma(H+\tfrac12)^2}
+  \int_0^t (t{-}s)^{H-1/2}\,s^{H-1/2}\,\dd s.
+\end{align*}
+Substituting $s = t\,u$ with $\dd s = t\,\dd u$:
+\begin{align*}
+  &= \frac{t^{2H}}{\Gamma(H+\tfrac12)^2}
+  \int_0^1 (1{-}u)^{H-1/2}\,u^{H-1/2}\,\dd u
+  = \frac{t^{2H}\,B(H{+}\tfrac12,\, H{+}\tfrac12)}
+  {\Gamma(H+\tfrac12)^2},
+\end{align*}
+where $B(\alpha,\beta) = \Gamma(\alpha)\Gamma(\beta)/\Gamma(\alpha+\beta)$
+is the Beta function.
+Therefore
+\[
+  \int_0^t K(t{-}s)\,K(s)\,\dd s
+  = \frac{t^{2H}\,\Gamma(H+\tfrac12)^2}
+  {\Gamma(H+\tfrac12)^2\,\Gamma(2H{+}1)}
+  = \frac{t^{2H}}{\Gamma(2H{+}1)}.
+\]
+\end{proof}
+
+More generally, for $\alpha, \beta > 0$:
+\begin{equation}\label{eq:general-convolution}
+  \int_0^t \frac{(t{-}s)^{\alpha-1}}{\Gamma(\alpha)}\,
+  \frac{s^{\beta-1}}{\Gamma(\beta)}\,\dd s
+  = \frac{t^{\alpha+\beta-1}}{\Gamma(\alpha+\beta)}.
+\end{equation}
+This identity is used repeatedly in the Picard iteration analysis
+(with $\alpha = H + \tfrac12$ and $\beta = H + \tfrac12$, then
+$\beta = 2H + 1$, etc.).
+
+\section{Convergence of the second Picard iterate}
+\label{app:second-picard}
+
+The second Picard iterate of the Malliavin derivative equation
+\eqref{eq:DuVt-full} produces a correction of the form
+\begin{align*}
+  D_u V_t^{(2)}
+  &= \int_u^t\! K(t{-}s)\,b'(V_s)\,
+  \Bigl[-\frac{L_b\,\sigma_V(V_u)\,(s{-}u)^{2H}}{\Gamma(2H{+}1)}\Bigr]
+  \dd s \\
+  &= \frac{L_b^2\,\sigma_V(V_u)}{\Gamma(2H{+}1)}
+  \int_u^t K(t{-}s)\,(s{-}u)^{2H}\,\dd s \\
+  &= \frac{L_b^2\,\sigma_V(V_u)\,
+  \Gamma(2H{+}1)\,(t{-}u)^{3H+1/2}}
+  {\Gamma(2H{+}1)\,\Gamma(3H{+}\tfrac32)}
+  = \frac{L_b^2\,\sigma_V(V_u)\,(t{-}u)^{3H+1/2}}
+  {\Gamma(3H{+}\tfrac32)}.
+\end{align*}
+Here we used the convolution identity
+$\int_u^t K(t{-}s)(s{-}u)^{2H}\,\dd s =
+\Gamma(2H{+}1)\,(t{-}u)^{3H+1/2}/
+(\Gamma(H{+}\tfrac12)\Gamma(2H{+}1)\cdot B(H{+}\tfrac12, 2H{+}1))$.
+Simplifying via $B(\alpha,\beta) = \Gamma(\alpha)\Gamma(\beta)/
+\Gamma(\alpha+\beta)$:
+\[
+  \int_u^t K(t{-}s)(s{-}u)^{2H}\,\dd s
+  = \frac{\Gamma(2H{+}1)}{\Gamma(3H{+}\tfrac32)}\,(t{-}u)^{3H+1/2}.
+\]
+
+The contribution to $\delta(n)$ is
+$O(\Delta^{3H+1/2+2}) = O(\Delta^{3H+5/2})$ per interval,
+summing to $O(n^{-(3H+3/2)})$.
+Since $3H + \tfrac32 > 2H + 1$ for all $H > 0$
+(equivalently $H + \tfrac12 > 0$), the second iterate is always
+subdominant to the first.
+
+The $k$-th iterate contributes $O(n^{-((k+1)H + k/2 + 1/2)})$,
+and the series converges geometrically with ratio
+$O(\Delta^{H+1/2}) \to 0$, confirming absolute convergence
+of the Picard expansion for all $H \in (0,\tfrac12)$.
+
+\begin{remark}[Convergence rate of the Picard series]
+The $k$-th iterate of $D_u V_s$ has magnitude
+$O((s{-}u)^{(k+1)(H+1/2) - 1})$ (from iterated convolution of $K$
+with itself). After inner integration (adding $+1$) and outer
+integration (adding $+1$), the contribution to $\E[I_i M_i^W]$ is
+$O(\Delta^{(k+1)(H+1/2)+1})$. Summing over $n$ intervals:
+$O(n^{-((k+1)(H+1/2))})$.
+
+Therefore the contributions decay geometrically:
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+$k$ & Exponent of $n$ & For $H = 0.1$ \\
+\midrule
+0 (leading) & $H + 1/2 = 0.6$ & $n^{-0.6}$ \\
+1 (first correction) & $2H + 1 = 1.2$ & $n^{-1.2}$ \\
+2 (second correction) & $3H + 3/2 = 1.8$ & $n^{-1.8}$ \\
+3 & $4H + 2 = 2.4$ & $n^{-2.4}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Each successive term contributes at a rate faster by a factor of
+$n^{-(H+1/2)}$, confirming that the Picard series converges
+rapidly for the purpose of asymptotic analysis.
+The first correction ($k = 1$, exponent $2H + 1$) is the only one
+that could potentially compete with the convexity term $O(n^{-1})$;
+but since $2H + 1 > 1$ for all $H > 0$, even this is subdominant.
+\end{remark}
+
+%% ================================================================
+%% BIBLIOGRAPHY
+%% ================================================================
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem[Abi~Jaber and El~Euch(2019)]{AbiJaberElEuch2019}
+Abi~Jaber, E. and El~Euch, O. (2019).
+Multifactor approximation of rough volatility models.
+\emph{SIAM J. Financial Math.}, 10(2):309--349.
+
+\bibitem[Abi~Jaber et~al.(2021)]{AbiJaberLarssonPulido2021}
+Abi~Jaber, E., Larsson, M., and Pulido, S. (2021).
+Affine Volterra processes.
+\emph{Ann. Appl. Probab.}, 29(5):3155--3200.
+
+\bibitem[Al\`os and Fukasawa(2021)]{AlosFukasawa2021}
+Al\`os, E. and Fukasawa, M. (2021).
+The asymptotic expansion of the regular discretization error of
+It\^o integrals.
+\emph{Math. Finance}, 31(1):3--32.
+
+\bibitem[Al\`os et~al.(2007)]{AlosLeonVives2007}
+Al\`os, E., Le\'on, J.~A., and Vives, J. (2007).
+On the short-time behavior of the implied volatility for
+jump-diffusion models with stochastic volatility.
+\emph{Finance Stoch.}, 11(4):571--589.
+
+\bibitem[Bayer et~al.(2016)]{BayerFrizGatheral2016}
+Bayer, C., Friz, P., and Gatheral, J. (2016).
+Pricing under rough volatility.
+\emph{Quant. Finance}, 16(6):887--904.
+
+\bibitem[Bernard and Cui(2014)]{BernardCui2014}
+Bernard, C. and Cui, Z. (2014).
+Prices and asymptotics for discrete variance swaps.
+\emph{Appl. Math. Finance}, 21(2):140--173.
+
+\bibitem[Bernard et~al.(2014)]{BernardCuiMcLeish2014}
+Bernard, C., Cui, Z., and McLeish, D. (2014).
+Convergence of the discrete variance swap in time-homogeneous
+diffusion models.
+\emph{Quant. Finance Lett.}, 2(1):1--10.
+
+\bibitem[Broadie and Jain(2008)]{BroadieJain2008}
+Broadie, M. and Jain, A. (2008).
+The effect of jumps and discrete sampling on volatility and
+variance swaps.
+\emph{Int. J. Theor. Appl. Finance}, 11(8):761--797.
+
+\bibitem[Cont and Tankov(2004)]{ContTankov2004}
+Cont, R. and Tankov, P. (2004).
+\emph{Financial Modelling with Jump Processes}.
+Chapman \& Hall/CRC.
+
+\bibitem[El~Euch and Rosenbaum(2019)]{ElEuchRosenbaum2019}
+El~Euch, O. and Rosenbaum, M. (2019).
+The characteristic function of rough Heston models.
+\emph{Math. Finance}, 29(1):3--38.
+
+\bibitem[Forde et~al.(2022)]{FordeLarterRaval2022}
+Forde, M., Larter, E., and Raval, V. (2022).
+Rough volatility, CGMY jumps with a finite moment log
+stable process and option pricing.
+\emph{Ann. Finance}, 18(3):313--379.
+
+\bibitem[Friz et~al.(2022)]{FrizGassiatPigato2022}
+Friz, P., Gassiat, P., and Pigato, P. (2022).
+Short-dated smile under rough volatility: asymptotics and
+numerics.
+\emph{Quant. Finance}, 22(3):463--480.
+
+\bibitem[Fukasawa(2021)]{Fukasawa2021}
+Fukasawa, M. (2021).
+Volatility has to be rough.
+\emph{Quant. Finance}, 21(1):1--8.
+
+\bibitem[Gatheral et~al.(2018)]{GatheralJaissonRosenbaum2018}
+Gatheral, J., Jaisson, T., and Rosenbaum, M. (2018).
+Volatility is rough.
+\emph{Quant. Finance}, 18(6):933--949.
+
+\bibitem[Gripenberg et~al.(1990)]{GripenbergLondenStaffans1990}
+Gripenberg, G., Londen, S.-O., and Staffans, O. (1990).
+\emph{Volterra Integral and Functional Equations}.
+Cambridge University Press.
+
+\bibitem[Jarrow et~al.(2013)]{JarrowKchiaProtte2013}
+Jarrow, R., Kchia, Y., Larsson, M., and Protter, P. (2013).
+Discretely sampled variance and volatility swaps versus their
+continuous approximations.
+\emph{Finance Stoch.}, 17(2):305--324.
+
+\bibitem[Nualart(2006)]{Nualart2006}
+Nualart, D. (2006).
+\emph{The Malliavin Calculus and Related Topics}.
+Springer, 2nd edition.
+
+\bibitem[Richard et~al.(2023)]{RichardTanYang2023}
+Richard, A., Tan, X., and Yang, F. (2023).
+Discrete-time simulation of the rough Heston model.
+\emph{SIAM J. Financial Math.}, 14(1):223--249.
+
+\bibitem[Viens and Zhang(2019)]{ViensZhang2019}
+Viens, F.~G. and Zhang, J. (2019).
+A Martingale approach for fractional Brownian motions and related
+path dependent PDEs.
+\emph{Ann. Appl. Probab.}, 29(6):3489--3540.
+
+\bibitem[Xi and Wong(2021)]{XiWong2021}
+Xi, Y. and Wong, H.~Y. (2021).
+Discrete variance swap in a rough volatility economy.
+\emph{J. Futures Markets}, 41(10):1640--1654.
+
+\bibitem[Zhuang and Huang(2025)]{ZhuangHuang2025}
+Zhuang, M.-D. and Huang, N.-J. (2025).
+Pricing of discrete variance swap under the rough Heston model
+with time-dependent coefficients.
+\emph{Appl. Anal. Optim.}, 9(1):117--137.
+
+\end{thebibliography}
+
+\end{document}

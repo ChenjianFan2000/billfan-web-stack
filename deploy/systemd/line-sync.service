@@ -1,0 +1,23 @@
+[Unit]
+Description=Line story sync relay (childhood reading classroom)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/var/www/.venv/bin/uvicorn services.line_sync.app:app --host 127.0.0.1 --port 8010
+Restart=always
+RestartSec=3
+TimeoutStopSec=30
+
+# basic hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/www
+
+[Install]
+WantedBy=multi-user.target

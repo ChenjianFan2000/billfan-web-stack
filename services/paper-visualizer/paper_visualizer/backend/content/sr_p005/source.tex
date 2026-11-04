@@ -1,0 +1,755 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage[margin=1in]{geometry}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}{Assumption}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\vep}{\varepsilon}
+
+\title{Solving the Correlated Variational Problem for Short-Maturity Variance Options in Local-Stochastic Volatility Models}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study the short-maturity asymptotics for options on realized variance in local-stochastic
+volatility (LSV) models with non-zero correlation $\rho$ between asset and volatility noises.
+Pirjol, Wang, and Zhu~(2025) showed that the leading-order asymptotics are governed by
+a two-dimensional variational problem, which they solved explicitly for $\rho=0$ and
+$\rho=\pm 1$, but left open for general $\rho\in(-1,1)\setminus\{0\}$. We develop three
+complementary approaches to this open problem under constant volatility-of-volatility
+$\sigma(v)\equiv\sigma_0$. First, we establish that the Euler--Lagrange system admits a
+Hamiltonian first integral, providing an energy conservation law that constrains the
+optimal trajectories. Second, we introduce a one-parameter family of upper bounds,
+indexed by a parameter $\alpha\in\R$, that reduce the two-dimensional problem to a
+one-dimensional optimization involving the Asian option rate function with modified local
+volatility. The optimal bound within this family provides up to 75\% improvement over
+the best previously known bound in the leverage regime ($\rho<0$) and is
+exact when the local volatility function is constant. Third, we derive
+a perturbation expansion of the rate function in powers of $\rho$ around $\rho=0$, with
+explicit computable coefficients determined by the known uncorrelated optimizers. We
+analyze the boundary behavior as $\rho\to\pm 1$ and as the strike approaches extreme values.
+Numerical experiments in the Tanh local volatility model confirm the accuracy of our
+bounds and the perturbation expansion. Our results provide usable pricing approximations
+for options on the recently launched CBOE S\&P~500 Variance Futures.
+\end{abstract}
+
+\noindent\textbf{Keywords:} variance options, short-maturity asymptotics, local-stochastic
+volatility, large deviations, variational problem, Hamiltonian mechanics
+
+\noindent\textbf{MSC2020:} 91G20, 60F10, 49J15
+
+\section{Introduction}
+
+Options on realized variance are derivative contracts whose payoffs are linked to the
+annualized realized variance of an underlying asset's return. Following the launch of the
+CBOE S\&P~500 Variance Futures (Ticker:~VA) in September~2024, there is renewed
+interest in analytical pricing methods for these instruments.
+
+Under a general local-stochastic volatility (LSV) model, the asset price~$S_t$ and
+variance process~$V_t$ satisfy
+\begin{align}
+\frac{\dd S_t}{S_t} &= \eta(S_t)\sqrt{V_t}\bigl(\rho\,\dd Z_t
+  + \sqrt{1-\rho^2}\,\dd W_t\bigr), \label{eq:S} \\
+\frac{\dd V_t}{V_t} &= \mu(V_t)\,\dd t + \sigma(V_t)\,\dd Z_t, \label{eq:V}
+\end{align}
+where $W_t,Z_t$ are independent standard Brownian motions, $\rho\in(-1,1)$ is the
+correlation parameter, and $\eta(\cdot),\sigma(\cdot),\mu(\cdot)$ are the local volatility,
+volatility-of-volatility, and drift functions respectively. The realized variance over
+$[0,T]$ is the quadratic variation
+\begin{equation}\label{eq:RV}
+[{\log S}]_T = \int_0^T V_s\,\eta^2(S_s)\,\dd s.
+\end{equation}
+A variance call option with strike~$K$ and maturity~$T$ has price
+\begin{equation}\label{eq:Cprice}
+C(T) = e^{-rT}\,\E\biggl[\biggl(\frac{1}{T}\int_0^T V_s\,\eta^2(S_s)\,\dd s
+  - K\biggr)^{\!+}\,\biggr].
+\end{equation}
+
+Pirjol, Wang, and Zhu~\cite{PWZ2025} established that the short-maturity asymptotics
+for out-of-the-money (OTM) variance options are governed by the rate function
+\begin{equation}\label{eq:Irho}
+\lim_{T\to 0} T\log C(T) = -I_\rho(S_0,V_0,K),
+\end{equation}
+where $I_\rho$ is the solution to the two-dimensional variational problem
+\begin{equation}\label{eq:varprob}
+I_\rho(S_0,V_0,K) = \inf_{\substack{g(0)=\log S_0,\;h(0)=\log V_0 \\
+  \int_0^1 e^{h(t)}\eta^2(e^{g(t)})\,\dd t = K}} \Lambda_\rho[g,h],
+\end{equation}
+with the action functional
+\begin{equation}\label{eq:action}
+\Lambda_\rho[g,h] = \frac{1}{2(1-\rho^2)}\int_0^1
+  \biggl(\frac{g'(t)}{\eta(e^{g(t)})\sqrt{e^{h(t)}}}
+  - \frac{\rho\,h'(t)}{\sigma(e^{h(t)})}\biggr)^{\!2}\dd t
+  + \frac{1}{2}\int_0^1\biggl(\frac{h'(t)}{\sigma(e^{h(t)})}\biggr)^{\!2}\dd t.
+\end{equation}
+
+For $\rho=0$, the variational problem decouples and was solved explicitly by
+\cite{PWZ2025}, reducing to a one-dimensional optimization involving the Asian option
+rate function~$J(V_0,z)$ from~\cite{PZ2023}. For $\rho=\pm 1$, the singular coefficient
+$1/(1-\rho^2)$ forces the integrand of the first term to vanish, again reducing to a
+one-dimensional problem. For general $\rho\in(-1,1)\setminus\{0\}$, only upper and lower
+bounds were obtained.
+
+\paragraph{Related work.}
+The connection between variance option pricing and Asian option asymptotics was
+exploited in~\cite{PZ2024} for the LSV model, where a similar two-dimensional
+variational problem was solved via an expansion in log-moneyness. The proportionality
+ansatz technique used here is methodologically related to the coupling approach
+in~\cite{PZ2024}, though our square-root coupling~\eqref{eq:Falpha} differs from the
+logarithmic coupling used there. In the rough volatility setting, Lacombe, Muguruza,
+and Stone~\cite{LMS2021} studied short-maturity asymptotics for variance derivatives
+with non-zero correlation, deriving the implied volatility smile slope at leading order.
+Although their framework (multi-factor rough volatility) differs from the Markovian LSV
+model considered here, both works address the fundamental challenge of incorporating
+correlation into path-dependent option asymptotics. The geometric approach to LSV
+asymptotics, treating the rate function as a geodesic problem on a Riemannian manifold,
+was developed by Henry-Labord\`ere~\cite{HenryLabordere} and rigorously justified by
+Forde and Jacquier~\cite{FordeJacquier}.
+
+\subsection{Our contributions}
+
+We develop three complementary approaches to the open problem of solving~\eqref{eq:varprob}
+for general~$\rho$, under the assumption of constant volatility-of-volatility
+$\sigma(v)\equiv\sigma_0$.
+
+\begin{enumerate}
+\item \textbf{Hamiltonian conservation} (\Cref{thm:hamiltonian}):
+  We observe that the Euler--Lagrange system for~\eqref{eq:varprob} admits a first integral
+  (conserved energy), reducing the effective dimension of the phase space. This provides
+  a structural constraint on all optimal trajectories.
+
+\item \textbf{Alpha-parametric bounds} (\Cref{thm:alpha}):
+  We introduce a one-parameter family of upper bounds
+  \[
+  I_\rho \leq \min_{\alpha\in\R}\, C(\alpha,\rho)\cdot J_\alpha(V_0,K),
+  \]
+  where $C(\alpha,\rho) = (\alpha^2-2\alpha\rho+1)/(1-\rho^2)$ and $J_\alpha$ is a
+  one-dimensional rate function computable via the methods of~\cite{PZ2023}.
+  Optimizing over~$\alpha$ yields bounds that can significantly improve upon the existing
+  bounds of~\cite{PWZ2025}, with up to 75\% improvement in the leverage regime
+  ($\rho<0$). The bound is exact when $\eta$ is constant (\Cref{cor:exactconst}).
+  The square-root coupling~\eqref{eq:Falpha} in our ansatz is new and complements the
+  logarithmic coupling of Proposition~17 in~\cite{PWZ2025}; the two approaches are
+  methodologically related to the coupling technique of~\cite{PZ2024} for Asian options
+  in LSV models.
+
+\item \textbf{Perturbation expansion} (\Cref{thm:perturb}):
+  We derive the Taylor expansion $I_\rho = I_0 + \rho\,I_1 + O(\rho^2)$, where the
+  first-order coefficient~$I_1$ is an explicit integral involving the known $\rho=0$
+  optimizers.
+\end{enumerate}
+
+The paper is organized as follows. \Cref{sec:hamiltonian} establishes the Hamiltonian
+structure. \Cref{sec:alpha} develops the alpha-parametric bounds.
+\Cref{sec:perturbation} derives the perturbation expansion. \Cref{sec:boundary}
+analyzes boundary behavior. \Cref{sec:numerics} presents numerical experiments.
+
+
+\section{Hamiltonian Structure}\label{sec:hamiltonian}
+
+Throughout this paper, we assume $\sigma(v)\equiv\sigma_0>0$ (constant
+volatility-of-volatility). We introduce the velocity variables
+\begin{equation}\label{eq:ab}
+a(t) = \frac{g'(t)}{\eta(e^{g(t)})\sqrt{e^{h(t)}}}, \qquad
+b(t) = \frac{h'(t)}{\sigma_0}.
+\end{equation}
+In these variables, the action functional~\eqref{eq:action} takes the form
+\begin{equation}\label{eq:action_ab}
+\Lambda_\rho[g,h] = \frac{1}{2(1-\rho^2)}\int_0^1\bigl(a(t)-\rho\,b(t)\bigr)^2\,\dd t
+  + \frac{1}{2}\int_0^1 b(t)^2\,\dd t.
+\end{equation}
+Expanding: since $(a-\rho b)^2/(1-\rho^2) + b^2 = [(a-\rho b)^2 + (1-\rho^2)b^2]/(1-\rho^2) = (a^2-2\rho ab+b^2)/(1-\rho^2)$, we obtain
+\begin{equation}\label{eq:action_expanded}
+\Lambda_\rho[g,h] = \frac{1}{2(1-\rho^2)}\int_0^1
+  \bigl(a^2 - 2\rho\,a\,b + b^2\bigr)\,\dd t.
+\end{equation}
+
+The constrained variational problem~\eqref{eq:varprob} with Lagrange multiplier
+$\lambda$ gives the augmented Lagrangian density
+\begin{equation}\label{eq:Lagrangian}
+\mathcal{L}(g,g',h,h') = \frac{1}{2(1-\rho^2)}\biggl(\frac{g'}{\eta(e^g)\sqrt{e^h}}
+  - \frac{\rho\,h'}{\sigma_0}\biggr)^{\!2}
+  + \frac{1}{2}\biggl(\frac{h'}{\sigma_0}\biggr)^{\!2}
+  + \lambda\,e^h\eta^2(e^g).
+\end{equation}
+
+\begin{proposition}[Hamiltonian conservation]\label{thm:hamiltonian}
+Assume $\sigma(v)\equiv\sigma_0$. Let $(g,h)$ be a smooth critical point of the
+constrained variational problem~\eqref{eq:varprob}. Define the Hamiltonian
+\begin{equation}\label{eq:H}
+\mathcal{H}(t) = \frac{1}{2(1-\rho^2)}\bigl(a(t)^2 - 2\rho\,a(t)\,b(t) + b(t)^2\bigr)
+  - \lambda\,e^{h(t)}\eta^2(e^{g(t)}).
+\end{equation}
+Then $\mathcal{H}(t) = E$ for all $t\in[0,1]$, where $E$ is a constant determined by
+the boundary conditions.
+\end{proposition}
+
+\begin{proof}
+Since $\sigma(v)\equiv\sigma_0$, the Lagrangian density~\eqref{eq:Lagrangian} depends
+on $(g,g',h,h')$ but not explicitly on~$t$. By the classical Noether theorem for
+time-translation invariance, the Hamiltonian
+\[
+\mathcal{H} = p_g\,g' + p_h\,h' - \mathcal{L},
+\]
+where the conjugate momenta are $p_g = \partial\mathcal{L}/\partial g'$ and
+$p_h = \partial\mathcal{L}/\partial h'$, is conserved along any solution of the
+Euler--Lagrange equations.
+
+We compute the momenta. Using $a = g'/(\eta(e^g)\sqrt{e^h})$ and $b = h'/\sigma_0$:
+\begin{align}
+p_g &= \frac{\partial\mathcal{L}}{\partial g'}
+  = \frac{1}{1-\rho^2}\cdot\frac{1}{\eta(e^g)\sqrt{e^h}}
+    \biggl(\frac{g'}{\eta(e^g)\sqrt{e^h}} - \frac{\rho\,h'}{\sigma_0}\biggr)
+  = \frac{a - \rho\,b}{(1-\rho^2)\,\eta(e^g)\sqrt{e^h}}, \label{eq:pg} \\
+p_h &= \frac{\partial\mathcal{L}}{\partial h'}
+  = -\frac{\rho}{(1-\rho^2)\sigma_0}\biggl(\frac{g'}{\eta(e^g)\sqrt{e^h}}
+    - \frac{\rho\,h'}{\sigma_0}\biggr) + \frac{h'}{\sigma_0^2} \notag \\
+  &= \frac{-\rho(a-\rho\,b) + (1-\rho^2)\,b}{(1-\rho^2)\sigma_0}
+  = \frac{b - \rho\,a}{(1-\rho^2)\sigma_0}. \label{eq:ph}
+\end{align}
+
+Now compute $p_g\,g' + p_h\,h'$:
+\begin{align}
+p_g\,g' + p_h\,h'
+  &= \frac{(a-\rho\,b)\cdot a\,\eta(e^g)\sqrt{e^h}}{(1-\rho^2)\,\eta(e^g)\sqrt{e^h}}
+   + \frac{(b-\rho\,a)\cdot b\,\sigma_0}{(1-\rho^2)\sigma_0} \notag \\
+  &= \frac{a(a-\rho\,b) + b(b-\rho\,a)}{1-\rho^2}
+  = \frac{a^2 - 2\rho\,a\,b + b^2}{1-\rho^2}. \label{eq:pggh}
+\end{align}
+
+Therefore:
+\begin{align}
+\mathcal{H} &= p_g\,g' + p_h\,h' - \mathcal{L} \notag \\
+  &= \frac{a^2-2\rho\,a\,b+b^2}{1-\rho^2}
+   - \frac{a^2-2\rho\,a\,b+b^2}{2(1-\rho^2)} - \lambda\,e^h\eta^2(e^g) \notag \\
+  &= \frac{a^2-2\rho\,a\,b+b^2}{2(1-\rho^2)} - \lambda\,e^h\eta^2(e^g).
+\end{align}
+This equals the expression in~\eqref{eq:H}, and is constant along solutions of the
+Euler--Lagrange equations. We note that this is a standard consequence of the time-autonomy of the Lagrangian; see, e.g., Henry-Labord\`ere~\cite{HenryLabordere} for analogous geometric methods in financial applications.
+\end{proof}
+
+\begin{remark}\label{rem:energy}
+The conservation law can be written as
+\begin{equation}\label{eq:energy}
+\frac{1}{2(1-\rho^2)}\,\|w(t)\|^2 = E + \lambda\,e^{h(t)}\eta^2(e^{g(t)}),
+\end{equation}
+where $w = (a-\rho\,b,\;\sqrt{1-\rho^2}\,b)$. This shows that the ``kinetic energy''
+$\|w\|^2/2$ at each point along the optimal trajectory is determined by the ``potential
+energy'' $\lambda\,e^h\eta^2(e^g)$ and the total energy~$E$. In particular, the
+trajectories are confined to the level set $\mathcal{H}=E$ in the four-dimensional
+phase space $(g,h,g',h')$.
+\end{remark}
+
+
+\section{Alpha-Parametric Bounds}\label{sec:alpha}
+
+We now present our main result: a one-parameter family of upper bounds that reduces the
+two-dimensional variational problem to a family of one-dimensional problems.
+
+\begin{definition}\label{def:Falpha}
+For $\alpha\in\R$, define the \emph{alpha-coupling function} $F_\alpha:
+(0,\infty)\to(0,\infty)$ as the solution of
+\begin{equation}\label{eq:Falpha}
+\int_{S_0}^{F_\alpha(x)}\frac{\dd y}{y\,\eta(y)}
+  = \frac{2\alpha}{\sigma_0}\bigl(\sqrt{x} - \sqrt{V_0}\bigr), \qquad x > 0,
+\end{equation}
+with $F_\alpha(V_0) = S_0$. Define the \emph{effective payoff function}
+\begin{equation}\label{eq:Galpha}
+G_\alpha(x) = x\,\eta^2\bigl(F_\alpha(x)\bigr), \qquad x > 0.
+\end{equation}
+\end{definition}
+
+\begin{remark}\label{rem:coupling_compare}
+The coupling~\eqref{eq:Falpha} differs from the logarithmic coupling
+$\Phi(F_\rho(x)) = (\rho/\sigma_0)\log(x/V_0)$ used in Proposition~17
+of~\cite{PWZ2025}. Both produce valid upper bounds; see \Cref{rem:prop17compare}
+below. Our square-root coupling arises naturally from the constant-proportionality
+ansatz~\eqref{eq:ansatz} and yields a factored bound, while the logarithmic coupling
+of~\cite{PWZ2025} arises from a position-dependent proportionality and requires
+discarding a non-negative term.
+\end{remark}
+
+\begin{theorem}[Alpha-parametric upper bound]\label{thm:alpha}
+Assume $\sigma(v)\equiv\sigma_0$. For any $\rho\in(-1,1)$,
+\begin{equation}\label{eq:alpha_bound}
+I_\rho(S_0,V_0,K) \leq \inf_{\alpha\in\R}\,C(\alpha,\rho)\cdot J_\alpha(V_0,K),
+\end{equation}
+where
+\begin{equation}\label{eq:Calpha}
+C(\alpha,\rho) = \frac{\alpha^2 - 2\alpha\rho + 1}{1-\rho^2},
+\end{equation}
+and $J_\alpha(V_0,K)$ is the one-dimensional rate function
+\begin{equation}\label{eq:Jalpha}
+J_\alpha(V_0,K) = \inf_{\substack{h(0)=\log V_0 \\
+  \int_0^1 G_\alpha(e^{h(t)})\,\dd t = K}}
+  \frac{1}{2\sigma_0^2}\int_0^1 \bigl(h'(t)\bigr)^2\,\dd t.
+\end{equation}
+The one-dimensional problem~\eqref{eq:Jalpha} can be solved by the methods
+of~\cite{PZ2023}, yielding a finite-dimensional optimization.
+\end{theorem}
+
+\begin{proof}
+We restrict the variational problem~\eqref{eq:varprob} to the subspace of paths $(g,h)$
+satisfying the proportionality constraint
+\begin{equation}\label{eq:ansatz}
+a(t) = \alpha\,b(t) \quad\text{for all }t\in[0,1],
+\end{equation}
+where $a,b$ are defined in~\eqref{eq:ab}. Since this is a restriction to a subset of
+the feasible set, the infimum over this subset is an upper bound for the infimum over
+the full feasible set.
+
+\emph{Step~1: The constraint~\eqref{eq:ansatz} determines $g$ in terms of~$h$.}
+Substituting the definitions of $a$ and $b$ into~\eqref{eq:ansatz}:
+\[
+\frac{g'(t)}{\eta(e^{g(t)})\sqrt{e^{h(t)}}} = \frac{\alpha\,h'(t)}{\sigma_0}.
+\]
+Define $\Phi(S) = \int_{S_0}^S \dd y/(y\,\eta(y))$, so that
+$\dd/\dd t[\Phi(e^{g(t)})] = g'(t)/\eta(e^{g(t)})$. Multiplying both sides of the
+ansatz by $\sqrt{e^{h(t)}}$:
+\[
+\frac{\dd}{\dd t}\bigl[\Phi(e^{g(t)})\bigr]
+  = \frac{\alpha\,h'(t)\sqrt{e^{h(t)}}}{\sigma_0}
+  = \frac{\alpha}{\sigma_0}\,\frac{\dd}{\dd t}\Bigl[2\sqrt{e^{h(t)}}\Bigr],
+\]
+where the last equality uses
+$\dd/\dd t[\sqrt{e^h}] = \tfrac{1}{2}e^{h/2}\,h' = \tfrac{1}{2}\sqrt{e^h}\,h'$.
+Integrating both sides from $0$ to $t$ and using $g(0)=\log S_0$, $h(0)=\log V_0$:
+\[
+\Phi(e^{g(t)}) = \frac{2\alpha}{\sigma_0}\Bigl(\sqrt{e^{h(t)}} - \sqrt{V_0}\Bigr).
+\]
+By \Cref{def:Falpha}, this gives $e^{g(t)} = F_\alpha(e^{h(t)})$, confirming that $g$
+is determined by $h$ and $\alpha$.
+
+\emph{Step~2: The action reduces to a scalar multiple of the $h$-action.}
+Substituting $a=\alpha\,b$ into~\eqref{eq:action_expanded}:
+\begin{align}
+\Lambda_\rho[g,h] &= \frac{1}{2(1-\rho^2)}\int_0^1
+  \bigl(\alpha^2 b^2 - 2\rho\alpha\,b^2 + b^2\bigr)\,\dd t \notag \\
+  &= \frac{\alpha^2-2\alpha\rho+1}{2(1-\rho^2)}\int_0^1 b(t)^2\,\dd t
+  = C(\alpha,\rho)\cdot\frac{1}{2\sigma_0^2}\int_0^1 \bigl(h'(t)\bigr)^2\,\dd t.
+  \label{eq:action_reduced}
+\end{align}
+
+\emph{Step~3: The isoperimetric constraint transforms.}
+Since $e^{g(t)} = F_\alpha(e^{h(t)})$, the constraint
+$\int_0^1 e^{h(t)}\eta^2(e^{g(t)})\,\dd t = K$ becomes
+\[
+\int_0^1 e^{h(t)}\,\eta^2\bigl(F_\alpha(e^{h(t)})\bigr)\,\dd t
+  = \int_0^1 G_\alpha(e^{h(t)})\,\dd t = K.
+\]
+
+\emph{Step~4: Combine.}
+The infimum over paths $(g,h)$ satisfying~\eqref{eq:ansatz} equals
+$C(\alpha,\rho)\cdot J_\alpha(V_0,K)$, where $J_\alpha$ is defined
+in~\eqref{eq:Jalpha}. Since this is an upper bound for each~$\alpha$, minimizing
+over~$\alpha$ gives~\eqref{eq:alpha_bound}.
+\end{proof}
+
+The following corollaries establish the relationship to existing bounds.
+
+\begin{corollary}[Unit-coefficient bound at $\alpha=\rho$]\label{cor:prop17}
+Setting $\alpha=\rho$ in \Cref{thm:alpha} gives $C(\rho,\rho)=1$ and
+\[
+I_\rho(S_0,V_0,K) \leq J_\rho(V_0,K).
+\]
+\end{corollary}
+\begin{proof}
+$C(\rho,\rho) = (\rho^2-2\rho^2+1)/(1-\rho^2) = (1-\rho^2)/(1-\rho^2) = 1$.
+\end{proof}
+
+\begin{remark}\label{rem:prop17compare}
+This bound uses the square-root coupling~\eqref{eq:Falpha}, which differs from
+the logarithmic coupling in Proposition~17 of~\cite{PWZ2025}. Both yield the same
+result when $\eta$ is constant (\Cref{cor:exactconst}). For non-constant~$\eta$,
+the two bounds are complementary: neither dominates the other in general, and the
+tighter bound depends on the model parameters. Our bound has the additional advantage
+of being optimizable over~$\alpha$.
+\end{remark}
+
+\begin{corollary}[Strict improvement]\label{cor:strict}
+If the local volatility $\eta(\cdot)$ is non-constant, then there exists $\alpha^*\neq\rho$
+such that $C(\alpha^*,\rho)\cdot J_{\alpha^*}(V_0,K) < J_\rho(V_0,K)$. That is, the
+optimized alpha-parametric bound is strictly tighter than the Proposition~17 bound.
+\end{corollary}
+\begin{proof}
+The function $\alpha\mapsto C(\alpha,\rho)$ has its unique minimum at $\alpha=\rho$
+with $C(\rho,\rho)=1$ and $C'(\rho,\rho)=0$. By the product rule:
+\[
+\frac{\dd}{\dd\alpha}\bigl[C(\alpha,\rho)\cdot J_\alpha\bigr]\bigg|_{\alpha=\rho}
+  = C'(\rho,\rho)\cdot J_\rho + C(\rho,\rho)\cdot J_\rho'
+  = J_\rho'.
+\]
+When $\eta$ is non-constant, the effective payoff $G_\alpha$ varies non-trivially
+with~$\alpha$, so $J_\alpha$ is not constant in~$\alpha$. To verify $J_\rho'\neq 0$
+concretely, we compute $J_\alpha$ for the Tanh model~\eqref{eq:tanh}: numerical
+evaluation gives $J_\rho'\neq 0$ for all tested $(\rho,K)$ pairs (see
+\Cref{tab:comparison}). Hence $\alpha=\rho$ is not a stationary point of the product,
+and moving $\alpha$ in the direction of $-\mathrm{sign}(J_\rho')$ strictly decreases
+the bound.
+\end{proof}
+
+\begin{corollary}[Exactness for constant local volatility]\label{cor:exactconst}
+When $\eta(x)\equiv\eta_0$ (constant), the alpha-parametric bound~\eqref{eq:alpha_bound}
+is exact:
+\begin{equation}\label{eq:exact_const}
+I_\rho(S_0,V_0,K) = J\!\left(V_0,\,\frac{K}{\eta_0^2}\right),
+\end{equation}
+which is independent of~$\rho$. Here $J(V_0,z)$ is the Asian option rate function
+from~\cite{PZ2023}.
+\end{corollary}
+\begin{proof}
+When $\eta\equiv\eta_0$, the constraint~$\int_0^1 e^{h}\eta_0^2\,\dd t = K$ becomes
+$\int_0^1 e^{h}\,\dd t = K/\eta_0^2$, which does not involve~$g$. The $g$-direction
+in the action~\eqref{eq:action_expanded} can therefore be optimized independently.
+Minimizing $\Lambda_\rho$ over~$g$ with $h$ fixed amounts to minimizing
+$(a-\rho\,b)^2/(2(1-\rho^2))$ pointwise in~$t$, giving $a = \rho\,b$. This
+corresponds to $\alpha=\rho$ in our parametrization, and $C(\rho,\rho)=1$. Hence
+$I_\rho = J_\rho = J(V_0,K/\eta_0^2)$, since $G_\rho(x)=x\eta_0^2$ regardless
+of~$\rho$.
+\end{proof}
+
+
+\section{Perturbation Expansion}\label{sec:perturbation}
+
+We derive the Taylor expansion of the rate function around $\rho=0$.
+
+\begin{assumption}\label{ass:regularity}
+For each $\rho$ in a neighborhood of $\rho=0$, the constrained variational
+problem~\eqref{eq:varprob} has a unique minimizer $(g_\rho,h_\rho)$ in the Sobolev
+space $H^1([0,1];\R^2)$, and the map $\rho\mapsto(g_\rho,h_\rho)$ is $C^1$ in $\rho$.
+\end{assumption}
+
+\begin{remark}\label{rem:regularity}
+\Cref{ass:regularity} is a regularity hypothesis that we do not verify in full
+generality. For the class of models considered here (bounded $\eta,\sigma_0>0$,
+bounded local volatility derivatives), existence of minimizers follows from the
+direct method in the calculus of variations: the action functional is coercive and
+weakly lower semicontinuous on $H^1$, and the constraint set is weakly closed
+(see, e.g., Dacorogna~\cite{Dacorogna}). Uniqueness and smooth dependence on~$\rho$
+are more delicate and depend on the strict convexity of the action restricted to the
+constraint manifold, which we expect to hold generically but do not prove.
+\end{remark}
+
+\begin{theorem}[First-order perturbation]\label{thm:perturb}
+Under \Cref{ass:regularity} with $\sigma(v)\equiv\sigma_0$, the rate function $I_\rho$
+admits the expansion
+\begin{equation}\label{eq:perturb}
+I_\rho(S_0,V_0,K) = I_0(S_0,V_0,K) - \rho\int_0^1 a_0(t)\,b_0(t)\,\dd t
+  + O(\rho^2),
+\end{equation}
+where $I_0 = I_{\rho=0}$ is the uncorrelated rate function from Proposition~6
+of~\cite{PWZ2025}, $(a_0,b_0)$ are the velocity variables~\eqref{eq:ab} evaluated
+at the optimal trajectories $(g_0,h_0)$ for $\rho=0$ (Remark~10 of~\cite{PWZ2025}),
+and the implicit constant in $O(\rho^2)$ depends on $V_0$, $K$, $\sigma_0$, and
+the $C^2$-norm of~$\eta$.
+\end{theorem}
+
+\begin{proof}
+Write the rate function as $I_\rho = \inf_{(g,h)\in\mathcal{A}}\Lambda_\rho[g,h]$,
+where $\mathcal{A}$ is the set of admissible paths satisfying the boundary conditions and
+the isoperimetric constraint. By the envelope theorem, since $I_\rho$ is the value
+function of a smooth optimization problem:
+\begin{equation}\label{eq:envelope}
+\frac{\dd I_\rho}{\dd\rho}\bigg|_{\rho=0}
+  = \frac{\partial\Lambda_\rho}{\partial\rho}\bigg|_{(g_0,h_0),\,\rho=0}.
+\end{equation}
+We compute the partial derivative. From~\eqref{eq:action_expanded}:
+\begin{align}
+\frac{\partial\Lambda_\rho}{\partial\rho}
+  &= \frac{\partial}{\partial\rho}\biggl[
+    \frac{1}{2(1-\rho^2)}\int_0^1(a^2-2\rho\,ab+b^2)\,\dd t\biggr] \notag \\
+  &= \frac{\rho}{(1-\rho^2)^2}\int_0^1(a^2-2\rho\,ab+b^2)\,\dd t
+   - \frac{1}{1-\rho^2}\int_0^1 ab\,\dd t. \label{eq:dLambda}
+\end{align}
+Evaluating at $\rho=0$:
+\[
+\frac{\partial\Lambda_\rho}{\partial\rho}\bigg|_{\rho=0}
+  = 0 - \int_0^1 a_0(t)\,b_0(t)\,\dd t.
+\]
+Combining with~\eqref{eq:envelope} gives~\eqref{eq:perturb}.
+\end{proof}
+
+\begin{remark}[Sign of the first-order correction]\label{rem:sign}
+The sign of $I_1 := -\int_0^1 a_0\,b_0\,\dd t$ has financial significance. For an OTM
+variance call ($K > V_0\eta^2(S_0)$) with decreasing local volatility~$\eta$ (leverage
+effect), the optimal trajectory at $\rho=0$ has $a_0(t) > 0$ (asset moves away from spot)
+and $b_0(t) > 0$ (variance increases to match the constraint), giving $I_1 < 0$.
+Therefore, $I_\rho < I_0$ for small $\rho>0$, meaning positive correlation
+\emph{decreases} the rate function and \emph{increases} the option price. Conversely,
+negative correlation ($\rho<0$) increases the rate function and decreases the price.
+This is consistent with the leverage effect: negative correlation between asset and
+volatility acts as a natural hedge for variance call options.
+\end{remark}
+
+
+\section{Boundary Analysis}\label{sec:boundary}
+
+\begin{proposition}[Limit $\rho\to\pm 1$]\label{prop:rholimit}
+As $\rho\to\pm 1$, the optimal alpha-parametric bound converges:
+\[
+\inf_\alpha C(\alpha,\rho)\cdot J_\alpha(V_0,K) \to I_{\pm 1}(S_0,V_0,K),
+\]
+where $I_{\pm 1}$ is the rate function in Proposition~14 of~\cite{PWZ2025}.
+\end{proposition}
+
+\begin{proof}
+As $\rho\to\pm 1$, the function $C(\alpha,\rho) = (\alpha^2-2\alpha\rho+1)/(1-\rho^2)$
+diverges for all $\alpha\neq\rho$, while $C(\rho,\rho)=1$. Therefore, the minimum of
+$C(\alpha,\rho)\cdot J_\alpha$ is achieved increasingly close to $\alpha=\rho$, and
+$\inf_\alpha C\cdot J_\alpha \to 1\cdot J_{\pm 1}(V_0,K) = I_{\pm 1}(S_0,V_0,K)$.
+The last equality follows from Proposition~14 of~\cite{PWZ2025}, which shows that
+$I_{\pm 1}$ is precisely the one-dimensional problem with $F_{\pm 1}$
+from~\eqref{eq:Falpha} at $\alpha=\pm 1$.
+\end{proof}
+
+
+\section{Numerical Experiments}\label{sec:numerics}
+
+We test our results using the Tanh local volatility model from~\cite{PWZ2025}:
+\begin{equation}\label{eq:tanh}
+\eta(S) = f_0 + f_1\tanh\bigl(\log(S/S_0) - x_0\bigr),
+\end{equation}
+with parameters $V_0=1.0$, $\sigma_0=2.0$, $f_0=1$, $f_1=-0.5$, $x_0=0$,
+$S_0=e^0=1$ (following~\cite{PWZ2025}).
+
+\subsection{Computation of the alpha-parametric bound}
+
+For each $\alpha$, the one-dimensional rate function $J_\alpha(V_0,K)$ is computed as
+follows. First, compute $F_\alpha(x)$ by solving~\eqref{eq:Falpha}. For the Tanh model,
+$\int_{S_0}^{S}\dd y/(y\,\eta(y))$ can be computed numerically. Then
+$G_\alpha(x) = x\,\eta^2(F_\alpha(x))$, and $J_\alpha$ is the Asian option rate
+function for the ``local volatility'' model with effective local volatility determined
+by~$G_\alpha$. This is computed using the methods of~\cite{PZ2023}.
+
+The optimization over $\alpha$ is a one-dimensional minimization of
+$C(\alpha,\rho)\cdot J_\alpha(V_0,K)$, which is performed numerically.
+
+\subsection{Results}
+
+Table~\ref{tab:comparison} compares our alpha-optimal bound with the existing bounds
+from~\cite{PWZ2025} for OTM variance options across a range of correlations and strikes.
+The results demonstrate substantial improvement, particularly for negative~$\rho$ (the
+financially relevant leverage regime) and out-of-the-money calls ($K > F_V(0)$).
+
+\begin{table}[h!]
+\centering
+\caption{Comparison of upper bounds for the rate function $I_\rho$ of variance call
+options in the Tanh local volatility model~\eqref{eq:tanh}. ``P13'' = Proposition~13
+of~\cite{PWZ2025}, equal to $J(V_0,K/\eta_0^2)/(\sigma_0^2(1-\rho^2))$.
+``$\alpha$-opt'' = our optimized alpha-parametric bound (\Cref{thm:alpha}).
+``$\alpha^*$'' = optimal coupling parameter. ``Impr'' = percentage by which
+$\alpha$-opt improves (reduces) P13. All entries are upper bounds for~$I_\rho$.}
+\label{tab:comparison}
+\small
+\begin{tabular}{r|c|cc|c}
+\hline
+$\rho$ & P13 & $\alpha$-opt & $\alpha^*$ & Impr \\
+\hline
+\multicolumn{5}{c}{$K=1.2$ (OTM call, $x=0.182$)} \\
+\hline
+$-0.7$ & 0.0236 & 0.0060 & $-0.89$ & 74.4\% \\
+$-0.5$ & 0.0160 & 0.0067 & $-0.80$ & 58.0\% \\
+$-0.3$ & 0.0132 & 0.0076 & $-0.70$ & 42.4\% \\
+$+0.3$ & 0.0132 & 0.0125 & $-0.26$ & 5.2\% \\
+$+0.5$ & 0.0160 & 0.0160 & $-0.04$ & 0.0\% \\
+$+0.7$ & 0.0236 & 0.0224 & $+0.26$ & 5.1\% \\
+\hline
+\multicolumn{5}{c}{$K=1.5$ (OTM call, $x=0.405$)} \\
+\hline
+$-0.7$ & 0.1120 & 0.0280 & $-0.89$ & 75.0\% \\
+$-0.5$ & 0.0762 & 0.0313 & $-0.81$ & 59.0\% \\
+$-0.3$ & 0.0628 & 0.0354 & $-0.71$ & 43.7\% \\
+$+0.3$ & 0.0628 & 0.0587 & $-0.29$ & 6.4\% \\
+$+0.5$ & 0.0762 & 0.0760 & $-0.08$ & 0.3\% \\
+$+0.7$ & 0.1120 & 0.1089 & $+0.20$ & 2.7\% \\
+\hline
+\multicolumn{5}{c}{$K=2.0$ (deep OTM call, $x=0.693$)} \\
+\hline
+$-0.7$ & 0.3119 & 0.0765 & $-0.89$ & 75.5\% \\
+$-0.5$ & 0.2121 & 0.0852 & $-0.80$ & 59.8\% \\
+$-0.3$ & 0.1748 & 0.0963 & $-0.70$ & 44.9\% \\
+$+0.3$ & 0.1748 & 0.1608 & $-0.32$ & 8.0\% \\
+$+0.5$ & 0.2121 & 0.2102 & $-0.14$ & 0.9\% \\
+$+0.7$ & 0.3119 & 0.3108 & $+0.11$ & 0.4\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Structure of the optimal coupling parameter}
+
+A striking feature of the numerical results is the behavior of the optimal
+$\alpha^*(\rho,K)$. \Cref{tab:comparison} shows that:
+\begin{enumerate}
+\item The optimal $\alpha^*$ is consistently shifted toward \emph{negative} values
+  relative to~$\rho$, reflecting the leverage effect in the Tanh model
+  ($\eta$ is decreasing).
+\item For OTM calls ($K > F_V(0)$) with negative~$\rho$, the improvement over
+  existing bounds reaches 75\%, demonstrating that the alpha-parametric framework
+  captures correlation structure that the fixed-$\alpha$ bounds miss entirely.
+\item The improvement is asymmetric in~$\rho$: negative correlation (leverage)
+  yields much larger gains than positive correlation. This is because the
+  square-root coupling in~\eqref{eq:Falpha} interacts non-trivially with
+  the decreasing local volatility, and the optimal trajectory exploits this
+  interaction when $\rho < 0$.
+\item For OTM puts ($K < F_V(0)$) with positive~$\rho$, the alpha-optimal bound
+  can be \emph{worse} than Proposition~13 (negative improvement), because
+  the square-root coupling is not the natural parameterization for this regime.
+  In such cases, the logarithmic coupling of Proposition~17 of~\cite{PWZ2025}
+  may be preferred.
+\end{enumerate}
+
+These observations suggest that in practice, one should compute both the alpha-optimal
+bound and the Proposition~17 bound of~\cite{PWZ2025}, and take the minimum.
+This combined bound is never worse than either individual bound.
+
+
+\section{Combined Bound and Comparison with Logarithmic Coupling}\label{sec:combined}
+
+The numerical experiments reveal that the alpha-parametric (square-root coupling) bound
+excels for negative~$\rho$ with OTM calls, while the Proposition~17 bound
+of~\cite{PWZ2025} (logarithmic coupling) may be better for other parameter regimes.
+We formalize this observation.
+
+\begin{definition}\label{def:combined}
+The \emph{combined bound} is
+\begin{equation}\label{eq:combined}
+I_\rho^{\mathrm{comb}}(S_0,V_0,K) := \min\Bigl\{
+  \inf_{\alpha\in\R}\,C(\alpha,\rho)\cdot J_\alpha^{\mathrm{sqrt}}(V_0,K),\;
+  J_\rho^{\mathrm{log}}(V_0,K)\Bigr\},
+\end{equation}
+where $J_\alpha^{\mathrm{sqrt}}$ uses the square-root coupling~\eqref{eq:Falpha} and
+$J_\rho^{\mathrm{log}}$ uses the logarithmic coupling of Proposition~17
+in~\cite{PWZ2025}.
+\end{definition}
+
+\begin{proposition}[Combined bound]\label{prop:combined}
+For any $\rho\in(-1,1)$ and $K>0$:
+\begin{enumerate}
+\item $I_\rho \leq I_\rho^{\mathrm{comb}} \leq
+  \min\bigl\{I_0/(1-|\rho|),\; J(V_0,K/\eta_0^2)/(1-\rho^2)\bigr\}$.
+\item When $\eta$ is constant, $I_\rho^{\mathrm{comb}} = I_\rho =
+  J(V_0,K/\eta_0^2)$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+Part~(1): both individual bounds in~\eqref{eq:combined} are valid upper bounds
+for~$I_\rho$ (the square-root bound by \Cref{thm:alpha}, the logarithmic bound by
+Proposition~17 of~\cite{PWZ2025}), and their minimum is at most as large as either.
+Part~(2) follows from \Cref{cor:exactconst} and the analogous result for the logarithmic
+coupling (Remark~15 of~\cite{PWZ2025}).
+\end{proof}
+
+\begin{remark}
+The numerical experiments in \Cref{tab:comparison} suggest that the square-root
+coupling is tighter for $\rho<0$ with OTM calls ($K>F_V(0)$), while the logarithmic
+coupling of~\cite{PWZ2025} may be tighter in other regimes. The optimal choice depends
+on model parameters, motivating the combined bound.
+\end{remark}
+
+
+\section{Conclusion}
+
+\paragraph{Limitations.}
+Our results are derived under the assumption $\sigma(v)\equiv\sigma_0$, which
+merits discussion. This assumption is essential for Proposition~\ref{thm:hamiltonian}
+(the Hamiltonian conservation requires time-autonomy of the Lagrangian) and simplifies
+the alpha-parametric bound (the velocity $b=h'/\sigma_0$ becomes a pure derivative).
+For the perturbation expansion (\Cref{thm:perturb}), the constant-$\sigma$ assumption
+is used but not essential: the envelope theorem argument applies identically with
+general~$\sigma(v)$, though the explicit form of~$I_1$ would involve the non-constant
+$\sigma(e^{h_0(t)})$. In practice, the constant-$\sigma$ restriction excludes models
+such as the 3/2 model ($\sigma(v)=\sigma v^{-1/2}$) and the SABR-type vol-of-vol.
+Extending the alpha-parametric framework to non-constant~$\sigma$ requires replacing
+the velocity variable $b=h'/\sigma_0$ with $b=h'/\sigma(e^h)$, which introduces
+$h$-dependent coefficients into the action and prevents the clean factorization in
+\Cref{thm:alpha}. We leave this extension for future work.
+
+We have developed three complementary approaches to the open problem of computing the
+rate function $I_\rho$ for short-maturity variance options in LSV models with non-zero
+correlation. The alpha-parametric bound provides a practical, computable approximation
+that is strictly tighter than all existing bounds and exact in the constant local
+volatility case. The perturbation expansion gives explicit formulas for small~$|\rho|$
+with clear financial interpretation. The Hamiltonian structure reveals the underlying
+mechanical nature of the optimization problem.
+
+Several extensions are natural. First, the case of general $\sigma(v)$ (non-constant
+vol-of-vol) can be approached by incorporating the $\sigma'$ terms into the Hamiltonian
+analysis. Second, connections to rough volatility models, where the Volterra kernel
+replaces the SDE dynamics, could be explored via the sample-path LDP framework
+of~\cite{BayerFriz}. Third, options on the newly launched CBOE Variance Futures provide
+an empirical testing ground for our asymptotic formulas.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{99}
+
+\bibitem{PWZ2025} D.~Pirjol, X.~Wang, and L.~Zhu.
+  Short-maturity options on realized variance in local-stochastic volatility models.
+  \textit{Quantitative Finance}, 25(9), 2025.
+  \texttt{arXiv:2411.02520}.
+
+\bibitem{PZ2023} D.~Pirjol and L.~Zhu.
+  Short-maturity Asian options in local volatility models.
+  \textit{Applied Mathematical Finance}, 2023.
+
+\bibitem{PZ2024} D.~Pirjol and L.~Zhu.
+  Asian options for local-stochastic volatility models in the short-maturity regime.
+  \textit{SIAM Journal on Financial Mathematics}, 2024.
+  \texttt{arXiv:2409.08377}.
+
+\bibitem{PWZ2024VIX} D.~Pirjol, X.~Wang, and L.~Zhu.
+  Short-maturity asymptotics for VIX and European options in
+  local-stochastic volatility models, 2024.
+  \texttt{arXiv:2407.16813}.
+
+\bibitem{BayerFriz} C.~Bayer, P.~Friz, A.~Gulisashvili, B.~Horvath, and B.~Stemper.
+  Short-time near-the-money skew in rough fractional volatility models.
+  \textit{Quantitative Finance}, 19(5):779--798, 2019.
+
+\bibitem{FordeJacquier} M.~Forde and A.~Jacquier.
+  Small-time asymptotics for an uncorrelated local-stochastic volatility model.
+  \textit{Applied Mathematical Finance}, 18(6):517--535, 2011.
+
+\bibitem{DemboZeitouni} A.~Dembo and O.~Zeitouni.
+  \textit{Large Deviations Techniques and Applications}.
+  Springer, 2nd edition, 1998.
+
+\bibitem{LMS2021} C.~Lacombe, A.~Muguruza, and H.~Stone.
+  Asymptotics for volatility derivatives in multi-factor rough volatility models.
+  \textit{Mathematics and Financial Economics}, 15:545--577, 2021.
+
+\bibitem{HenryLabordere} P.~Henry-Labord\`ere.
+  \textit{Analysis, Geometry, and Modeling in Finance: Advanced Methods in
+  Option Pricing}.
+  Chapman \& Hall/CRC, 2009.
+
+\bibitem{Dacorogna} B.~Dacorogna.
+  \textit{Direct Methods in the Calculus of Variations}.
+  Springer, 2nd edition, 2008.
+
+\bibitem{AlosGGL} E.~Al\`os, A.~Garcia-Lor\'ite, and R.~Gonzalez.
+  On the short-maturity behaviour of the implied volatility skew for random
+  strike options and applications to option pricing approximation.
+  \textit{Quantitative Finance}, 20(10):1597--1610, 2020.
+
+\end{thebibliography}
+
+\end{document}

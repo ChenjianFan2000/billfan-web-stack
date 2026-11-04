@@ -1,0 +1,42 @@
+# 运行时数据与真实上传（绝不入库）
+/data/
+/exports/
+/logs/
+/dist/
+/certbot/
+/.venv/
+/.codex/
+/.pytest_cache/
+
+# 依赖、虚拟环境与构建产物
+**/node_modules/
+**/.venv/
+**/.python*/
+**/dist/
+**/__pycache__/
+**/*.py[cod]
+
+# 数据库与本地状态
+*.sqlite
+*.sqlite3
+*.db
+
+# 密钥与本地配置（仅保留 example 模板）
+**/.env
+**/.env.*
+!**/.env.example
+!**/*.env.example
+*.pem
+*.key
+*.p12
+*.p8
+*.crt
+id_rsa*
+id_ed25519*
+
+# 编辑器 / 系统
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/

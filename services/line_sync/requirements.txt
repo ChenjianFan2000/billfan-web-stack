@@ -1,0 +1,4 @@
+# Runs on /var/www/.venv (python 3.6).
+fastapi==0.78.0
+uvicorn==0.16.0
+segno==1.6.6

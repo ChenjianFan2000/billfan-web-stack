@@ -1,0 +1,73 @@
+import { useLangStore } from '@/stores/lang'
+
+const dict = {
+  zh: {
+    brand: 'Paper Visualizer',
+    searchPlaceholder: '搜索论文…',
+    byDomain: '按领域',
+    byTool: '按数学工具',
+    byStatus: '按状态',
+    read: '📖 学习',
+    askAi: '💬 问 AI',
+    readingTime: '约 30-60 分钟阅读',
+    prerequisites: '先决知识',
+    relatedPapers: '相关论文',
+    tableOfContents: '目录',
+    openPdf: '📄 PDF',
+    openTex: '📝 .tex',
+    askClaude: '问 Claude',
+    clearFilters: '清除筛选',
+    backHome: '← 返回',
+    about: '关于',
+    chatHeader: '关于这篇论文',
+    quickQuestions: '快速提问',
+    clearChat: '清空对话',
+    send: '发送',
+    inputPlaceholder: '继续提问...',
+    connectionLost: '连接断开',
+    noResults: '没有符合条件的论文',
+    loading: '加载中…',
+    you: '你',
+    bySource: '按来源',
+    repoRealresearch: '计算金融',
+    repoStructural: '结构研究',
+  },
+  en: {
+    brand: 'Paper Visualizer',
+    searchPlaceholder: 'Search papers…',
+    byDomain: 'By domain',
+    byTool: 'By math tool',
+    byStatus: 'By status',
+    read: '📖 Read',
+    askAi: '💬 Ask AI',
+    readingTime: '~30-60 min read',
+    prerequisites: 'Prerequisites',
+    relatedPapers: 'Related papers',
+    tableOfContents: 'Contents',
+    openPdf: '📄 PDF',
+    openTex: '📝 .tex',
+    askClaude: 'Ask Claude',
+    clearFilters: 'Clear filters',
+    backHome: '← Back',
+    about: 'About',
+    chatHeader: 'Ask about this paper',
+    quickQuestions: 'Quick questions',
+    clearChat: 'Clear',
+    send: 'Send',
+    inputPlaceholder: 'Type a question...',
+    connectionLost: 'Connection lost',
+    noResults: 'No papers match the current filters.',
+    loading: 'Loading…',
+    you: 'You',
+    bySource: 'By source',
+    repoRealresearch: 'Comp. Finance',
+    repoStructural: 'Structural',
+  },
+} as const
+
+export type I18nKey = keyof typeof dict.zh
+
+export function useT() {
+  const lang = useLangStore()
+  return (k: I18nKey) => dict[lang.current][k]
+}

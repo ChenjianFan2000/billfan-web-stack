@@ -1,0 +1,673 @@
+{
+  "slug": "uniswap_tick_correction",
+  "source": {
+    "tex_path": "output/uniswap_tick_correction/main_v2.tex",
+    "pdf_path": "output/uniswap_tick_correction/main_v2.pdf",
+    "source_hash": "sha256:2352fdabfc464b6ced5f1e1c1b29c1dc807e3b2d5ae86d75489a65f902223742",
+    "ingested_at": "2026-04-16T01:25:42.393573+00:00"
+  },
+  "title": {
+    "en": "Finite-Tick Corrections for Concentrated Liquidity: Non-Universality, Misalignment, and Optimal Range Design",
+    "zh": "集中流动性的有限刻度修正：非普适性、错位与最优区间设计"
+  },
+  "short_title": {
+    "zh": "有限刻度LP修正",
+    "en": "Finite-Tick Corrections for Uniswap v3 LP Fees"
+  },
+  "author": "",
+  "date": "\\today",
+  "status": "draft",
+  "abstract": {
+    "tex": "Echenim, Gobet, and Maurice (2025) derived asymptotic formulas for\nliquidity provider (LP) fee revenue in Uniswap~v3, proving convergence\nto an integral of the price local time as the tick spacing\n$\\gamma \\to 0$. In practice, $\\gamma$ is fixed by the pool's fee tier\nand can be as large as $2\\%$. We derive three sets of results on the\nfinite-tick regime. \\textbf{(1) Non-universality of $\\kappa_1$.} Under a\ngeneral constant-drift diffusion $dX_t = \\mu\\dd t + \\sigma\\dd W_t$, the\nfirst-order correction coefficient is $\\kappa_1 = 1/2 + \\mu/(2\\sigma^2)$,\nwhich equals $1/4$ \\emph{only} for risk-neutral geometric Brownian\nmotion ($\\mu = -\\sigma^2/2$). Under the physical measure with expected\nreturn $r > 0$, the correction is $\\kappa_1^P = 1/4 + r/(2\\sigma^2)$,\nwhich for typical crypto parameters is $2$--$3$ times the risk-neutral\nvalue. The result decomposes into a prefactor contribution and an\nEuler--Maclaurin boundary term, and the cancellation $f'(0) = 0$ that\nproduces ``universality'' is a precise algebraic artifact of the\nrisk-neutral GBM drift. \\textbf{(2) Misaligned-range correction.} When\nthe LP range boundary falls between two tick levels with fractional\noffset $\\delta$, the boundary tick earns a fraction\n$R(\\delta) = 2(1-\\delta)/(2-\\delta)$ of the interior tick's fee. Unlike\nthe classical Broadie--Glasserman--Kou correction for temporally\ndiscretized barriers, this spatial correction is a rational function of\n$\\delta$ and does not involve the Wiener--Hopf constant\n$\\zeta(1/2)/\\sqrt{2\\pi}$, because the continuous price process crosses\nevery tick level with probability one. \\textbf{(3) Optimal range width.}\nThe finite-tick correction shifts the fee-maximizing range width downward\nby $1$--$2$ ticks relative to the EGM asymptotic, with the largest\neffect in the $0.05\\%$ pool. We validate all results against\nsemi-analytical computations.",
+    "en": "This paper studies finite-tick corrections to LP fee revenue in Uniswap v3 concentrated liquidity. Under a general constant-drift diffusion, the first-order correction coefficient κ₁ depends on the drift-to-variance ratio and equals 1/4 only under risk-neutral GBM. A misalignment correction for range boundaries falling between tick levels is derived as a rational function, and optimal range width is adjusted downward by 1-2 ticks relative to the continuous asymptotic.",
+    "zh": "本文研究Uniswap v3集中流动性中有限刻度间距对LP费收入的修正。在一般常漂移扩散下，一阶修正系数κ₁取决于漂移与波动率之比，仅在风险中性GBM下退化为通用值1/4。此外，本文推导了LP区间边界与刻度网格错位时的空间修正公式，并给出了考虑有限刻度后的最优区间宽度。"
+  },
+  "domain": [
+    "defi",
+    "market_microstructure"
+  ],
+  "math_tools": [
+    "euler_maclaurin",
+    "perturbation_expansion",
+    "large_deviations",
+    "monte_carlo",
+    "fourier_analysis"
+  ],
+  "prerequisites": [
+    {
+      "topic_id": "local_time_theory",
+      "level": "intermediate",
+      "why": "Fee revenue is expressed as an integral of price local time over the LP range."
+    },
+    {
+      "topic_id": "stochastic_calculus",
+      "level": "intermediate",
+      "why": "Price dynamics modeled via SDEs and scale functions of diffusions."
+    },
+    {
+      "topic_id": "automated_market_makers",
+      "level": "basic",
+      "why": "Understanding Uniswap v3 tick structure and LP fee mechanics is essential."
+    },
+    {
+      "topic_id": "asymptotic_analysis",
+      "level": "intermediate",
+      "why": "Euler-Maclaurin summation used to derive finite-tick corrections from Riemann sums."
+    }
+  ],
+  "main_theorems": [
+    {
+      "id": "lem:p_up",
+      "env": "lemma",
+      "statement_tex": "Starting at grid level $kh$, the probability of reaching\n$(k{+}1)h$ before $(k{-}1)h$ under the diffusion\n\\eqref{eq:general_sde} is\n\\begin{equation}\\label{eq:p_up}\np_\\uparrow(h) = \\frac{S(h)}{S(2h)}\n= \\frac{e^{\\alpha h} - 1}{e^{2\\alpha h} - 1}\n= \\frac{1}{1 + e^{\\alpha h}}.\n\\end{equation}\nIn particular:\n\\begin{align}\np_\\uparrow(h) &= \\frac{1}{2} - \\frac{\\alpha h}{4} + O(h^2),\n\\label{eq:p_up_expand}\n\\end{align}\nso the upcrossing probability is less (resp.\\ greater) than $1/2$\nwhen $\\alpha > 0$ (resp.\\ $\\alpha < 0$), i.e., when the drift is\nnegative (resp.\\ positive).",
+      "section_number": "2.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:prefactor_general",
+      "env": "lemma",
+      "statement_tex": "For the prefactor $\\psi(h)$ defined in \\eqref{eq:psi_def}, with\n$\\alpha = -2\\mu/\\sigma^2$:\n\\begin{equation}\\label{eq:psi_expand}\n\\psi(h) = 1 + h\\,\\kappa_1^{\\psi} + O(h^2),\n\\end{equation}\nwhere\n\\begin{equation}\\label{eq:kappa1_psi}\n\\kappa_1^{\\psi} = \\frac{3}{4} + \\frac{\\mu}{\\sigma^2}\n= \\frac{3}{4} - \\frac{\\alpha}{2}.\n\\end{equation}",
+      "section_number": "3.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:f_prime",
+      "env": "lemma",
+      "statement_tex": "The crossing weight function $f$ satisfies\n\\begin{equation}\\label{eq:f_prime}\nf'(0) = \\Bigl(\\frac{1}{2} + \\frac{\\mu}{\\sigma^2}\\Bigr)\\,\\E[L^0_T]\n= \\frac{1}{2}(1 - \\alpha)\\,\\E[L^0_T].\n\\end{equation}\nIn particular, $f'(0) = 0$ if and only if\n$\\mu = -\\sigma^2/2$ (equivalently, $\\alpha = 1$).",
+      "section_number": "3.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:EM",
+      "env": "lemma",
+      "statement_tex": "Let $f$ be $C^2$ on $[-a, a]$ with $a = Nh/2$. Then\n\\begin{equation}\\label{eq:EM_formula}\n\\sum_{k=-N/2}^{N/2-1} h\\,f(kh)\n= I_f(h) - Nh^2\\,\\frac{f'(0)}{2} + O(h^3 N^3 \\|f''\\|_\\infty),\n\\end{equation}\nwhere $I_f(h) = \\int_{-Nh/2}^{Nh/2} f(x)\\dd x$ and the second term\ncomes from the boundary evaluation.",
+      "section_number": "3.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:general_kappa1",
+      "env": "theorem",
+      "statement_tex": "Let the log-price follow $dX_t = \\mu\\dd t + \\sigma\\dd W_t$ with\nconstant $\\mu \\in \\R$ and $\\sigma > 0$. For an $N$-tick LP range\ncentered at $X_0 = 0$, the expected renormalized fee satisfies\n\\begin{equation}\\label{eq:general_kappa1}\n\\frac{\\Psi(\\gamma)}{F_0^Y(\\gamma)}\n= 1 + \\kappa_1(\\mu, \\sigma)\\,\\gamma + O(\\gamma^2),\n\\end{equation}\nwhere\n\\begin{equation}\\label{eq:kappa1_formula}\n\\kappa_1(\\mu, \\sigma)\n= \\frac{1}{2} + \\frac{\\mu}{2\\sigma^2}.\n\\end{equation}",
+      "section_number": "3.4",
+      "label": {
+        "zh": "一般κ₁定理",
+        "en": "General first-order correction theorem"
+      },
+      "key_ideas": {
+        "zh": [
+          "漂移修正",
+          "Euler-Maclaurin展开"
+        ],
+        "en": [
+          "drift-dependent correction",
+          "Euler-Maclaurin expansion"
+        ]
+      }
+    },
+    {
+      "id": "cor:gbm",
+      "env": "corollary",
+      "statement_tex": "Under risk-neutral GBM ($\\mu = -\\sigma^2/2$):\n\\begin{equation}\\label{eq:kappa1_gbm}\n\\kappa_1 = \\frac{1}{2} + \\frac{-\\sigma^2/2}{2\\sigma^2}\n= \\frac{1}{2} - \\frac{1}{4} = \\frac{1}{4}.\n\\end{equation}",
+      "section_number": "3.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "cor:physical",
+      "env": "corollary",
+      "statement_tex": "Under the physical measure with expected log-return drift\n$\\mu_P = r - \\sigma^2/2$:\n\\begin{equation}\\label{eq:kappa1_physical}\n\\kappa_1^P = \\frac{1}{2} + \\frac{r - \\sigma^2/2}{2\\sigma^2}\n= \\frac{1}{4} + \\frac{r}{2\\sigma^2}.\n\\end{equation}\nFor assets with positive expected return ($r > 0$), the first-order\ncorrection is strictly larger than the risk-neutral value~$1/4$.",
+      "section_number": "3.5",
+      "label": {
+        "zh": "物理测度推论",
+        "en": "Physical measure corollary"
+      },
+      "key_ideas": {
+        "zh": [
+          "正期望收益",
+          "更大修正系数"
+        ],
+        "en": [
+          "positive expected return",
+          "larger correction coefficient"
+        ]
+      }
+    },
+    {
+      "id": "cor:abm",
+      "env": "corollary",
+      "statement_tex": "Under ABM ($\\mu = 0$):\n\\begin{equation}\\label{eq:kappa1_abm}\n\\kappa_1^{ABM} = \\frac{1}{2}.\n\\end{equation}",
+      "section_number": "3.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:cancellation",
+      "env": "proposition",
+      "statement_tex": "Among constant-drift diffusions \\eqref{eq:general_sde}, the crossing\nweight function $f(x) = e^{x/2}\\,\\E[L^x_T]$ satisfies $f'(0) = 0$\nif and only if\n\\begin{equation}\\label{eq:cancel_condition}\n\\frac{\\mu}{\\sigma^2} = -\\frac{1}{2},\n\\end{equation}\nequivalently, $\\alpha = 1$, i.e., the drift is the risk-neutral GBM\ndrift.",
+      "section_number": "4.1",
+      "label": {
+        "zh": "普适性消去命题",
+        "en": "Universality cancellation proposition"
+      },
+      "key_ideas": {
+        "zh": [
+          "风险中性漂移",
+          "f'(0)=0"
+        ],
+        "en": [
+          "risk-neutral drift",
+          "f'(0)=0 cancellation"
+        ]
+      }
+    },
+    {
+      "id": "prop:exact",
+      "env": "proposition",
+      "statement_tex": "Under risk-neutral GBM, the expected renormalized $Y$-fee is\n\\begin{equation}\\label{eq:exact}\n\\Psi(\\gamma) = \\frac{\\phi}{1 - \\phi}\n\\sum_{k=-N/2}^{N/2-1} c(h) \\cdot e^{kh/2} \\cdot \\E^*[L^{kh}_T],\n\\end{equation}\nwhere $c(h) = \\gamma(e^{h/2} - 1)/(h(1 + e^h))$.",
+      "section_number": "5.1",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:prefactor_gbm",
+      "env": "lemma",
+      "statement_tex": "Under GBM ($\\alpha = 1$):\n$\\psi(h) = 1 + h/4 + O(h^2)$.",
+      "section_number": "5.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:EM_gbm",
+      "env": "lemma",
+      "statement_tex": "Under GBM, with $f'(0) = 0$:\n\\begin{equation}\\label{eq:EM_gbm}\n\\sum_{k=-N/2}^{N/2-1} h\\,f(kh)\n= I_f(h)\\bigl(1 + O(h^2)\\bigr).\n\\end{equation}\nThe boundary correction is $O(h^4)$ because\n$f(-a) - f(a) = -2f'(0)\\,a + O(a^3) = O(a^3) = O(N^3 h^3)$,\nand the $h/2$ prefactor gives $O(N^3 h^4)$.",
+      "section_number": "5.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "lem:weight_discrep",
+      "env": "lemma",
+      "statement_tex": "Under GBM ($\\alpha = 1$), with $a = Nh/2$:\n\\begin{equation}\\label{eq:weight_ratio}\n\\frac{I_f(h)}{I_g(h)} = 1 - \\frac{N^2 h^2}{6} + O(h^4).\n\\end{equation}",
+      "section_number": "5.4",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:main",
+      "env": "theorem",
+      "statement_tex": "Under risk-neutral GBM with constant $\\sigma > 0$, $T > 0$,\nand $N$ even:\n\\begin{equation}\\label{eq:main_thm}\n\\frac{\\Psi(\\gamma)}{F_0^Y(\\gamma)}\n= 1 + \\frac{1}{4}\\,\\gamma - \\frac{N^2}{6}\\,\\gamma^2\n+ O(\\gamma^3).\n\\end{equation}\nIn particular,\n$\\kappa_1 = \\lim_{\\gamma \\to 0}[\\Psi/F_0^Y - 1]/\\gamma = 1/4$,\nindependent of $\\sigma$, $T$, and~$N$.",
+      "section_number": "5.5",
+      "label": {
+        "zh": "GBM两项展开",
+        "en": "Two-term expansion under GBM"
+      },
+      "key_ideas": {
+        "zh": [
+          "风险中性GBM",
+          "二阶修正"
+        ],
+        "en": [
+          "risk-neutral GBM",
+          "second-order correction"
+        ]
+      }
+    },
+    {
+      "id": "cor:crossover",
+      "env": "corollary",
+      "statement_tex": "The relative correction $\\Psi/F_0^Y - 1$ changes sign at\n\\begin{equation}\\label{eq:gamma_star}\n\\gamma^* = \\frac{3}{2N^2}.\n\\end{equation}\nFor $\\gamma < \\gamma^*$, the asymptotic formula underestimates\nfees; for $\\gamma > \\gamma^*$, it overestimates.",
+      "section_number": "5.5",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:boundary_eff",
+      "env": "proposition",
+      "statement_tex": "Under the diffusion \\eqref{eq:general_sde} with scale function $S$,\nthe upcrossing probability at the boundary tick $x_b$ (reaching\n$x_b + h$ before $a_\\ell$) is\n\\begin{equation}\\label{eq:p_boundary}\np_b(\\delta, h) = \\frac{S(\\varepsilon)}{S(h + \\varepsilon)}\n= \\frac{S((1-\\delta)h)}{S((2-\\delta)h)}.\n\\end{equation}\nUnder GBM ($\\alpha = 1$):\n\\begin{equation}\\label{eq:p_boundary_gbm}\np_b(\\delta, h) = \\frac{e^{(1-\\delta)h} - 1}{e^{(2-\\delta)h} - 1}.\n\\end{equation}\nThe boundary tick efficiency ratio, defined as $p_b/p_\\uparrow$, satisfies\n\\begin{equation}\\label{eq:R_delta}\nR(\\delta) \\coloneqq \\lim_{h \\to 0}\\frac{p_b(\\delta, h)}{p_\\uparrow(h)}\n= \\frac{2(1-\\delta)}{2-\\delta}.\n\\end{equation}",
+      "section_number": "6.2",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "prop:R_properties",
+      "env": "proposition",
+      "statement_tex": "The boundary tick efficiency $R(\\delta) = 2(1-\\delta)/(2-\\delta)$\nsatisfies:\n\\begin{enumerate}[label=(\\alph*)]\n\\item $R(0) = 1$ \\textup{(aligned: full efficiency)}.\n\\item $R(\\delta)$ is strictly decreasing on $[0, 1)$.\n\\item $R(1/2) = 2/3$ \\textup{(half-tick offset: $67\\%$ efficiency)}.\n\\item $R(\\delta) \\to 0$ as $\\delta \\to 1^-$\n\\textup{(boundary at tick: zero efficiency)}.\n\\item $R'(\\delta) = -2/(2-\\delta)^2 < 0$ for all\n$\\delta \\in [0,1)$.\n\\item $R(\\delta)$ is a \\textup{rational} function of $\\delta$.\n\\end{enumerate}",
+      "section_number": "6.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    },
+    {
+      "id": "thm:misaligned",
+      "env": "theorem",
+      "statement_tex": "For an LP range with fractional offset $\\delta$ at the lower boundary\nand $\\delta'$ at the upper boundary, each with $N$ interior ticks, the\ntotal fee correction acquires an additional first-order term:\n\\begin{equation}\\label{eq:misaligned_correction}\n\\frac{\\Psi_{\\mathrm{mis}}}{\\Psi_{\\mathrm{align}}}\n= 1 - \\frac{1}{N}\\Bigl[\\frac{\\delta}{2-\\delta}\n+ \\frac{\\delta'}{2-\\delta'}\\Bigr] + O(N^{-2}),\n\\end{equation}\nwhere $\\Psi_{\\mathrm{align}}$ is the aligned fee from\nTheorem~\\ref{thm:main}. The correction is always non-positive,\nwith equality if and only if both boundaries are aligned\n($\\delta = \\delta' = 0$).",
+      "section_number": "6.4",
+      "label": {
+        "zh": "错位修正定理",
+        "en": "Misaligned boundary correction theorem"
+      },
+      "key_ideas": {
+        "zh": [
+          "空间错位",
+          "有理函数修正"
+        ],
+        "en": [
+          "spatial misalignment",
+          "rational correction function"
+        ]
+      }
+    },
+    {
+      "id": "prop:optimal_N",
+      "env": "proposition",
+      "statement_tex": "The fee-maximizing number of ticks under the corrected formula\nsatisfies\n\\begin{equation}\\label{eq:N_corrected}\nN^*_{\\mathrm{corr}} = N^*_{\\mathrm{EGM}}\n\\Bigl(1 - \\frac{(N^*_{\\mathrm{EGM}})^2\\,\\gamma^2}{2}\n+ O(\\gamma)\\Bigr).\n\\end{equation}\nThe correction is always negative: the finite-tick effect reduces the\noptimal range width.",
+      "section_number": "7.3",
+      "label": {
+        "zh": "",
+        "en": ""
+      },
+      "key_ideas": {
+        "zh": [],
+        "en": []
+      }
+    }
+  ],
+  "sections": [
+    {
+      "number": "1",
+      "title_tex": "Introduction"
+    },
+    {
+      "number": "1.1",
+      "title_tex": "Concentrated liquidity in automated market makers"
+    },
+    {
+      "number": "1.2",
+      "title_tex": "The EGM asymptotic framework"
+    },
+    {
+      "number": "1.3",
+      "title_tex": "Our contributions"
+    },
+    {
+      "number": "1.4",
+      "title_tex": "Mathematical structure: two sources of correction"
+    },
+    {
+      "number": "1.5",
+      "title_tex": "Connection to discrete barrier corrections"
+    },
+    {
+      "number": "1.6",
+      "title_tex": "Related work"
+    },
+    {
+      "number": "1.7",
+      "title_tex": "Organization"
+    },
+    {
+      "number": "2",
+      "title_tex": "Setup"
+    },
+    {
+      "number": "2.1",
+      "title_tex": "Price dynamics and the log-price process"
+    },
+    {
+      "number": "2.2",
+      "title_tex": "Tick grid and LP positions"
+    },
+    {
+      "number": "2.3",
+      "title_tex": "Scale function and crossing probabilities"
+    },
+    {
+      "number": "2.4",
+      "title_tex": "Local time and occupation density"
+    },
+    {
+      "number": "2.5",
+      "title_tex": "Fee structure and the crossing-count representation"
+    },
+    {
+      "number": "2.6",
+      "title_tex": "The EGM asymptotic formula"
+    },
+    {
+      "number": "3",
+      "title_tex": "The General First-Order Correction"
+    },
+    {
+      "number": "3.1",
+      "title_tex": "Prefactor expansion"
+    },
+    {
+      "number": "3.2",
+      "title_tex": "The weight function and its derivative at the origin"
+    },
+    {
+      "number": "3.3",
+      "title_tex": "Euler--Maclaurin correction from the Riemann sum"
+    },
+    {
+      "number": "3.4",
+      "title_tex": "The main theorem: general $\\kappa_1$"
+    },
+    {
+      "number": "3.5",
+      "title_tex": "Special cases"
+    },
+    {
+      "number": "4",
+      "title_tex": "The $f'(0) = 0$ Cancellation: A Structural Analysis"
+    },
+    {
+      "number": "4.1",
+      "title_tex": "The cancellation condition"
+    },
+    {
+      "number": "4.2",
+      "title_tex": "Geometric interpretation"
+    },
+    {
+      "number": "4.3",
+      "title_tex": "Consequences for LP strategy"
+    },
+    {
+      "number": "4.4",
+      "title_tex": "The decomposition table"
+    },
+    {
+      "number": "5",
+      "title_tex": "The Full Two-Term Expansion under GBM"
+    },
+    {
+      "number": "5.1",
+      "title_tex": "Exact crossing-count formula"
+    },
+    {
+      "number": "5.2",
+      "title_tex": "Prefactor under GBM"
+    },
+    {
+      "number": "5.3",
+      "title_tex": "Euler--Maclaurin analysis under GBM"
+    },
+    {
+      "number": "5.4",
+      "title_tex": "Weight-function discrepancy: the second-order term"
+    },
+    {
+      "number": "5.5",
+      "title_tex": "Main theorem under GBM"
+    },
+    {
+      "number": "6",
+      "title_tex": "Misaligned Range Boundaries"
+    },
+    {
+      "number": "6.1",
+      "title_tex": "Setup and definitions"
+    },
+    {
+      "number": "6.2",
+      "title_tex": "Boundary tick crossing probability"
+    },
+    {
+      "number": "6.3",
+      "title_tex": "Properties of the efficiency function"
+    },
+    {
+      "number": "6.4",
+      "title_tex": "The misalignment correction to fee revenue"
+    },
+    {
+      "number": "6.5",
+      "title_tex": "Comparison with the BGK barrier correction"
+    },
+    {
+      "number": "6.6",
+      "title_tex": "General scale function"
+    },
+    {
+      "number": "7",
+      "title_tex": "Optimal Range Width"
+    },
+    {
+      "number": "7.1",
+      "title_tex": "LP revenue decomposition"
+    },
+    {
+      "number": "7.2",
+      "title_tex": "Uncorrected optimum"
+    },
+    {
+      "number": "7.3",
+      "title_tex": "Corrected optimum"
+    },
+    {
+      "number": "7.4",
+      "title_tex": "Practical impact"
+    },
+    {
+      "number": "8",
+      "title_tex": "Numerical Validation"
+    },
+    {
+      "number": "8.1",
+      "title_tex": "General $\\kappa_1$ formula"
+    },
+    {
+      "number": "8.2",
+      "title_tex": "GBM two-term expansion"
+    },
+    {
+      "number": "8.3",
+      "title_tex": "Sensitivity analysis"
+    },
+    {
+      "number": "8.4",
+      "title_tex": "Sensitivity to time horizon"
+    },
+    {
+      "number": "8.5",
+      "title_tex": "Misalignment correction"
+    },
+    {
+      "number": "8.6",
+      "title_tex": "Physical-measure corrections for crypto assets"
+    },
+    {
+      "number": "8.7",
+      "title_tex": "Practical fee-tier summary"
+    },
+    {
+      "number": "9",
+      "title_tex": "Discussion"
+    },
+    {
+      "number": "9.1",
+      "title_tex": "Economic implications"
+    },
+    {
+      "number": "9.2",
+      "title_tex": "Connection to discrete barrier option corrections"
+    },
+    {
+      "number": "9.3",
+      "title_tex": "Extensions and open problems"
+    },
+    {
+      "number": "10",
+      "title_tex": "Conclusion"
+    },
+    {
+      "number": "11",
+      "title_tex": "Detailed Taylor Expansion of the Prefactor"
+    },
+    {
+      "number": "11.1",
+      "title_tex": "Expansion of $\\gamma/h$"
+    },
+    {
+      "number": "11.2",
+      "title_tex": "Expansion of $e^{h/2} - 1$"
+    },
+    {
+      "number": "11.3",
+      "title_tex": "Expansion of $1/(1 + e^{\\alpha h})$"
+    },
+    {
+      "number": "11.4",
+      "title_tex": "Full expansion of $c(h)$"
+    },
+    {
+      "number": "12",
+      "title_tex": "Scale Function Computations"
+    },
+    {
+      "number": "12.1",
+      "title_tex": "General constant-drift diffusion"
+    },
+    {
+      "number": "12.2",
+      "title_tex": "Boundary efficiency for general $\\alpha$"
+    },
+    {
+      "number": "13",
+      "title_tex": "Proof of the Misalignment Theorem"
+    },
+    {
+      "number": "14",
+      "title_tex": "Second-Order Expansion Details"
+    },
+    {
+      "number": "14.1",
+      "title_tex": "Second derivative of $\\E[L^x_T]$"
+    },
+    {
+      "number": "14.2",
+      "title_tex": "Second derivative of $f$"
+    },
+    {
+      "number": "14.3",
+      "title_tex": "Second derivative of $g$"
+    },
+    {
+      "number": "14.4",
+      "title_tex": "Difference"
+    }
+  ],
+  "related_papers": [
+    {
+      "slug": "uniswap_tick_correction",
+      "relation": "shared_domain",
+      "note": "Both analyze tick-grid discretization effects on Uniswap v3 LP fee revenue."
+    }
+  ],
+  "figures": [],
+  "generation": {
+    "model": "claude-sonnet-4-6",
+    "generated_at": "2026-04-16T01:35:59.622322+00:00",
+    "prompt_version": "v1",
+    "langs": []
+  },
+  "repo": "realresearch",
+  "repo_root": "E:/Anaconda/Realresearch",
+  "project_id": null,
+  "quality": {
+    "tier": "A",
+    "significance_score": 9,
+    "significance_max": 16,
+    "critic_verdict": "PASS_WITH_MAJOR",
+    "dimensions": {
+      "correctness": "acceptable",
+      "rigor": "acceptable",
+      "novelty": "acceptable",
+      "framing": "strong",
+      "coherence": "strong"
+    },
+    "assessed_by": "unified_critic"
+  }
+}
