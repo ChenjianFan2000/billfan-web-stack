@@ -1,0 +1,32 @@
+[Unit]
+Description=Dankou Comedy live voting
+After=network.target
+
+[Service]
+Type=simple
+User=dankou-vote
+Group=dankou-vote
+WorkingDirectory=/opt/dankou-vote/current
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=/etc/dankou-vote/vote.env
+# SSE broker and admin revisions are process-local: keep exactly ONE worker.
+ExecStart=/opt/dankou-vote/current/.venv/bin/python -m uvicorn services.vote.app:app --host 127.0.0.1 --port 8020 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1 --backlog 1024 --timeout-keep-alive 5 --timeout-graceful-shutdown 5 --no-access-log
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+KillSignal=SIGINT
+LimitNOFILE=16384
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/var/lib/dankou-vote
+
+[Install]
+WantedBy=multi-user.target

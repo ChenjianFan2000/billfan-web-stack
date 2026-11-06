@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#991401">
+  <meta name="description" content="旦口喜剧大赛现场投票。为喜欢的选手投上一票，把笑声留在现场。">
+  <meta name="referrer" content="no-referrer">
+  <title>现场投票 · 旦口喜剧大赛</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css?v=1">
+  <script type="module" src="/app.js?v=1"></script>
+</head>
+<body data-page="vote">
+  <a class="skip-link" href="#main">跳到投票区域</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="旦口喜剧，现场投票"><img src="/assets/brand-logo.jpg" width="48" height="48" alt="旦口喜剧"><span><strong>旦口喜剧</strong><small>DANKOU COMEDY</small></span></a>
+      <button class="connection" id="connection" type="button" title="点击重新同步"><span class="status-dot"></span><span>正在连接</span></button>
+    </header>
+    <div class="offline-banner" id="network-banner" hidden role="status"></div>
+    <main id="main" class="public-main">
+      <div class="page-heading"><div><p class="eyebrow">THE LAUGH IS YOURS.</p><h1>你的笑声，<span>这一票。</span></h1></div><span class="edition-stamp">LIVE<br>VOTING</span></div>
+      <section class="ticket" aria-labelledby="performer-name">
+        <div class="ticket-top"><span class="section-kicker"><i class="live-dot"></i>正在舞台上</span><span id="round-number" class="ticket-serial">NO. —</span></div>
+        <div class="performer-body"><div class="performer-info"><span id="voting-state" class="badge pending">等待开场</span><h2 id="performer-name">好戏，即将开场</h2><p id="performer-group" class="performer-group">主持人选定选手后，就可以在这里投票</p></div><img class="mascot" src="/assets/mascot-jump.jpg" width="102" height="108" alt="旦口吉祥物为你加油"></div>
+        <div class="ticket-perforation" aria-hidden="true"></div>
+        <div class="vote-area"><button id="vote-button" class="vote-button" type="button" disabled><span class="vote-icon" aria-hidden="true">＋</span><span id="vote-label">正在连接现场</span><span class="vote-arrow" aria-hidden="true">↗</span></button><p id="vote-note" class="vote-note" aria-live="polite">正在找回你的投票状态…</p></div>
+        <div id="released-votes" class="released-votes" hidden></div>
+        <ul id="current-adjustments" class="adjustment-list" hidden></ul>
+      </section>
+      <section class="chat-section" aria-labelledby="chat-heading">
+        <div class="section-heading"><div><span class="eyebrow">LIVE VOICES</span><h2 id="chat-heading">让笑声，有回响<span class="small-spark" aria-hidden="true">✳</span></h2></div><button id="motion-toggle" class="text-button" type="button" aria-pressed="false">暂停飘动</button></div>
+        <div class="danmaku-stage" id="danmaku-stage" aria-label="现场弹幕，文字也会显示在下方消息列表"><span class="stage-caption">DANKOU · LIVE</span><div id="admin-announcement" class="admin-announcement" hidden></div><p id="chat-empty" class="chat-empty">今天的快乐，从你的第一条弹幕开始。</p><div id="danmaku-tracks" class="danmaku-tracks" aria-hidden="true"></div><span class="stage-star" aria-hidden="true">✦</span></div>
+        <form id="message-form" class="message-form"><label class="sr-only" for="message-input">发送现场弹幕</label><input id="message-input" name="message" type="text" maxlength="80" placeholder="此刻想说点什么？" autocomplete="off" enterkeyhint="send"><button id="send-message" type="submit" aria-label="发送弹幕" disabled>发送 <span aria-hidden="true">↗</span></button></form>
+        <div class="message-meta"><span id="message-hint">友好发言，让快乐被大家看见</span><span id="message-count">0 / 80</span></div>
+        <ul id="message-list" class="message-list" aria-label="最新弹幕"></ul>
+      </section>
+      <div class="quiet-footer"><span>把掌声送给每一份勇敢。</span><button type="button" class="text-button identity-help">我的投票记忆</button></div>
+    </main>
+    <footer class="desktop-footer">旦口喜剧 · EVERY LAUGH COUNTS.</footer>
+  </div>
+  <nav class="bottom-nav" aria-label="主导航"><a href="/" class="active" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 3-2 3 2v7H9zM5 9H3v12h18V9h-2M8 15h8"/></svg><span>现场投票</span></a><a href="/players"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span>选手名单</span></a></nav>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <div id="identity-dialog" class="modal-backdrop" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="identity-title" tabindex="-1"><button class="modal-close" type="button" aria-label="关闭">×</button><span class="eyebrow">MY VOTE MEMORY</span><h2 id="identity-title">你的每一票，都记得。</h2><p>同一浏览器再次进入时，会自动找回你的投票。切出去再回来，未锁票的选择仍然可以修改。</p><p class="muted">如果清空了浏览器数据、更换浏览器或使用无痕模式，自动识别可能失效。保存恢复链接，可以主动找回原来的记录。</p><button id="copy-recovery" class="button primary full" type="button">复制我的恢复链接</button><p class="fine-print">恢复链接代表你的投票身份，请只留给自己。</p><details><summary>我有之前的恢复链接</summary><form id="recovery-form"><label for="recovery-input">粘贴链接或恢复码</label><input id="recovery-input" type="text" autocomplete="off" placeholder="在这里粘贴"><button class="button full" type="submit">恢复原来的投票</button></form></details><div id="copy-fallback" hidden><label for="recovery-output">长按复制此链接</label><textarea id="recovery-output" readonly rows="3"></textarea></div></section></div>
+  <noscript><div class="noscript">请开启浏览器 JavaScript 后使用现场投票。</div></noscript>
+</body>
+</html>
